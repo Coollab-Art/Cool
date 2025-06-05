@@ -19,6 +19,7 @@ VideoExportProcess::VideoExportProcess(VideoExportParams const& params, TimeSpee
     : _folder_path{folder_path}
     , _size{size}
     , _clock{params.fps}
+    , _fps{params.fps}
     , _total_nb_of_frames_in_sequence{static_cast<int64_t>(std::ceil((params.end - params.beginning).as_seconds_double() * params.fps))}
     , _frame_numbering_offset{static_cast<int64_t>(std::ceil(params.beginning.as_seconds_double() * params.fps))} // Makes sure than if we export frames from 0 to 10 seconds, and then decide to extend that video and export frames from 10 to 20 seconds, that second batch of frames will have numbers that follow the ones of the first batch, allowing us to create a unified image sequence with numbers that match up.
 {
@@ -40,6 +41,7 @@ bool VideoExportProcess::update(Polaroid const& polaroid)
     if (_nb_frames_which_finished_exporting.load() == _total_nb_of_frames_in_sequence)
     {
         ImGuiNotify::send(ExporterU::notification_after_video_export_success(_folder_path));
+        create_video_from_frames();
         return true; // The export is finished
     }
 
@@ -56,6 +58,24 @@ bool VideoExportProcess::update(Polaroid const& polaroid)
     update_time_estimate();
 
     return false;
+}
+
+void VideoExportProcess::create_video_from_frames()
+{
+    int64_t first_frame = origin_of_frames + _frame_numbering_offset;
+
+    std::string output_video = (_folder_path / "output.mov").string();
+
+    // FFmpeg command with ProRes 4444 codec (supports alpha channel)
+    std::string cmd = "ffmpeg -y -framerate " + std::to_string(_fps) + " -start_number " + std::to_string(first_frame) + " -i \"" + (_folder_path / "%d.png").string() + "\"" + " -vcodec prores_ks -pix_fmt yuva444p10le -profile:v 4444 -q:v 0 \"" + output_video + "\"";
+
+    // Execute FFmpeg command
+    int result = std::system(cmd.c_str());
+
+    if (result != 0)
+    {
+        ImGuiNotify::send(ExporterU::notification_after_video_export_canceled(_folder_path));
+    }
 }
 
 void VideoExportProcess::update_time_estimate()
