@@ -21,11 +21,13 @@ private:
     auto estimated_remaining_time() -> Time;
     void update_time_estimate();
     void export_frame(Polaroid const& polaroid, std::filesystem::path const& file_path);
+    void create_video_from_frames();
 
 private:
     std::filesystem::path _folder_path;
     img::Size             _size;
     Clock_FixedTimestep   _clock;
+    double                _fps;
 
     int64_t              _nb_frames_sent_to_thread_pool{0};
     std::atomic<int64_t> _nb_frames_which_finished_exporting{0};
