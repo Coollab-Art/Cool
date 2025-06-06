@@ -123,7 +123,7 @@ void TaskManager::update_on_main_thread()
         auto lock = std::unique_lock{_tasks_to_process_mutex};
         for (auto const& task : tasks_to_start)
         {
-            _all_tasks_in_progress.emplace_back(task, task->execute());
+            _all_tasks_in_progress.emplace_back(TaskAndCoroutine{task, task->execute()});
             _tasks_to_process.push_back(&_all_tasks_in_progress.back());
             _wake_up_thread.notify_one();
         }

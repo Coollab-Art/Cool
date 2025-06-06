@@ -123,7 +123,7 @@ auto VideoExportProcess::estimated_remaining_time() -> Time
 
     return Time::seconds(
         nb_frames_to_render * _average_time_between_two_renders
-        + static_cast<double>(bob + _next_tasks.size()) * _average_export_time / static_cast<double>(task_manager().threads_count())
+        + static_cast<double>(bob + static_cast<float>(_next_tasks.size())) * _average_export_time / static_cast<double>(task_manager().threads_count())
         + 1.
     );
 }
