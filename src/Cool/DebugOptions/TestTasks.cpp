@@ -47,7 +47,7 @@ private:
 private:
     int _iterations_count;
 
-    BENCHMARK(name(), DebugOptions::benchmark_test_tasks());
+    BENCHMARK(name(), DebugOptions::benchmark_test_tasks())
 };
 
 class Task_SayHello : public Task {
