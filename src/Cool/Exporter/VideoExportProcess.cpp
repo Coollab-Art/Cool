@@ -95,7 +95,7 @@ void VideoExportProcess::update_time_estimate()
 
 auto VideoExportProcess::estimated_remaining_time() -> Time
 {
-    auto const frame_count = _nb_frames_which_finished_exporting.load();
+    // auto const frame_count = _nb_frames_which_finished_exporting.load();
 
     // float bob{0.f};
     // for (auto const& task : _tasks_in_progress)
