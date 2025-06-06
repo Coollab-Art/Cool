@@ -1,4 +1,5 @@
 #include "StyleEditor.h"
+#include "Cool/ImGui/apply_imgui_style_scale.hpp"
 #include "Cool/Nodes/nodes_style_editor.h"
 #include "Cool/Serialization/Json.hpp"
 #include "ImGuiExtras.h"
@@ -155,7 +156,7 @@ void StyleEditor::imgui()
     if (b)
     {
         _serializer.save();
-        need_to_apply_imgui_style_scale() = true;
+        apply_imgui_style_scale();
     }
 }
 

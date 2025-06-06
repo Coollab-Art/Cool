@@ -1,6 +1,6 @@
 #include "UserSettings.h"
 #include "Cool/ImGui/ImGuiExtras.h"
-#include "Cool/ImGui/need_to_apply_imgui_style_scale.hpp"
+#include "Cool/ImGui/apply_imgui_style_scale.hpp"
 #include "Cool/Input/CTRL_OR_CMD.hpp"
 #include "Cool/UI Scale/need_to_rebuild_fonts.hpp"
 #include "Cool/UI Scale/ui_scale.hpp"
@@ -124,14 +124,14 @@ void UserSettings::set_ui_zoom(float zoom)
 
 void UserSettings::apply_ui_zoom() const
 {
-    need_to_rebuild_fonts()           = true;
-    need_to_apply_imgui_style_scale() = true;
+    need_to_rebuild_fonts() = true;
+    apply_imgui_style_scale();
 }
 
 void UserSettings::apply_ui_zoom_preview() const
 {
-    ImGui::GetIO().FontGlobalScale    = Cool::ui_scale() / _ui_scale_at_the_beginning_of_preview;
-    need_to_apply_imgui_style_scale() = true;
+    ImGui::GetIO().FontGlobalScale = Cool::ui_scale() / _ui_scale_at_the_beginning_of_preview;
+    apply_imgui_style_scale();
 }
 
 void UserSettings::apply_multi_viewport_setting() const

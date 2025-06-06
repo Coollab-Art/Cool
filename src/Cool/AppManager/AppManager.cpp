@@ -8,7 +8,7 @@
 #include "Cool/ImGui/Fonts.h"
 #include "Cool/ImGui/ImGuiExtrasStyle.h"
 #include "Cool/ImGui/StyleEditor.h"
-#include "Cool/ImGui/apply_imgui_style_scale_ifn.hpp"
+#include "Cool/ImGui/apply_imgui_style_scale.hpp"
 #include "Cool/ImGui/need_to_apply_imgui_style_scale.hpp"
 #include "Cool/Input/MouseButtonEvent.h"
 #include "Cool/Input/MouseCoordinates.h"
@@ -254,7 +254,7 @@ void AppManager::update()
 
     restore_imgui_ini_state_ifn(); // Must be done before imgui_new_frame() (this is a constraint from Dear ImGui (https://github.com/ocornut/imgui/issues/6263#issuecomment-1479727227))
     imgui_build_fonts_ifn();       // Must be done before imgui_new_frame()
-    apply_imgui_style_scale_ifn(); // Must be done before imgui_new_frame()
+    apply_imgui_style_scale_ifn();
 
     imgui_new_frame();
     check_for_imgui_item_picker_request();
