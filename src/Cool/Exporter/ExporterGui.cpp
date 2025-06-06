@@ -145,17 +145,15 @@ auto ExporterGui::begin_video_export(std::optional<VideoExportProcess>& video_ex
     if (!user_accepted_our_frames_overwrite_behaviour())
         return false;
 
-    if (File::create_folders_if_they_dont_exist(folder_path_for_video()))
+    if (!File::create_folders_if_they_dont_exist(folder_path_for_video()))
     {
-        video_export_process.emplace(_video_export_params, time_speed, folder_path_for_video(), _export_size);
-        on_video_export_start();
-        return true;
-    }
-    else
-    {
-        ImGuiNotify::send(ExporterU::notification_after_video_export_failure("Maybe you are not allowed to save files in this folder?"));
+        ImGuiNotify::send(ExporterU::notification_after_video_export_failure(folder_path_for_video(), "Maybe you are not allowed to save files in this folder?"));
         return false;
     }
+
+    video_export_process.emplace(_video_export_params, time_speed, folder_path_for_video(), _export_size);
+    on_video_export_start();
+    return true;
 }
 
 void ExporterGui::update(Polaroid const& polaroid, std::optional<VideoExportProcess>& video_export_process)

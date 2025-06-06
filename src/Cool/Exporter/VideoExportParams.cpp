@@ -3,18 +3,18 @@
 #include <cstdint>
 #include "Cool/ImGui/IcoMoonCodepoints.h"
 #include "Cool/ImGui/ImGuiExtras.h"
-#include "internal/origin_of_frames.h"
+#include "internal/ORIGIN_OF_FRAMES.hpp"
 
 namespace Cool {
 
 static auto time_to_frames(Time time, double fps) -> int64_t
 {
-    return static_cast<int64_t>(std::ceil(time.as_seconds_double() * fps)) + origin_of_frames;
+    return static_cast<int64_t>(std::ceil(time.as_seconds_double() * fps)) + ORIGIN_OF_FRAMES;
 }
 
 static auto frames_to_time(int64_t frame, double fps) -> Time
 {
-    return Time::seconds(static_cast<double>(frame - origin_of_frames) / fps);
+    return Time::seconds(static_cast<double>(frame - ORIGIN_OF_FRAMES) / fps);
 }
 
 void VideoExportParams::imgui()
@@ -38,7 +38,7 @@ void VideoExportParams::imgui()
     }
     else
     {
-        ImGui::PushItemWidth(ImGui::CalcTextSize(std::to_string(origin_of_frames).c_str()).x + 2.f * ImGui::GetStyle().FramePadding.x);
+        ImGui::PushItemWidth(ImGui::CalcTextSize(std::to_string(ORIGIN_OF_FRAMES).c_str()).x + 2.f * ImGui::GetStyle().FramePadding.x);
         ImGui::Text("From");
         ImGui::SameLine();
         {

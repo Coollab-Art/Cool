@@ -469,6 +469,8 @@ static void render_frame_node(internal::FrameNode const& node)
         // auto max = ed::GetGroupMax();
 
         ImGui::SetCursorScreenPos(min - ImVec2(-0.4f * ImGui::GetFontSize(), ImGui::GetTextLineHeightWithSpacing() + 0.2f * ImGui::GetFontSize()));
+
+        ImGui::Dummy({0.f, 0.f}); // Needed by ImGui after a SetCursorScreenPos
         ImGui::BeginGroup();
         ImGui::TextUnformatted(node.name.c_str());
         ImGui::EndGroup();

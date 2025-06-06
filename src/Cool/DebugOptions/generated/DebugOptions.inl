@@ -204,6 +204,7 @@ public:
 #if DEBUG
     [[nodiscard]] static auto imgui_item_picker() -> bool& { return instance().imgui_item_picker; }
 #endif
+    [[nodiscard]] static auto benchmark_test_tasks() -> bool& { return instance().benchmark_test_tasks; }
 
     static void save() { instance()._serializer.save(); }
 
@@ -250,6 +251,7 @@ private:
 #if DEBUG
         bool imgui_item_picker{false};
 #endif
+        bool benchmark_test_tasks{false};
 
         // Must be declared last, after all the variables it serializes, so that the values it loads overwrite the default values, and not the other way around
         Cool::JsonAutoSerializer _serializer
@@ -285,6 +287,7 @@ private:
                     Cool::json_get(json, "Color Themes: Editor", color_themes_editor);
                     Cool::json_get(json, "Color Themes: Advanced Config", color_themes_advanced_config_window);
                     Cool::json_get(json, "Show all icons", show_all_icons);
+                    Cool::json_get(json, "Benchmark test tasks", benchmark_test_tasks);
 #else
                     Cool::json_get(json, "Framerate window", show_framerate_window);
                     Cool::json_get(json, "ImGui Demo window", show_imgui_demo_window);
@@ -310,6 +313,7 @@ private:
                     Cool::json_get(json, "Style Editor", style_editor);
                     Cool::json_get(json, "Color Themes: Editor", color_themes_editor);
                     Cool::json_get(json, "Color Themes: Advanced Config", color_themes_advanced_config_window);
+                    Cool::json_get(json, "Benchmark test tasks", benchmark_test_tasks);
 #endif
                 },
                 [&](nlohmann::json& json) {
@@ -341,6 +345,7 @@ private:
                     Cool::json_set(json, "Color Themes: Editor", color_themes_editor);
                     Cool::json_set(json, "Color Themes: Advanced Config", color_themes_advanced_config_window);
                     Cool::json_set(json, "Show all icons", show_all_icons);
+                    Cool::json_set(json, "Benchmark test tasks", benchmark_test_tasks);
 #else
                     Cool::json_set(json, "Framerate window", show_framerate_window);
                     Cool::json_set(json, "ImGui Demo window", show_imgui_demo_window);
@@ -366,6 +371,7 @@ private:
                     Cool::json_set(json, "Style Editor", style_editor);
                     Cool::json_set(json, "Color Themes: Editor", color_themes_editor);
                     Cool::json_set(json, "Color Themes: Advanced Config", color_themes_advanced_config_window);
+                    Cool::json_set(json, "Benchmark test tasks", benchmark_test_tasks);
 #endif
                 },
                 false /*use_shared_user_data*/,
@@ -426,6 +432,7 @@ private:
 #if DEBUG
         instance().show_all_icons = false;
 #endif
+        instance().benchmark_test_tasks = false;
         save();
     }
 
@@ -624,6 +631,12 @@ private:
         }
 
 #endif
+
+        if (wafl::similarity_match({filter, "Benchmark test tasks"}) >= wafl::Matches::Strongly)
+        {
+            if (Cool::ImGuiExtras::toggle("Benchmark test tasks", &instance().benchmark_test_tasks))
+                save();
+        }
     }
 
     static void toggle_first_option(std::string_view filter)
@@ -834,6 +847,13 @@ private:
         }
 
 #endif
+
+        if (wafl::similarity_match({filter, "Benchmark test tasks"}) >= wafl::Matches::Strongly)
+        {
+            instance().benchmark_test_tasks = !instance().benchmark_test_tasks;
+            save();
+            throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
+        }
     }
 };
 

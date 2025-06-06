@@ -171,6 +171,11 @@ def all_debug_options():
             kind=Kind.BUTTON,
             detailed_description='Allows you to click on any ImGui widget and have your IDE break on it, allowing you to find the source code that generated it.\\nShortcut: "CTRL_OR_CMD" + SHIFT + I',
         ),
+        DebugOption(
+            name_in_code="benchmark_test_tasks",
+            name_in_ui="Benchmark test tasks",
+            available_in_release=True,
+        ),
     ]
 
 
