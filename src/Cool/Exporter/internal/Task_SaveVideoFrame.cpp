@@ -8,7 +8,7 @@ namespace Cool {
 
 auto Task_SaveVideoFrame::execute() -> TaskCoroutine
 {
-    auto const begin = std::chrono::steady_clock::now();
+    auto const start = std::chrono::steady_clock::now();
 
     auto const result = ImageU::save(
         _file_path, *_image,
@@ -27,11 +27,10 @@ auto Task_SaveVideoFrame::execute() -> TaskCoroutine
         co_return;
     }
 
-    auto const end        = std::chrono::steady_clock::now();
-    auto const delta_time = std::chrono::duration<float>{end - begin};
+    auto const end = std::chrono::steady_clock::now();
     {
-        auto lock = std::unique_lock{*_average_export_time_mutex};
-        _average_export_time->push(delta_time.count());
+        auto lock = std::unique_lock{*_average_save_time_mutex};
+        _average_save_time->push(Time{end - start}.as_seconds_double());
     }
     (*_nb_frames_which_finished_exporting)++;
 }
