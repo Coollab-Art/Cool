@@ -27,11 +27,10 @@ private:
     img::Size             _size;
     Clock_FixedTimestep   _clock;
 
-    int64_t              _nb_frames_sent_to_thread_pool{0};
-    std::atomic<int64_t> _nb_frames_which_finished_exporting{0};
+    int64_t              _nb_frames_rendered{0};
+    std::atomic<int64_t> _nb_frames_saved{0};
+    int64_t              _next_frame_number;
     int64_t              _total_nb_of_frames_in_sequence;
-    // int64_t              _frame_numbering_offset;
-    int64_t _next_frame_number;
 
     std::atomic<bool> _failure_has_been_reported{false};
 
