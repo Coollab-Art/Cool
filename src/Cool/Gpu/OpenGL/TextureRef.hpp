@@ -9,7 +9,7 @@ struct TextureRef {
     auto width() const { return size.width(); }
     auto height() const { return size.height(); }
 
-    [[nodiscard]] auto imgui_texture_id() const -> ImTextureID { return reinterpret_cast<ImTextureID>(static_cast<uint64_t>(id)); }
+    [[nodiscard]] auto imgui_texture_id() const -> ImTextureID { return static_cast<ImTextureID>(id); }
 
     auto download_pixels() const -> img::Image;
 };
