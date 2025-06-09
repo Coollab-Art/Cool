@@ -219,30 +219,20 @@ void image_framed(ImTextureID tex_id, const ImVec2& size, image_framed_options c
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
-    {
         return;
-    }
 
     ImGuiContext&     g     = *GImGui;
     const ImGuiStyle& style = g.Style;
 
-    // Default to using texture ID as ID. User can still push string/integer prefixes.
-    // We could hash the size/uv to create a unique ID but that would prevent the user from animating UV.
-    ImGui::PushID(tex_id);
-    const ImGuiID id = window->GetID("#image");
-    ImGui::PopID();
     const ImVec2 padding = o.frame_thickness ? ImVec2(*o.frame_thickness, *o.frame_thickness) : style.FramePadding;
     const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size + padding * 2);
     const ImRect image_bb(window->DC.CursorPos + padding, window->DC.CursorPos + padding + size);
     ImGui::ItemSize(bb);
-    if (!ImGui::ItemAdd(bb, id))
-    {
+    if (!ImGui::ItemAdd(bb, 0))
         return;
-    }
 
     // Render
     const ImU32 frameCol = o.frame_color.w > 0.0f ? ImGui::GetColorU32(o.frame_color) : ImGui::GetColorU32(ImGuiCol_Button);
-    ImGui::RenderNavCursor(bb, id);
     ImGui::RenderFrame(bb.Min, bb.Max, frameCol, true, ImClamp(ImMin(padding.x, padding.y), 0.0f, style.FrameRounding));
     ImGui::RenderFrame(image_bb.Min, image_bb.Max, ImGui::GetColorU32(o.background_color), true, ImClamp((float)ImMin(padding.x, padding.y), 0.0f, style.FrameRounding));
     if (o.background_texture_id.has_value())
