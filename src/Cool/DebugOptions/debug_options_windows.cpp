@@ -70,9 +70,11 @@ void debug_options_windows(TipsManager* tips_manager, Window& main_window)
             test_tips(*tips_manager);
         });
 
+#if defined(DEBUG)
     DebugOptions::color_themes_advanced_config_window([]() {
         color_themes()->imgui_advanced_config();
     });
+#endif
 
 #if defined(DEBUG)
     DebugOptions::show_all_icons([]() {
