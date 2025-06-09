@@ -242,11 +242,11 @@ void image_framed(ImTextureID tex_id, const ImVec2& size, image_framed_options c
 
     // Render
     const ImU32 frameCol = o.frame_color.w > 0.0f ? ImGui::GetColorU32(o.frame_color) : ImGui::GetColorU32(ImGuiCol_Button);
-    ImGui::RenderNavHighlight(bb, id);
+    ImGui::RenderNavCursor(bb, id);
     ImGui::RenderFrame(bb.Min, bb.Max, frameCol, true, ImClamp(ImMin(padding.x, padding.y), 0.0f, style.FrameRounding));
     ImGui::RenderFrame(image_bb.Min, image_bb.Max, ImGui::GetColorU32(o.background_color), true, ImClamp((float)ImMin(padding.x, padding.y), 0.0f, style.FrameRounding));
-    if (o.background_texture_id != nullptr)
-        window->DrawList->AddImage(o.background_texture_id, image_bb.Min, image_bb.Max);
+    if (o.background_texture_id.has_value())
+        window->DrawList->AddImage(*o.background_texture_id, image_bb.Min, image_bb.Max);
     window->DrawList->AddImage(tex_id, image_bb.Min, image_bb.Max, ImVec2(0, o.flip_y ? 0.f : 1.f), ImVec2(1, o.flip_y ? 1.f : 0.f), ImGui::GetColorU32(o.tint_color));
 }
 
@@ -284,7 +284,6 @@ bool begin_popup_context_menu_from_button(const char* label, ImGuiPopupFlags pop
 void invisible_wrapper_around_previous_line(const char* str_id)
 {
     ImGui::SetCursorPos(ImGui::GetCursorPos() - ImVec2(0, 2 * ImGui::GetTextLineHeight()));
-    ImGui::Dummy({0.f, 0.f}); // Needed by ImGui after a SetCursorScreenPos
     ImGui::InvisibleButton(str_id, ImVec2(ImGui::GetWindowWidth(), 2 * ImGui::GetTextLineHeight()));
 }
 
@@ -462,16 +461,14 @@ void before_export_button(std::filesystem::path const& file_to_be_exported, Path
     ImGui::PopTextWrapPos();
 }
 
-void image_centered(ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col)
+void image_centered(ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1)
 {
     auto const prev_pos = ImGui::GetCursorScreenPos();
 
-    ImGui::SetCursorPos((ImGui::GetWindowSize() + ImVec2{0.f, ImGui::GetCurrentWindow()->TitleBarHeight()} - size) * 0.5f);
-    ImGui::Dummy({0.f, 0.f}); // Needed by ImGui after a SetCursorScreenPos
-    ImGui::Image(texture_id, size, uv0, uv1, tint_col, border_col);
+    ImGui::SetCursorPos((ImGui::GetWindowSize() + ImVec2{0.f, ImGui::GetCurrentWindow()->TitleBarHeight} - size) * 0.5f);
+    ImGui::Image(texture_id, size, uv0, uv1);
 
     ImGui::SetCursorScreenPos(prev_pos);
-    ImGui::Dummy({0.f, 0.f}); // Needed by ImGui after a SetCursorScreenPos
 }
 
 auto toggle_with_submenu(const char* label, bool* bool_p, std::function<bool()> const& submenu) -> bool
@@ -699,7 +696,6 @@ auto big_selectable(std::function<void()> const& widgets) -> bool
     };
 
     ImGui::SetCursorScreenPos(rectangle_start_pos);
-    ImGui::Dummy({0.f, 0.f}); // Needed by ImGui after a SetCursorScreenPos
     bool const pressed = ImGui::InvisibleButton("", rectangle_end_pos - rectangle_start_pos);
     if (ImGui::IsItemHovered())
     {
@@ -726,7 +722,6 @@ void link(std::string_view url, std::string_view label)
     auto const pos = ImGui::GetCursorPos();
     ImGui::Dummy({ImGui::CalcTextSize(label.data())});
     ImGui::SetCursorPos(pos);
-    ImGui::Dummy({0.f, 0.f}); // Needed by ImGui after a SetCursorScreenPos
     ImGuiExtras::markdown(fmt::format("[{}]({})", label, url));
 }
 
@@ -794,7 +789,7 @@ auto toggle(const char* label, bool* v) -> bool
     }
 
     const ImRect check_bb(pos, pos + ImVec2(width, height));
-    ImGui::RenderNavHighlight(total_bb, id);
+    ImGui::RenderNavCursor(total_bb, id);
 
     float const radius  = height * 0.5f;
     float const outline = 0.125f * ImGui::GetFontSize();
@@ -868,7 +863,6 @@ auto floating_button(const char* label, int index, bool align_vertically, bool i
 
     auto const prev_pos = ImGui::GetCursorScreenPos();
     ImGui::SetCursorPos(ImGui::GetWindowSize() - spacing);
-    ImGui::Dummy({0.f, 0.f}); // Needed by ImGui after a SetCursorScreenPos
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.8f * ui_scale());
     // clang-format off
@@ -881,7 +875,6 @@ auto floating_button(const char* label, int index, bool align_vertically, bool i
     ImGui::PopStyleVar();
 
     ImGui::SetCursorScreenPos(prev_pos);
-    ImGui::Dummy({0.f, 0.f}); // Needed by ImGui after a SetCursorScreenPos
     return b;
 }
 

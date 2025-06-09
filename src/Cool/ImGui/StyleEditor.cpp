@@ -64,6 +64,18 @@ StyleEditor::StyleEditor()
       }
 {}
 
+static const char* GetTreeLinesFlagsName(ImGuiTreeNodeFlags flags)
+{
+    if (flags == ImGuiTreeNodeFlags_DrawLinesNone)
+        return "DrawLinesNone";
+    if (flags == ImGuiTreeNodeFlags_DrawLinesFull)
+        return "DrawLinesFull";
+    if (flags == ImGuiTreeNodeFlags_DrawLinesToNodes)
+        return "DrawLinesToNodes";
+    assert(false);
+    return "";
+}
+
 void StyleEditor::imgui()
 {
     auto& style        = imgui_style_unscaled();
@@ -94,6 +106,8 @@ void StyleEditor::imgui()
     b |= ImGui::SliderFloat("FrameBorderSize", &style.FrameBorderSize, 0.0f, 1.0f, "%.3f");
     b |= ImGui::SliderFloat("TabBorderSize", &style.TabBorderSize, 0.0f, 1.0f, "%.3f");
     b |= ImGui::SliderFloat("TabBarBorderSize", &style.TabBarBorderSize, 0.0f, 2.0f, "%.3f");
+    b |= ImGui::SliderFloat("ImageBorderSize", &style.ImageBorderSize, 0.0f, 1.0f, "%.0f");
+    b |= ImGui::SliderFloat("TabBarOverlineSize", &style.TabBarOverlineSize, 0.0f, 3.0f, "%.0f");
     b |= ImGui::SliderFloat("DockingSplitterSize", &style.DockingSeparatorSize, 0.0f, 12.0f, "%.3f");
 
     ImGuiExtras::separator_text("Rounding");
@@ -107,11 +121,13 @@ void StyleEditor::imgui()
 
     ImGuiExtras::separator_text("Widgets");
     b |= ImGui::SliderFloat2("WindowTitleAlign", (float*)&style.WindowTitleAlign, 0.0f, 1.0f, "%.2f");
-    int window_menu_button_position = style.WindowMenuButtonPosition + 1;
-    if (ImGui::Combo("WindowMenuButtonPosition", (int*)&window_menu_button_position, "None\0Left\0Right\0"))
     {
-        style.WindowMenuButtonPosition = window_menu_button_position - 1;
-        b                              = true;
+        int window_menu_button_position = style.WindowMenuButtonPosition + 1;
+        if (ImGui::Combo("WindowMenuButtonPosition", (int*)&window_menu_button_position, "None\0Left\0Right\0"))
+        {
+            style.WindowMenuButtonPosition = (ImGuiDir)(window_menu_button_position - 1);
+            b                              = true;
+        }
     }
     b |= ImGui::Combo("ColorButtonPosition", (int*)&style.ColorButtonPosition, "Left\0Right\0");
     b |= ImGui::SliderFloat2("ButtonTextAlign", (float*)&style.ButtonTextAlign, 0.0f, 1.0f, "%.2f");
@@ -123,7 +139,11 @@ void StyleEditor::imgui()
     b |= ImGui::SliderFloat2("SeparatorTextPadding", (float*)&style.SeparatorTextPadding, 0.0f, 40.0f, "%0.f");
     b |= ImGui::SliderFloat("LogSliderDeadzone", &style.LogSliderDeadzone, 0.0f, 12.0f, "%.3f");
 
-    ImGui::SeparatorText("Tooltips");
+    ImGuiExtras::separator_text("Tabs");
+    b |= ImGui::DragFloat("TabCloseButtonMinWidthSelected", &style.TabCloseButtonMinWidthSelected, 0.1f, -1.0f, 100.0f, (style.TabCloseButtonMinWidthSelected < 0.0f) ? "%.0f (Always)" : "%.0f");
+    b |= ImGui::DragFloat("TabCloseButtonMinWidthUnselected", &style.TabCloseButtonMinWidthUnselected, 0.1f, -1.0f, 100.0f, (style.TabCloseButtonMinWidthUnselected < 0.0f) ? "%.0f (Always)" : "%.0f");
+
+    ImGuiExtras::separator_text("Tooltips");
     for (int n = 0; n < 2; n++)
     {
         if (ImGui::TreeNodeEx(n == 0 ? "HoverFlagsForTooltipMouse" : "HoverFlagsForTooltipNav"))
@@ -148,8 +168,29 @@ void StyleEditor::imgui()
     ImGuiExtras::separator_text("Tables");
     b |= ImGui::SliderFloat2("CellPadding", (float*)&style.CellPadding, 0.0f, 20.0f, "%.3f");
     b |= ImGui::SliderAngle("TableAngledHeadersAngle", &style.TableAngledHeadersAngle, -50.0f, +50.0f);
+    b |= ImGui::SliderFloat2("TableAngledHeadersTextAlign", (float*)&style.TableAngledHeadersTextAlign, 0.0f, 1.0f, "%.2f");
+
+    ImGuiExtras::separator_text("Trees");
+    {
+        bool combo_open = ImGui::BeginCombo("TreeLinesFlags", GetTreeLinesFlagsName(style.TreeLinesFlags));
+        ImGuiExtras::help_marker("[Experimental] Tree lines may not work in all situations (e.g. using a clipper) and may incurs slight traversal overhead.\n\nImGuiTreeNodeFlags_DrawLinesFull is faster than ImGuiTreeNodeFlags_DrawLinesToNode.");
+        if (combo_open)
+        {
+            const ImGuiTreeNodeFlags options[] = {ImGuiTreeNodeFlags_DrawLinesNone, ImGuiTreeNodeFlags_DrawLinesFull, ImGuiTreeNodeFlags_DrawLinesToNodes};
+            for (ImGuiTreeNodeFlags option : options)
+                if (ImGui::Selectable(GetTreeLinesFlagsName(option), style.TreeLinesFlags == option))
+                {
+                    style.TreeLinesFlags = option;
+                    b                    = true;
+                }
+            ImGui::EndCombo();
+        }
+    }
+    b |= ImGui::SliderFloat("TreeLinesSize", &style.TreeLinesSize, 0.0f, 2.0f, "%.0f");
+    b |= ImGui::SliderFloat("TreeLinesRounding", &style.TreeLinesRounding, 0.0f, 12.0f, "%.0f");
 
     ImGuiExtras::separator_text("Misc");
+    b |= ImGui::SliderFloat("WindowBorderHoverPadding", &style.WindowBorderHoverPadding, 1.0f, 20.0f, "%.0f");
     b |= ImGui::SliderFloat2("DisplaySafeAreaPadding", (float*)&style.DisplaySafeAreaPadding, 0.0f, 30.0f, "%.3f");
     ImGuiExtras::help_marker("Adjust if you cannot see the edges of your screen (e.g. on a TV where scaling has not been configured).");
 

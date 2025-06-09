@@ -191,7 +191,7 @@ static void check_for_imgui_item_picker_request()
 {
 #if DEBUG
     if (DebugOptions::imgui_item_picker()
-        || ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiMod_Shift | ImGuiKey_I))
+        || ImGui::IsKeyChordPressed(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_I))
     {
         ImGui::DebugStartItemPicker();
     }
@@ -294,12 +294,12 @@ static void imgui_new_frame()
 
 void AppManager::imgui_render(IApp& app)
 {
-    float window_title_height_bias = 0.f;
+    float title_bar_height_bias = 0.f;
 
     // Apply normal font. The default font is the bold one because the window titles can only use the default font. We then have to push the regular() font back.
-    window_title_height_bias += ImGui::GetFontSize();
+    title_bar_height_bias += ImGui::GetFontSize();
     ImGui::PushFont(Font::regular());
-    window_title_height_bias -= ImGui::GetFontSize();
+    title_bar_height_bias -= ImGui::GetFontSize();
 
     // Menu bar
     if (app.wants_to_show_menu_bar())
@@ -312,11 +312,11 @@ void AppManager::imgui_render(IApp& app)
     }
 
     // Apply normal FramePadding. The one stored in ImGui::GetStyle() is used by the window titles only.
-    window_title_height_bias += 2.f * ImGui::GetStyle().FramePadding.y;
+    title_bar_height_bias += 2.f * ImGui::GetStyle().FramePadding.y;
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImGuiExtras::GetStyle().frame_padding);
-    window_title_height_bias -= 2.f * ImGui::GetStyle().FramePadding.y;
+    title_bar_height_bias -= 2.f * ImGui::GetStyle().FramePadding.y;
 
-    ImGui::GetCurrentContext()->window_title_height_bias = window_title_height_bias;
+    ImGui::GetCurrentContext()->title_bar_height_bias = title_bar_height_bias;
 
     // Windows
     app.imgui_windows();

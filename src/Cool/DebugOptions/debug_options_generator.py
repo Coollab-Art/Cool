@@ -80,7 +80,7 @@ def option_implementation(debug_option: DebugOption):
                 {{
                     if (instance().{debug_option.name_in_code}) 
                     {{
-                        ImGui::Begin(Cool::icon_fmt("{window_name(debug_option)}", ICOMOON_WRENCH).c_str(), &instance().{debug_option.name_in_code}, ImGuiWindowFlags_NoFocusOnAppearing);
+                        ImGui::Begin(Cool::icon_fmt("{window_name(debug_option)}", ICOMOON_WRENCH).c_str(), &instance().{debug_option.name_in_code}, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
                         callback();
                         ImGui::End();
                         if (!instance().{debug_option.name_in_code}) // Window has just been closed manually by the user

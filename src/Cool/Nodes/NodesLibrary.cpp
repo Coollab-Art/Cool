@@ -77,7 +77,7 @@ auto NodesLibrary::imgui_nodes_menu(std::string const& nodes_filter, MaybeDisabl
 
                 auto selected_definition = std::optional<NodeDefinitionAndCategoryName>{};
                 Cool::ImGuiExtras::disabled_if(maybe_disable(def, category), [&]() {
-                    if (select_first || ImGui::Selectable(def.name().c_str()))
+                    if (select_first || ImGui::Selectable(def.name().c_str(), false, ImGuiSelectableFlags_SpanAllColumns /* HACK to work around a bug in ImGui (https://github.com/ocornut/imgui/issues/8203)*/))
                         selected_definition = NodeDefinitionAndCategoryName{def, category.name()};
                 });
 

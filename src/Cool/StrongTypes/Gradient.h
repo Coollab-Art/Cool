@@ -1,7 +1,7 @@
 #pragma once
 #include <imgui_gradient/imgui_gradient.hpp>
 #include <ser20/types/list.hpp>
-#include "ImStyleEd/ser20_style.hpp" // To serialize ImGui types
+#include "Cool/Serialization/ImGui.hpp"
 
 namespace Cool {
 struct Gradient {

@@ -15,7 +15,7 @@ ColorThemes::ColorThemes()
               .current_theme_file    = Cool::Path::user_data_shared() / "current_color_theme.json",
               .themes_folder         = Cool::Path::user_data_shared() / "Color Themes",
               .themes_default_folder = Cool::Path::default_user_data() / "Color Themes",
-              .config_file           = Cool::Path::default_user_data() / "color_config.json",
+              .config_file           = Cool::Path::default_user_data() / "color_config.json", // There is only a default config_file, no user-editable one. Because the style colors might change with each imgui version, that's why the config file has to be specific to one version of Coollab, and therefore users cannot edit it otherwise they would have to re-do their changes for each version of Coollab
           },
           ImStyleEd::CurrentTheme{"Dark"}, // Start with Dark theme by default (using "Use OS Theme" means most people will have the Light theme, which is not quite as good as the Dark one)
           [](ImStyleEd::Config& config) {

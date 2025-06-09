@@ -24,7 +24,7 @@ public:
     {
         if (instance().show_framerate_window)
         {
-            ImGui::Begin(Cool::icon_fmt("Framerate", ICOMOON_WRENCH).c_str(), &instance().show_framerate_window, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Framerate", ICOMOON_WRENCH).c_str(), &instance().show_framerate_window, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().show_framerate_window) // Window has just been closed manually by the user
@@ -36,7 +36,7 @@ public:
     {
         if (instance().test_all_variable_widgets__window)
         {
-            ImGui::Begin(Cool::icon_fmt("Test all Variable Widgets", ICOMOON_WRENCH).c_str(), &instance().test_all_variable_widgets__window, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Test all Variable Widgets", ICOMOON_WRENCH).c_str(), &instance().test_all_variable_widgets__window, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().test_all_variable_widgets__window) // Window has just been closed manually by the user
@@ -47,7 +47,7 @@ public:
     {
         if (instance().empty_window)
         {
-            ImGui::Begin(Cool::icon_fmt("Open Empty Window", ICOMOON_WRENCH).c_str(), &instance().empty_window, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Open Empty Window", ICOMOON_WRENCH).c_str(), &instance().empty_window, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().empty_window) // Window has just been closed manually by the user
@@ -58,7 +58,7 @@ public:
     {
         if (instance().test_message_console__window)
         {
-            ImGui::Begin(Cool::icon_fmt("Test Message Console", ICOMOON_WRENCH).c_str(), &instance().test_message_console__window, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Test Message Console", ICOMOON_WRENCH).c_str(), &instance().test_message_console__window, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().test_message_console__window) // Window has just been closed manually by the user
@@ -69,7 +69,7 @@ public:
     {
         if (instance().test_notifications__window)
         {
-            ImGui::Begin(Cool::icon_fmt("Test Notifications", ICOMOON_WRENCH).c_str(), &instance().test_notifications__window, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Test Notifications", ICOMOON_WRENCH).c_str(), &instance().test_notifications__window, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().test_notifications__window) // Window has just been closed manually by the user
@@ -80,7 +80,7 @@ public:
     {
         if (instance().test_tasks__window)
         {
-            ImGui::Begin(Cool::icon_fmt("Test Tasks", ICOMOON_WRENCH).c_str(), &instance().test_tasks__window, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Test Tasks", ICOMOON_WRENCH).c_str(), &instance().test_tasks__window, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().test_tasks__window) // Window has just been closed manually by the user
@@ -96,7 +96,7 @@ public:
     {
         if (instance().texture_library_debug_view)
         {
-            ImGui::Begin(Cool::icon_fmt("Texture Library", ICOMOON_WRENCH).c_str(), &instance().texture_library_debug_view, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Texture Library", ICOMOON_WRENCH).c_str(), &instance().texture_library_debug_view, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().texture_library_debug_view) // Window has just been closed manually by the user
@@ -114,7 +114,7 @@ public:
     {
         if (instance().test_presets__window)
         {
-            ImGui::Begin(Cool::icon_fmt("Test Presets", ICOMOON_WRENCH).c_str(), &instance().test_presets__window, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Test Presets", ICOMOON_WRENCH).c_str(), &instance().test_presets__window, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().test_presets__window) // Window has just been closed manually by the user
@@ -125,7 +125,7 @@ public:
     {
         if (instance().test_markdown_formatting_window)
         {
-            ImGui::Begin(Cool::icon_fmt("Test Markdown Formatting", ICOMOON_WRENCH).c_str(), &instance().test_markdown_formatting_window, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Test Markdown Formatting", ICOMOON_WRENCH).c_str(), &instance().test_markdown_formatting_window, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().test_markdown_formatting_window) // Window has just been closed manually by the user
@@ -136,7 +136,7 @@ public:
     {
         if (instance().emulate_midi_keyboard)
         {
-            ImGui::Begin(Cool::icon_fmt("Emulate midi keyboard", ICOMOON_WRENCH).c_str(), &instance().emulate_midi_keyboard, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Emulate midi keyboard", ICOMOON_WRENCH).c_str(), &instance().emulate_midi_keyboard, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().emulate_midi_keyboard) // Window has just been closed manually by the user
@@ -147,7 +147,7 @@ public:
     {
         if (instance().test_tips)
         {
-            ImGui::Begin(Cool::icon_fmt("Test tips", ICOMOON_WRENCH).c_str(), &instance().test_tips, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Test tips", ICOMOON_WRENCH).c_str(), &instance().test_tips, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().test_tips) // Window has just been closed manually by the user
@@ -159,7 +159,7 @@ public:
     {
         if (instance().style_editor)
         {
-            ImGui::Begin(Cool::icon_fmt("Style Editor", ICOMOON_WRENCH).c_str(), &instance().style_editor, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Style Editor", ICOMOON_WRENCH).c_str(), &instance().style_editor, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().style_editor) // Window has just been closed manually by the user
@@ -170,30 +170,32 @@ public:
     {
         if (instance().color_themes_editor)
         {
-            ImGui::Begin(Cool::icon_fmt("Color Themes: Editor", ICOMOON_WRENCH).c_str(), &instance().color_themes_editor, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Color Themes: Editor", ICOMOON_WRENCH).c_str(), &instance().color_themes_editor, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().color_themes_editor) // Window has just been closed manually by the user
                 save();
         }
     }
+#if DEBUG
     static void color_themes_advanced_config_window(std::function<void()> callback)
     {
         if (instance().color_themes_advanced_config_window)
         {
-            ImGui::Begin(Cool::icon_fmt("Color Themes: Advanced Config", ICOMOON_WRENCH).c_str(), &instance().color_themes_advanced_config_window, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Color Themes: Advanced Config", ICOMOON_WRENCH).c_str(), &instance().color_themes_advanced_config_window, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().color_themes_advanced_config_window) // Window has just been closed manually by the user
                 save();
         }
     }
+#endif
 #if DEBUG
     static void show_all_icons(std::function<void()> callback)
     {
         if (instance().show_all_icons)
         {
-            ImGui::Begin(Cool::icon_fmt("Show all icons", ICOMOON_WRENCH).c_str(), &instance().show_all_icons, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Show all icons", ICOMOON_WRENCH).c_str(), &instance().show_all_icons, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().show_all_icons) // Window has just been closed manually by the user
@@ -244,7 +246,9 @@ private:
         bool public_exhibition_mode{false};
         bool style_editor{false};
         bool color_themes_editor{false};
+#if DEBUG
         bool color_themes_advanced_config_window{false};
+#endif
 #if DEBUG
         bool show_all_icons{false};
 #endif
@@ -312,7 +316,6 @@ private:
                     Cool::json_get(json, "Public exhibition mode", public_exhibition_mode);
                     Cool::json_get(json, "Style Editor", style_editor);
                     Cool::json_get(json, "Color Themes: Editor", color_themes_editor);
-                    Cool::json_get(json, "Color Themes: Advanced Config", color_themes_advanced_config_window);
                     Cool::json_get(json, "Benchmark test tasks", benchmark_test_tasks);
 #endif
                 },
@@ -370,7 +373,6 @@ private:
                     Cool::json_set(json, "Public exhibition mode", public_exhibition_mode);
                     Cool::json_set(json, "Style Editor", style_editor);
                     Cool::json_set(json, "Color Themes: Editor", color_themes_editor);
-                    Cool::json_set(json, "Color Themes: Advanced Config", color_themes_advanced_config_window);
                     Cool::json_set(json, "Benchmark test tasks", benchmark_test_tasks);
 #endif
                 },
@@ -419,16 +421,18 @@ private:
             false
 #endif
             ;
-        instance().log_mouse_position_in_view          = false;
-        instance().log_ui_scale_changes                = false;
-        instance().test_presets__window                = false;
-        instance().test_markdown_formatting_window     = false;
-        instance().emulate_midi_keyboard               = false;
-        instance().test_tips                           = false;
-        instance().public_exhibition_mode              = false;
-        instance().style_editor                        = false;
-        instance().color_themes_editor                 = false;
+        instance().log_mouse_position_in_view      = false;
+        instance().log_ui_scale_changes            = false;
+        instance().test_presets__window            = false;
+        instance().test_markdown_formatting_window = false;
+        instance().emulate_midi_keyboard           = false;
+        instance().test_tips                       = false;
+        instance().public_exhibition_mode          = false;
+        instance().style_editor                    = false;
+        instance().color_themes_editor             = false;
+#if DEBUG
         instance().color_themes_advanced_config_window = false;
+#endif
 #if DEBUG
         instance().show_all_icons = false;
 #endif
@@ -602,12 +606,15 @@ private:
                 save();
         }
 
+#if DEBUG
+
         if (wafl::similarity_match({filter, "Color Themes: Advanced Config"}) >= wafl::Matches::Strongly)
         {
             if (Cool::ImGuiExtras::toggle("Color Themes: Advanced Config", &instance().color_themes_advanced_config_window))
                 save();
         }
 
+#endif
 #if DEBUG
 
         if (wafl::similarity_match({filter, "Show all icons"}) >= wafl::Matches::Strongly)
@@ -820,6 +827,8 @@ private:
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
+#if DEBUG
+
         if (wafl::similarity_match({filter, "Color Themes: Advanced Config"}) >= wafl::Matches::Strongly)
         {
             instance().color_themes_advanced_config_window = !instance().color_themes_advanced_config_window;
@@ -827,6 +836,7 @@ private:
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
+#endif
 #if DEBUG
 
         if (wafl::similarity_match({filter, "Show all icons"}) >= wafl::Matches::Strongly)

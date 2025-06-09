@@ -48,7 +48,13 @@ def parse_style_elements() -> List[StyleElement]:
 
         if line_no_comment == "":
             return False
-        if "[ImGuiCol_COUNT]" in line_no_comment:
+        if "ImGuiCol_COUNT" in line_no_comment:
+            return False
+        if "IMGUI_API" in line_no_comment:
+            return False
+        if "#ifndef" in line_no_comment:
+            return False
+        if "#endif" in line_no_comment:
             return False
 
         return True
