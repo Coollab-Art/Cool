@@ -334,6 +334,13 @@ target_link_libraries(Cool-PublicProperties INTERFACE ImGuiNotify::ImGuiNotify)
 add_subdirectory(lib/no-sleep)
 target_link_libraries(Cool-PublicProperties INTERFACE no_sleep::no_sleep)
 
+# sockpp
+set(SOCKPP_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+set(SOCKPP_BUILD_STATIC ON CACHE BOOL "" FORCE)
+set(SOCKPP_WITH_UNIX_SOCKETS ON CACHE BOOL "" FORCE)
+add_subdirectory(lib/sockpp)
+target_link_libraries(Cool-PublicProperties INTERFACE Sockpp::sockpp)
+
 # ----------------
 # ---Copy files---
 # ----------------

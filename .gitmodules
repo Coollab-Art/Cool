@@ -124,3 +124,6 @@
 [submodule "lib/Boxer"]
 	path = lib/Boxer
 	url = https://github.com/CoolLibs/Boxer
+[submodule "lib/sockpp"]
+	path = lib/sockpp
+	url = https://github.com/fpagliughi/sockpp
