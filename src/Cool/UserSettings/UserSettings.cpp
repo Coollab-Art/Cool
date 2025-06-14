@@ -4,6 +4,7 @@
 #include "Cool/Input/CTRL_OR_CMD.hpp"
 #include "Cool/UI Scale/need_to_rebuild_fonts.hpp"
 #include "Cool/UI Scale/ui_scale.hpp"
+#include "GLFW/glfw3.h"
 #include "imgui.h"
 
 namespace Cool {
@@ -60,9 +61,26 @@ auto UserSettings::imgui_single_click_to_input_in_drag_widgets() -> bool
     return b;
 }
 
+static auto multi_viewport_disabled_reason() -> std::optional<std::string>
+{
+    if (ImGui::GetIO().BackendFlags & ImGuiBackendFlags_PlatformHasViewports)
+        return std::nullopt;
+
+    if (glfwGetPlatform() == GLFW_PLATFORM_WAYLAND)
+        return "Not supported on Wayland yet";
+
+    return "Not supported on your platform yet";
+}
+
 auto UserSettings::imgui_enable_multi_viewport() -> bool
 {
-    bool const b = ImGuiExtras::toggle("Enable multi-viewport", &enable_multi_viewport);
+    bool b = false;
+
+    std::optional<std::string> const reason = multi_viewport_disabled_reason();
+    Cool::ImGuiExtras::disabled_if(reason, [&]() {
+        static bool dummy{false}; // We always want to display it as off if we cannot enable it
+        b = ImGuiExtras::toggle("Enable multi-viewport", reason.has_value() ? &dummy : &enable_multi_viewport);
+    });
     ImGuiExtras::help_marker(
         "When enabled, allows you to drag windows outside of the main window."
 #if defined(__linux__)
