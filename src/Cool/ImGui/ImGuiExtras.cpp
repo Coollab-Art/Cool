@@ -339,7 +339,7 @@ static auto folder_file_impl(const char* label, std::filesystem::path* path, boo
         b |= dialog_button();
     }
     ImGui::SameLine();
-    if (ImGui::InputText("", &path_as_string))
+    if (ImGui::InputText("", &path_as_string, ImGuiInputTextFlags_ElideLeft))
     {
         b     = true;
         *path = std::filesystem::path{path_as_string};
