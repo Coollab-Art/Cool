@@ -1,9 +1,12 @@
 #include "ColorThemes.h"
 #include <imgui-node-editor/imgui_node_editor.h>
 #include <imgui.h>
+#include "Cool/DebugOptions/DebugOptions.h"
+#include "Cool/ImGui/IcoMoonCodepoints.h"
 #include "Cool/ImGui/ImGuiExtras.h"
 #include "Cool/Path/Path.h"
-#include "ImGuiExtrasStyle.h"
+#include "ImGuiExtrasStyle.h" // NOLINT(unused-includes)
+#include "ImGuiNotify/ImGuiNotify.hpp"
 
 namespace Cool {
 
@@ -33,12 +36,19 @@ void ColorThemes::update()
 
 void ColorThemes::imgui_theme_picker()
 {
+    if (ImGuiExtras::button_with_text_icon(ICOMOON_PENCIL))
+    {
+        DebugOptions::Set::color_themes_editor(true);
+        ImGui::CloseCurrentPopup();
+    }
+    ImGui::SetItemTooltip("%s", "Create your own color themes");
+    ImGui::SameLine();
     _editor.imgui_theme_selector();
 }
 
 void ColorThemes::imgui_basic_theme_editor()
 {
-    _editor.imgui_themes_editor();
+    _editor.imgui_themes_editor(ImGuiNotify::get_style().color_warning);
 }
 
 void ColorThemes::imgui_advanced_config()

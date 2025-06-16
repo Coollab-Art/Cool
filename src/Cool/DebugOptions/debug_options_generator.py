@@ -74,19 +74,49 @@ def option_implementation(debug_option: DebugOption):
     def code():
         match debug_option.kind:
             case Kind.CHECKBOX | Kind.BUTTON:
-                return f"[[nodiscard]] static auto {debug_option.name_in_code}() -> bool& {{ return instance().{debug_option.name_in_code}; }}"
+                return f"""
+[[nodiscard]] static auto {debug_option.name_in_code}() -> bool {{ return instance().{debug_option.name_in_code}; }}
+"""
             case Kind.WINDOW:
-                return f"""static void {debug_option.name_in_code}(std::function<void()> callback)
-                {{
-                    if (instance().{debug_option.name_in_code}) 
-                    {{
-                        ImGui::Begin(Cool::icon_fmt("{window_name(debug_option)}", ICOMOON_WRENCH).c_str(), &instance().{debug_option.name_in_code}, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
-                        callback();
-                        ImGui::End();
-                        if (!instance().{debug_option.name_in_code}) // Window has just been closed manually by the user
-                            save();
-                    }}
-                }}"""
+                return f"""
+static void {debug_option.name_in_code}(std::function<void()> const& callback)
+{{
+    if (instance().{debug_option.name_in_code}) 
+    {{
+        ImGui::Begin(Cool::icon_fmt("{window_name(debug_option)}", ICOMOON_WRENCH).c_str(), &instance().{debug_option.name_in_code}, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
+        callback();
+        ImGui::End();
+        if (!instance().{debug_option.name_in_code}) // Window has just been closed manually by the user
+            save();
+    }}
+}}
+"""
+            case _:
+                return ""
+
+    return build_type(code(), debug_option)
+
+
+def option_setter_implementation(debug_option: DebugOption):
+    def code():
+        match debug_option.kind:
+            case Kind.CHECKBOX | Kind.WINDOW:
+                return f"""
+static void {debug_option.name_in_code}(bool val) {{
+    if (val == instance().{debug_option.name_in_code})
+        return;
+    instance().{debug_option.name_in_code} = val;
+    save();
+}}
+"""
+            case Kind.BUTTON:
+                return f"""
+static void {debug_option.name_in_code}(bool val) {{
+    if (val == instance().{debug_option.name_in_code})
+        return;
+    instance().{debug_option.name_in_code} = val;
+}}
+"""
             case _:
                 return ""
 
@@ -112,6 +142,14 @@ def imgui_widget(debug_option: DebugOption):
 
 def options_implementations(debug_options: list[DebugOption]):
     return "\n".join(map(option_implementation, debug_options))
+
+
+def options_setters_implementations(debug_options: list[DebugOption]):
+    return f'''
+struct Set{{
+{"\n".join(map(option_setter_implementation, debug_options))}
+}};
+'''
 
 
 def passes_the_filter(debug_option: DebugOption):
@@ -218,6 +256,8 @@ namespace {namespace} {{
 class DebugOptions {{
 public:
     {options_implementations(debug_options)}
+
+    {options_setters_implementations(debug_options)}
 
     static void save() {{ instance()._serializer.save(); }}
 

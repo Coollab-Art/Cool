@@ -20,7 +20,7 @@ namespace Cool {
 
 class DebugOptions {
 public:
-    static void show_framerate_window(std::function<void()> callback)
+    static void show_framerate_window(std::function<void()> const& callback)
     {
         if (instance().show_framerate_window)
         {
@@ -31,8 +31,10 @@ public:
                 save();
         }
     }
-    [[nodiscard]] static auto show_imgui_demo_window() -> bool& { return instance().show_imgui_demo_window; }
-    static void               test_all_variable_widgets__window(std::function<void()> callback)
+
+    [[nodiscard]] static auto show_imgui_demo_window() -> bool { return instance().show_imgui_demo_window; }
+
+    static void test_all_variable_widgets__window(std::function<void()> const& callback)
     {
         if (instance().test_all_variable_widgets__window)
         {
@@ -43,7 +45,8 @@ public:
                 save();
         }
     }
-    static void empty_window(std::function<void()> callback)
+
+    static void empty_window(std::function<void()> const& callback)
     {
         if (instance().empty_window)
         {
@@ -54,7 +57,8 @@ public:
                 save();
         }
     }
-    static void test_message_console__window(std::function<void()> callback)
+
+    static void test_message_console__window(std::function<void()> const& callback)
     {
         if (instance().test_message_console__window)
         {
@@ -65,7 +69,8 @@ public:
                 save();
         }
     }
-    static void test_notifications__window(std::function<void()> callback)
+
+    static void test_notifications__window(std::function<void()> const& callback)
     {
         if (instance().test_notifications__window)
         {
@@ -76,7 +81,8 @@ public:
                 save();
         }
     }
-    static void test_tasks__window(std::function<void()> callback)
+
+    static void test_tasks__window(std::function<void()> const& callback)
     {
         if (instance().test_tasks__window)
         {
@@ -87,12 +93,18 @@ public:
                 save();
         }
     }
-    [[nodiscard]] static auto log_when_autosaving() -> bool& { return instance().log_when_autosaving; }
-    [[nodiscard]] static auto log_when_rendering_alpha_checkerboard_background() -> bool& { return instance().log_when_rendering_alpha_checkerboard_background; }
-    [[nodiscard]] static auto log_when_creating_textures() -> bool& { return instance().log_when_creating_textures; }
-    [[nodiscard]] static auto log_when_computing_audio_features() -> bool& { return instance().log_when_computing_audio_features; }
-    [[nodiscard]] static auto log_tasks() -> bool& { return instance().log_tasks; }
-    static void               texture_library_debug_view(std::function<void()> callback)
+
+    [[nodiscard]] static auto log_when_autosaving() -> bool { return instance().log_when_autosaving; }
+
+    [[nodiscard]] static auto log_when_rendering_alpha_checkerboard_background() -> bool { return instance().log_when_rendering_alpha_checkerboard_background; }
+
+    [[nodiscard]] static auto log_when_creating_textures() -> bool { return instance().log_when_creating_textures; }
+
+    [[nodiscard]] static auto log_when_computing_audio_features() -> bool { return instance().log_when_computing_audio_features; }
+
+    [[nodiscard]] static auto log_tasks() -> bool { return instance().log_tasks; }
+
+    static void texture_library_debug_view(std::function<void()> const& callback)
     {
         if (instance().texture_library_debug_view)
         {
@@ -103,14 +115,22 @@ public:
                 save();
         }
     }
+
 #if DEBUG
-    [[nodiscard]] static auto log_opengl_info() -> bool& { return instance().log_opengl_info; }
+
+    [[nodiscard]] static auto log_opengl_info() -> bool { return instance().log_opengl_info; }
+
 #endif
-    [[nodiscard]] static auto log_internal_warnings() -> bool& { return instance().log_internal_warnings; }
-    [[nodiscard]] static auto log_mouse_position_in_view() -> bool& { return instance().log_mouse_position_in_view; }
-    [[nodiscard]] static auto log_ui_scale_changes() -> bool& { return instance().log_ui_scale_changes; }
-    [[nodiscard]] static auto show_command_line_arguments() -> bool& { return instance().show_command_line_arguments; }
-    static void               test_presets__window(std::function<void()> callback)
+
+    [[nodiscard]] static auto log_internal_warnings() -> bool { return instance().log_internal_warnings; }
+
+    [[nodiscard]] static auto log_mouse_position_in_view() -> bool { return instance().log_mouse_position_in_view; }
+
+    [[nodiscard]] static auto log_ui_scale_changes() -> bool { return instance().log_ui_scale_changes; }
+
+    [[nodiscard]] static auto show_command_line_arguments() -> bool { return instance().show_command_line_arguments; }
+
+    static void test_presets__window(std::function<void()> const& callback)
     {
         if (instance().test_presets__window)
         {
@@ -121,7 +141,8 @@ public:
                 save();
         }
     }
-    static void test_markdown_formatting_window(std::function<void()> callback)
+
+    static void test_markdown_formatting_window(std::function<void()> const& callback)
     {
         if (instance().test_markdown_formatting_window)
         {
@@ -132,7 +153,8 @@ public:
                 save();
         }
     }
-    static void emulate_midi_keyboard(std::function<void()> callback)
+
+    static void emulate_midi_keyboard(std::function<void()> const& callback)
     {
         if (instance().emulate_midi_keyboard)
         {
@@ -143,7 +165,8 @@ public:
                 save();
         }
     }
-    static void test_tips(std::function<void()> callback)
+
+    static void test_tips(std::function<void()> const& callback)
     {
         if (instance().test_tips)
         {
@@ -154,8 +177,10 @@ public:
                 save();
         }
     }
-    [[nodiscard]] static auto public_exhibition_mode() -> bool& { return instance().public_exhibition_mode; }
-    static void               style_editor(std::function<void()> callback)
+
+    [[nodiscard]] static auto public_exhibition_mode() -> bool { return instance().public_exhibition_mode; }
+
+    static void style_editor(std::function<void()> const& callback)
     {
         if (instance().style_editor)
         {
@@ -166,7 +191,8 @@ public:
                 save();
         }
     }
-    static void color_themes_editor(std::function<void()> callback)
+
+    static void color_themes_editor(std::function<void()> const& callback)
     {
         if (instance().color_themes_editor)
         {
@@ -177,8 +203,10 @@ public:
                 save();
         }
     }
+
 #if DEBUG
-    static void color_themes_advanced_config_window(std::function<void()> callback)
+
+    static void color_themes_advanced_config_window(std::function<void()> const& callback)
     {
         if (instance().color_themes_advanced_config_window)
         {
@@ -189,9 +217,11 @@ public:
                 save();
         }
     }
+
 #endif
 #if DEBUG
-    static void show_all_icons(std::function<void()> callback)
+
+    static void show_all_icons(std::function<void()> const& callback)
     {
         if (instance().show_all_icons)
         {
@@ -202,11 +232,261 @@ public:
                 save();
         }
     }
+
 #endif
 #if DEBUG
-    [[nodiscard]] static auto imgui_item_picker() -> bool& { return instance().imgui_item_picker; }
+
+    [[nodiscard]] static auto imgui_item_picker() -> bool { return instance().imgui_item_picker; }
+
 #endif
-    [[nodiscard]] static auto benchmark_test_tasks() -> bool& { return instance().benchmark_test_tasks; }
+
+    [[nodiscard]] static auto benchmark_test_tasks() -> bool { return instance().benchmark_test_tasks; }
+
+    struct Set {
+        static void show_framerate_window(bool val)
+        {
+            if (val == instance().show_framerate_window)
+                return;
+            instance().show_framerate_window = val;
+            save();
+        }
+
+        static void show_imgui_demo_window(bool val)
+        {
+            if (val == instance().show_imgui_demo_window)
+                return;
+            instance().show_imgui_demo_window = val;
+            save();
+        }
+
+        static void test_all_variable_widgets__window(bool val)
+        {
+            if (val == instance().test_all_variable_widgets__window)
+                return;
+            instance().test_all_variable_widgets__window = val;
+            save();
+        }
+
+        static void empty_window(bool val)
+        {
+            if (val == instance().empty_window)
+                return;
+            instance().empty_window = val;
+            save();
+        }
+
+        static void test_message_console__window(bool val)
+        {
+            if (val == instance().test_message_console__window)
+                return;
+            instance().test_message_console__window = val;
+            save();
+        }
+
+        static void test_notifications__window(bool val)
+        {
+            if (val == instance().test_notifications__window)
+                return;
+            instance().test_notifications__window = val;
+            save();
+        }
+
+        static void test_tasks__window(bool val)
+        {
+            if (val == instance().test_tasks__window)
+                return;
+            instance().test_tasks__window = val;
+            save();
+        }
+
+        static void log_when_autosaving(bool val)
+        {
+            if (val == instance().log_when_autosaving)
+                return;
+            instance().log_when_autosaving = val;
+            save();
+        }
+
+        static void log_when_rendering_alpha_checkerboard_background(bool val)
+        {
+            if (val == instance().log_when_rendering_alpha_checkerboard_background)
+                return;
+            instance().log_when_rendering_alpha_checkerboard_background = val;
+            save();
+        }
+
+        static void log_when_creating_textures(bool val)
+        {
+            if (val == instance().log_when_creating_textures)
+                return;
+            instance().log_when_creating_textures = val;
+            save();
+        }
+
+        static void log_when_computing_audio_features(bool val)
+        {
+            if (val == instance().log_when_computing_audio_features)
+                return;
+            instance().log_when_computing_audio_features = val;
+            save();
+        }
+
+        static void log_tasks(bool val)
+        {
+            if (val == instance().log_tasks)
+                return;
+            instance().log_tasks = val;
+            save();
+        }
+
+        static void texture_library_debug_view(bool val)
+        {
+            if (val == instance().texture_library_debug_view)
+                return;
+            instance().texture_library_debug_view = val;
+            save();
+        }
+
+#if DEBUG
+
+        static void log_opengl_info(bool val)
+        {
+            if (val == instance().log_opengl_info)
+                return;
+            instance().log_opengl_info = val;
+            save();
+        }
+
+#endif
+
+        static void log_internal_warnings(bool val)
+        {
+            if (val == instance().log_internal_warnings)
+                return;
+            instance().log_internal_warnings = val;
+            save();
+        }
+
+        static void log_mouse_position_in_view(bool val)
+        {
+            if (val == instance().log_mouse_position_in_view)
+                return;
+            instance().log_mouse_position_in_view = val;
+            save();
+        }
+
+        static void log_ui_scale_changes(bool val)
+        {
+            if (val == instance().log_ui_scale_changes)
+                return;
+            instance().log_ui_scale_changes = val;
+            save();
+        }
+
+        static void show_command_line_arguments(bool val)
+        {
+            if (val == instance().show_command_line_arguments)
+                return;
+            instance().show_command_line_arguments = val;
+        }
+
+        static void test_presets__window(bool val)
+        {
+            if (val == instance().test_presets__window)
+                return;
+            instance().test_presets__window = val;
+            save();
+        }
+
+        static void test_markdown_formatting_window(bool val)
+        {
+            if (val == instance().test_markdown_formatting_window)
+                return;
+            instance().test_markdown_formatting_window = val;
+            save();
+        }
+
+        static void emulate_midi_keyboard(bool val)
+        {
+            if (val == instance().emulate_midi_keyboard)
+                return;
+            instance().emulate_midi_keyboard = val;
+            save();
+        }
+
+        static void test_tips(bool val)
+        {
+            if (val == instance().test_tips)
+                return;
+            instance().test_tips = val;
+            save();
+        }
+
+        static void public_exhibition_mode(bool val)
+        {
+            if (val == instance().public_exhibition_mode)
+                return;
+            instance().public_exhibition_mode = val;
+            save();
+        }
+
+        static void style_editor(bool val)
+        {
+            if (val == instance().style_editor)
+                return;
+            instance().style_editor = val;
+            save();
+        }
+
+        static void color_themes_editor(bool val)
+        {
+            if (val == instance().color_themes_editor)
+                return;
+            instance().color_themes_editor = val;
+            save();
+        }
+
+#if DEBUG
+
+        static void color_themes_advanced_config_window(bool val)
+        {
+            if (val == instance().color_themes_advanced_config_window)
+                return;
+            instance().color_themes_advanced_config_window = val;
+            save();
+        }
+
+#endif
+#if DEBUG
+
+        static void show_all_icons(bool val)
+        {
+            if (val == instance().show_all_icons)
+                return;
+            instance().show_all_icons = val;
+            save();
+        }
+
+#endif
+#if DEBUG
+
+        static void imgui_item_picker(bool val)
+        {
+            if (val == instance().imgui_item_picker)
+                return;
+            instance().imgui_item_picker = val;
+        }
+
+#endif
+
+        static void benchmark_test_tasks(bool val)
+        {
+            if (val == instance().benchmark_test_tasks)
+                return;
+            instance().benchmark_test_tasks = val;
+            save();
+        }
+    };
 
     static void save() { instance()._serializer.save(); }
 
