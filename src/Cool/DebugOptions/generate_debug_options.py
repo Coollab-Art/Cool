@@ -155,7 +155,7 @@ def all_debug_options():
         DebugOption(
             name_in_code="color_themes_advanced_config_window",
             name_in_ui="Color Themes: Advanced Config",
-            available_in_release=True,
+            available_in_release=False,  # Shouldn't be available to end users because it is specific to one version of Coollab and they would have to re-do their changes each time they install a new version of Coollab. They should only be allowed to edit the high-level color themes
             kind=Kind.WINDOW,
         ),
         DebugOption(
@@ -170,6 +170,11 @@ def all_debug_options():
             available_in_release=False,
             kind=Kind.BUTTON,
             detailed_description='Allows you to click on any ImGui widget and have your IDE break on it, allowing you to find the source code that generated it.\\nShortcut: "CTRL_OR_CMD" + SHIFT + I',
+        ),
+        DebugOption(
+            name_in_code="benchmark_test_tasks",
+            name_in_ui="Benchmark test tasks",
+            available_in_release=True,
         ),
     ]
 

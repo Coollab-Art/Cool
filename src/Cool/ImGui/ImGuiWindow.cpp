@@ -27,7 +27,7 @@ void ImGuiWindow::show(std::function<void(bool is_opening)> const& widgets)
     {
         if (_is_open)
         {
-            if (ImGui::Begin(_title.c_str(), &_is_open))
+            if (ImGui::Begin(_title.c_str(), &_is_open, ImGuiWindowFlags_NoCollapse))
                 widgets(_just_opened);
             ImGui::End();
         }

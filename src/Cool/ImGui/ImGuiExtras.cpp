@@ -157,7 +157,10 @@ auto colored_button(const char* label, Color color, const ImVec2& size) -> bool
 
 bool button_with_icon(ImTextureID tex_id, const ImVec4& tint_color, const ImVec4& background_color, float button_width, float button_height, int frame_padding)
 {
-    return ImGui::ImageButton(tex_id, ImVec2(button_width, button_height), ImVec2(0.f, 1.f), ImVec2(1.f, 0.f), frame_padding, background_color, tint_color);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{static_cast<float>(frame_padding), static_cast<float>(frame_padding)});
+    auto const b = ImGui::ImageButton("##button", tex_id, ImVec2(button_width, button_height), ImVec2(0.f, 1.f), ImVec2(1.f, 0.f), background_color, tint_color);
+    ImGui::PopStyleVar();
+    return b;
 }
 
 void button_with_icon_disabled(ImTextureID tex_id, const char* reason_for_disabling, float button_width, float button_height, std::optional<float> frame_padding)
@@ -216,34 +219,24 @@ void image_framed(ImTextureID tex_id, const ImVec2& size, image_framed_options c
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)
-    {
         return;
-    }
 
     ImGuiContext&     g     = *GImGui;
     const ImGuiStyle& style = g.Style;
 
-    // Default to using texture ID as ID. User can still push string/integer prefixes.
-    // We could hash the size/uv to create a unique ID but that would prevent the user from animating UV.
-    ImGui::PushID(tex_id);
-    const ImGuiID id = window->GetID("#image");
-    ImGui::PopID();
     const ImVec2 padding = o.frame_thickness ? ImVec2(*o.frame_thickness, *o.frame_thickness) : style.FramePadding;
     const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size + padding * 2);
     const ImRect image_bb(window->DC.CursorPos + padding, window->DC.CursorPos + padding + size);
     ImGui::ItemSize(bb);
-    if (!ImGui::ItemAdd(bb, id))
-    {
+    if (!ImGui::ItemAdd(bb, 0))
         return;
-    }
 
     // Render
     const ImU32 frameCol = o.frame_color.w > 0.0f ? ImGui::GetColorU32(o.frame_color) : ImGui::GetColorU32(ImGuiCol_Button);
-    ImGui::RenderNavHighlight(bb, id);
     ImGui::RenderFrame(bb.Min, bb.Max, frameCol, true, ImClamp(ImMin(padding.x, padding.y), 0.0f, style.FrameRounding));
     ImGui::RenderFrame(image_bb.Min, image_bb.Max, ImGui::GetColorU32(o.background_color), true, ImClamp((float)ImMin(padding.x, padding.y), 0.0f, style.FrameRounding));
-    if (o.background_texture_id != nullptr)
-        window->DrawList->AddImage(o.background_texture_id, image_bb.Min, image_bb.Max);
+    if (o.background_texture_id.has_value())
+        window->DrawList->AddImage(*o.background_texture_id, image_bb.Min, image_bb.Max);
     window->DrawList->AddImage(tex_id, image_bb.Min, image_bb.Max, ImVec2(0, o.flip_y ? 0.f : 1.f), ImVec2(1, o.flip_y ? 1.f : 0.f), ImGui::GetColorU32(o.tint_color));
 }
 
@@ -346,7 +339,7 @@ static auto folder_file_impl(const char* label, std::filesystem::path* path, boo
         b |= dialog_button();
     }
     ImGui::SameLine();
-    if (ImGui::InputText("", &path_as_string))
+    if (ImGui::InputText("", &path_as_string, ImGuiInputTextFlags_ElideLeft))
     {
         b     = true;
         *path = std::filesystem::path{path_as_string};
@@ -458,12 +451,12 @@ void before_export_button(std::filesystem::path const& file_to_be_exported, Path
     ImGui::PopTextWrapPos();
 }
 
-void image_centered(ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col)
+void image_centered(ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1)
 {
     auto const prev_pos = ImGui::GetCursorScreenPos();
 
-    ImGui::SetCursorPos((ImGui::GetWindowSize() + ImVec2{0.f, ImGui::GetCurrentWindow()->TitleBarHeight()} - size) * 0.5f);
-    ImGui::Image(texture_id, size, uv0, uv1, tint_col, border_col);
+    ImGui::SetCursorPos((ImGui::GetWindowSize() + ImVec2{0.f, ImGui::GetCurrentWindow()->TitleBarHeight} - size) * 0.5f);
+    ImGui::Image(texture_id, size, uv0, uv1);
 
     ImGui::SetCursorScreenPos(prev_pos);
 }
@@ -786,7 +779,7 @@ auto toggle(const char* label, bool* v) -> bool
     }
 
     const ImRect check_bb(pos, pos + ImVec2(width, height));
-    ImGui::RenderNavHighlight(total_bb, id);
+    ImGui::RenderNavCursor(total_bb, id);
 
     float const radius  = height * 0.5f;
     float const outline = 0.125f * ImGui::GetFontSize();

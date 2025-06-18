@@ -1,10 +1,13 @@
 #include "TaskManager.hpp"
+#include <imgui.h>
 #include <algorithm>
 #include <chrono>
+#include <exception>
 #include <memory>
 #include "Cool/DebugOptions/DebugOptions.h"
 #include "Cool/Log/Log.hpp"
 #include "Cool/Time/time_formatted_hms.h"
+#include "TaskCoroutine.hpp"
 
 namespace Cool {
 
@@ -23,8 +26,8 @@ void TaskManager::shut_down()
     // Remove waiting tasks, tell processing tasks to finish asap
     cancel_all();
     { // Wait for threads that are processing a task to finish
-        auto lock = std::unique_lock{_tasks_mutex};
-        _wait_for_threads_to_finish.wait(lock, [&] { return _tasks_processing.empty(); });
+        auto lock = std::unique_lock{_tasks_to_process_mutex};
+        _wait_for_threads_to_finish.wait(lock, [&] { return _all_tasks_in_progress.empty(); });
     }
     // Wake up all threads that were not processing a task and let them realize that _is_shutting_down == true
     _wake_up_thread.notify_all();
@@ -33,60 +36,55 @@ void TaskManager::shut_down()
         thread.join();
 }
 
-void TaskManager::execute_task(Task& task)
-{
-    if (Cool::DebugOptions::log_tasks())
-        Cool::Log::info(task.name(), "Task Start");
-
-    auto start_time = std::optional<std::chrono::steady_clock::time_point>{};
-    if (Cool::DebugOptions::log_tasks())
-        start_time = std::chrono::steady_clock::now(); // Only query the time if we actually want to display it, to save performance
-
-    task.execute();
-    if (!task.has_been_canceled())
-        task._completion.store(Task::Completion::FinishedExecuting);
-    task.cleanup(task.has_been_canceled());
-
-    if (Cool::DebugOptions::log_tasks())
-        Cool::Log::info(task.name(), fmt::format("Task End{} ({})", task.has_been_canceled() ? " (Cancelled)" : "", start_time.has_value() ? time_formatted_hms(std::chrono::steady_clock::now() - *start_time, true) : "Failed to measure time"));
-}
-
 void TaskManager::cancel_task_that_is_waiting(Task& task)
 {
-    if (Cool::DebugOptions::log_tasks())
-        Cool::Log::info(task.name(), "Task Cancelled");
-
     // Task has not started execute(), so there is no need to call cancel()
-    task._completion.store(Task::Completion::Canceled);
     task.cleanup(true /*has_been_canceled*/);
-}
-
-void TaskManager::cancel_task_that_is_executing(Task& task)
-{
-    task.cancel();
-    task._completion.store(Task::Completion::Canceled);
-    // cleanup() will be called by the thread that is running the task once execute() finishes
 }
 
 void TaskManager::thread_update_loop()
 {
     while (true)
     {
-        auto task = std::shared_ptr<Task>{};
+        TaskAndCoroutine* task = nullptr;
         { // Grab a task from the queue
-            auto lock = std::unique_lock{_tasks_mutex};
-            _wake_up_thread.wait(lock, [&] { return !_tasks_waiting.empty() || _is_shutting_down.load(); });
+            auto lock = std::unique_lock{_tasks_to_process_mutex};
+            _wake_up_thread.wait(lock, [&] { return !_tasks_to_process.empty() || _is_shutting_down.load(); });
             if (_is_shutting_down.load())
                 break;
-            task = std::move(_tasks_waiting.front());
-            _tasks_waiting.pop_front();
-            _tasks_processing.push_back(task);
+            if (_tasks_to_process.empty())
+            {
+                assert(false); // Should not happen I think
+                continue;
+            }
+            task = _tasks_to_process.front();
+            _tasks_to_process.pop_front();
         }
-        execute_task(*task);
+
+        try
         {
-            auto lock = std::unique_lock{_tasks_mutex};
-            std::erase_if(_tasks_processing, [&](std::shared_ptr<Task> const& t) { return t.get() == task.get(); });
+            task->coroutine.do_some_work();
         }
+        catch (std::exception const& e)
+        {
+            Cool::Log::internal_error(task->task->name(), fmt::format("Threw an uncaught exception:\n{}", e.what()));
+        }
+
+        if (task->coroutine.has_finished() || task->task->has_been_canceled())
+        {
+            task->task->cleanup(task->task->has_been_canceled());
+            auto lock = std::unique_lock{_tasks_to_process_mutex};
+            std::erase_if(_all_tasks_in_progress, [&](auto const& bob) {
+                return &bob == task;
+            });
+        }
+        else
+        {
+            auto lock = std::unique_lock{_tasks_to_process_mutex};
+            _tasks_to_process.push_back(task);
+            _wake_up_thread.notify_one();
+        }
+
         if (_is_shutting_down.load())
         {
             _wait_for_threads_to_finish.notify_one();
@@ -97,22 +95,22 @@ void TaskManager::thread_update_loop()
 
 void TaskManager::update_on_main_thread()
 {
-    auto tasks_to_submit = std::vector<std::shared_ptr<Task>>{}; // We don't submit the tasks immediately in the loop, because they might be executed immediately, and if they want to submit other tasks this would conflict with the lock
+    auto tasks_to_start  = std::vector<std::shared_ptr<Task>>{}; // We don't submit the tasks immediately in the loop, because they might be executed immediately, and if they want to submit other tasks this would conflict with the lock
     auto tasks_to_cancel = std::vector<std::shared_ptr<Task>>{}; // We don't cancel the tasks immediately in the loop, because the custom code in their cleanup() might conflict with the lock
 
     {
-        auto lock = std::unique_lock{_tasks_with_condition_mutex};
-        for (auto it = _tasks_with_condition.begin(); it != _tasks_with_condition.end();)
+        auto lock = std::unique_lock{_tasks_waiting_mutex};
+        for (auto it = _tasks_waiting.begin(); it != _tasks_waiting.end();)
         {
-            if (it->condition->wants_to_cancel())
+            if (!it->condition || it->condition->wants_to_execute())
+            {
+                tasks_to_start.emplace_back(it->task);
+                it = _tasks_waiting.erase(it);
+            }
+            else if (it->condition->wants_to_cancel())
             {
                 tasks_to_cancel.emplace_back(it->task);
-                it = _tasks_with_condition.erase(it);
-            }
-            else if (it->condition->wants_to_execute())
-            {
-                tasks_to_submit.emplace_back(it->task);
-                it = _tasks_with_condition.erase(it);
+                it = _tasks_waiting.erase(it);
             }
             else
             {
@@ -121,63 +119,41 @@ void TaskManager::update_on_main_thread()
         }
     }
 
-    for (auto const& task : tasks_to_submit)
-        execute_task_asap(task); // Don't call submit() because it would call task->on_submit() a second time
+    {
+        auto lock = std::unique_lock{_tasks_to_process_mutex};
+        for (auto const& task : tasks_to_start)
+        {
+            _all_tasks_in_progress.emplace_back(TaskAndCoroutine{task, task->execute()});
+            _tasks_to_process.push_back(&_all_tasks_in_progress.back());
+            _wake_up_thread.notify_one();
+        }
+    }
     for (auto const& task : tasks_to_cancel)
         cancel_task_that_is_waiting(*task);
 }
 
 void TaskManager::submit(std::shared_ptr<Task> const& task)
 {
-    if (_is_shutting_down.load())
-        return;
-    task->on_submit();
-
-    execute_task_asap(task);
+    submit(nullptr /*condition*/, task);
 }
 
 void TaskManager::submit(std::shared_ptr<WaitToExecuteTask> const& condition, std::shared_ptr<Task> const& task)
 {
     if (_is_shutting_down.load())
         return;
+
     task->on_submit();
 
-    if (condition->wants_to_execute())
-    {
-        execute_task_asap(task);
-    }
-    else
-    {
-        auto lock = std::unique_lock{_tasks_with_condition_mutex};
-        _tasks_with_condition.emplace_back(TaskAndCondition{task, condition});
-    }
-}
-
-void TaskManager::execute_task_asap(std::shared_ptr<Task> const& task)
-{
-    if (_is_shutting_down.load())
-        return;
-
-    if (task->is_quick_task())
-    {
-        execute_task(*task);
-    }
-    else
-    {
-        {
-            auto lock = std::unique_lock{_tasks_mutex};
-            _tasks_waiting.push_back(task);
-        }
-        _wake_up_thread.notify_one();
-    }
+    auto lock = std::unique_lock{_tasks_waiting_mutex};
+    _tasks_waiting.emplace_back(TaskAndCondition{task, condition});
 }
 
 void TaskManager::cancel_if(std::function<bool(Task const&)> const& predicate)
 {
     {
-        auto lock = std::unique_lock{_tasks_with_condition_mutex};
+        auto lock = std::unique_lock{_tasks_waiting_mutex};
 
-        for (TaskAndCondition& task : _tasks_with_condition)
+        for (TaskAndCondition& task : _tasks_waiting)
         {
             if (!predicate(*task.task))
                 continue;
@@ -185,85 +161,77 @@ void TaskManager::cancel_if(std::function<bool(Task const&)> const& predicate)
             cancel_task_that_is_waiting(*task.task);
             task.task = nullptr; // Mark them as nullptr so that we can erase_if afterwards without having to check the predicate again
         }
-        std::erase_if(_tasks_with_condition, [](TaskAndCondition const& task) { return task.task == nullptr; });
+        std::erase_if(_tasks_waiting, [](TaskAndCondition const& task) { return task.task == nullptr; });
     }
     {
-        auto lock = std::unique_lock{_tasks_mutex};
+        auto lock = std::unique_lock{_tasks_to_process_mutex};
 
-        for (std::shared_ptr<Task>& task : _tasks_waiting)
+        for (TaskAndCoroutine& task : _all_tasks_in_progress)
         {
-            if (!predicate(*task))
+            if (!predicate(*task.task))
                 continue;
 
-            cancel_task_that_is_waiting(*task);
-            task = nullptr; // Mark them as nullptr so that we can erase_if afterwards without having to check the predicate again
-        };
-        std::erase_if(_tasks_waiting, [](std::shared_ptr<Task> const& task) { return task == nullptr; });
+            task.task->cancel();
+            // task.task->_completion.store(Task::Completion::Canceled);
 
-        // Cancel the tasks that are already in progress
-        for (auto& task : _tasks_processing)
-        {
-            if (!predicate(*task))
-                continue;
-            cancel_task_that_is_executing(*task);
+            auto const it = std::find_if(_tasks_to_process.begin(), _tasks_to_process.end(), [&](TaskAndCoroutine* bob) { return bob == &task; });
+            if (it != _tasks_to_process.end())
+            {
+                task.task->cleanup(true /*has_been_cancelled*/);
+                task.task = nullptr; // Mark them as nullptr so that we can erase_if afterwards without having to check the predicate again
+                _tasks_to_process.erase(it);
+            }
+            // else
+            // The thread that is running the task will clean it up once it finishes
         }
+        std::erase_if(_all_tasks_in_progress, [](TaskAndCoroutine const& task) { return task.task == nullptr; });
     }
 }
 
 void TaskManager::cancel_all()
 {
-    cancel_if([&](Task const&) {
-        return true;
-    });
+    cancel_if([&](Task const&) { return true; });
 }
 
 void TaskManager::cancel_all(reg::AnyId const& owner_id)
 {
-    cancel_if([&](Task const& task) {
-        return task.owner_id() == owner_id;
-    });
+    cancel_if([&](Task const& task) { return task.owner_id() == owner_id; });
 }
 
-auto TaskManager::num_tasks_waiting_for_thread() const -> size_t
+void TaskManager::imgui_show_debug_tasks_list()
 {
-    auto lock = std::shared_lock{_tasks_mutex};
-    return _tasks_waiting.size();
-}
+    if (ImGui::Button("Cancel all tasks"))
+        cancel_all();
 
-auto TaskManager::num_tasks_waiting_for_condition() const -> size_t
-{
-    auto lock = std::shared_lock{_tasks_with_condition_mutex};
-    return _tasks_with_condition.size();
-}
+    auto task_to_cancel = std::shared_ptr<Task>{nullptr};
+    {
+        auto lock  = std::shared_lock{_tasks_waiting_mutex};
+        auto lock2 = std::shared_lock{_tasks_to_process_mutex};
 
-auto TaskManager::num_tasks_processing() const -> size_t
-{
-    auto lock = std::shared_lock{_tasks_mutex};
-    return _tasks_processing.size();
-}
+        ImGui::SeparatorText(fmt::format("Tasks Waiting ({})", _tasks_waiting.size()).c_str());
+        for (auto const& task : _tasks_waiting)
+        {
+            ImGui::PushID(&task);
+            if (ImGui::Button("Cancel"))
+                task_to_cancel = task.task;
+            ImGui::SameLine();
+            ImGui::TextUnformatted(fmt::format("  - {}", task.task->name()).c_str());
+            ImGui::PopID();
+        }
 
-auto TaskManager::num_tasks_waiting_for_thread(reg::AnyId const& owner_id) const -> size_t
-{
-    auto lock = std::shared_lock{_tasks_mutex};
-    return static_cast<size_t>(std::count_if(_tasks_waiting.begin(), _tasks_waiting.end(), [&](std::shared_ptr<Task> const& task) {
-        return task->owner_id() == owner_id;
-    }));
-}
-
-auto TaskManager::num_tasks_waiting_for_condition(reg::AnyId const& owner_id) const -> size_t
-{
-    auto lock = std::shared_lock{_tasks_with_condition_mutex};
-    return static_cast<size_t>(std::count_if(_tasks_with_condition.begin(), _tasks_with_condition.end(), [&](TaskAndCondition const& task) {
-        return task.task->owner_id() == owner_id;
-    }));
-}
-
-auto TaskManager::num_tasks_processing(reg::AnyId const& owner_id) const -> size_t
-{
-    auto lock = std::shared_lock{_tasks_mutex};
-    return static_cast<size_t>(std::count_if(_tasks_processing.begin(), _tasks_processing.end(), [&](std::shared_ptr<Task> const& task) {
-        return task->owner_id() == owner_id;
-    }));
+        ImGui::SeparatorText(fmt::format("Tasks in Progress ({})", _all_tasks_in_progress.size()).c_str());
+        for (auto const& task : _all_tasks_in_progress)
+        {
+            ImGui::PushID(&task);
+            if (ImGui::Button("Cancel"))
+                task_to_cancel = task.task;
+            ImGui::SameLine();
+            ImGui::TextUnformatted(fmt::format("  - {}", task.task->name()).c_str());
+            ImGui::PopID();
+        }
+    }
+    if (task_to_cancel != nullptr)
+        cancel_if([&](Task const& task) { return &task == task_to_cancel.get(); });
 }
 
 auto TaskManager::list_of_tasks_that_need_user_confirmation_before_killing() const -> std::string
@@ -278,14 +246,12 @@ auto TaskManager::list_of_tasks_that_need_user_confirmation_before_killing() con
     };
 
     {
-        auto lock1 = std::shared_lock{_tasks_mutex};
-        auto lock2 = std::shared_lock{_tasks_with_condition_mutex};
+        auto lock1 = std::shared_lock{_tasks_waiting_mutex};
+        auto lock2 = std::shared_lock{_tasks_to_process_mutex};
 
-        for (std::shared_ptr<Task> const& task : _tasks_processing)
-            maybe_add_task(*task);
-        for (std::shared_ptr<Task> const& task : _tasks_waiting)
-            maybe_add_task(*task);
-        for (TaskAndCondition const& task : _tasks_with_condition)
+        for (TaskAndCoroutine const& task : _all_tasks_in_progress)
+            maybe_add_task(*task.task);
+        for (TaskAndCondition const& task : _tasks_waiting)
             maybe_add_task(*task.task);
     }
 

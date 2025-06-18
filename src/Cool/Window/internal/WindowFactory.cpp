@@ -1,5 +1,6 @@
 #include "WindowFactory.h"
 #include <stdexcept>
+#include "Cool/Core/BuildMode.h"
 #include "Cool/Log/Log.hpp"
 #include "Cool/Path/Path.h"
 #include "GLFW/glfw3.h"
@@ -15,6 +16,9 @@ static void glfw_error_callback(int error, const char* description)
 static void initialize_glfw()
 {
     glfwSetErrorCallback(&glfw_error_callback);
+#if defined(__linux__)
+    glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11); // HACK because for now Wayland has two problems: not compatible with ImGui's multiviewport, and requires libdecor-gtk.so to create window decorations, which I struggle to ship in the AppImage
+#endif
     if (!glfwInit())
     {
         const char* error_description; // NOLINT(*-init-variables)
@@ -42,7 +46,8 @@ static void initialize_imgui()
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    io.ConfigDockingAlwaysTabBar = true;
+    io.ConfigDockingAlwaysTabBar       = false;
+    io.ConfigDebugHighlightIdConflicts = is_building_as(BuildMode::Debug);
 #if !defined(COOL_UPDATE_APP_ON_SEPARATE_THREAD)        // Platform windows freeze if we are not rendering on the main thread (TODO(JF) : need to investigate that bug ; it is probably coming directly from ImGui)
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Must be done here at creation of the App, otherwise we can't toggle it at runtime.
 #endif

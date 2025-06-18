@@ -20,190 +20,473 @@ namespace Cool {
 
 class DebugOptions {
 public:
-    static void show_framerate_window(std::function<void()> callback)
+    static void show_framerate_window(std::function<void()> const& callback)
     {
         if (instance().show_framerate_window)
         {
-            ImGui::Begin(Cool::icon_fmt("Framerate", ICOMOON_WRENCH).c_str(), &instance().show_framerate_window, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Framerate", ICOMOON_WRENCH).c_str(), &instance().show_framerate_window, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().show_framerate_window) // Window has just been closed manually by the user
                 save();
         }
     }
-    [[nodiscard]] static auto show_imgui_demo_window() -> bool& { return instance().show_imgui_demo_window; }
-    static void               test_all_variable_widgets__window(std::function<void()> callback)
+
+    [[nodiscard]] static auto show_imgui_demo_window() -> bool { return instance().show_imgui_demo_window; }
+
+    static void test_all_variable_widgets__window(std::function<void()> const& callback)
     {
         if (instance().test_all_variable_widgets__window)
         {
-            ImGui::Begin(Cool::icon_fmt("Test all Variable Widgets", ICOMOON_WRENCH).c_str(), &instance().test_all_variable_widgets__window, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Test all Variable Widgets", ICOMOON_WRENCH).c_str(), &instance().test_all_variable_widgets__window, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().test_all_variable_widgets__window) // Window has just been closed manually by the user
                 save();
         }
     }
-    static void empty_window(std::function<void()> callback)
+
+    static void empty_window(std::function<void()> const& callback)
     {
         if (instance().empty_window)
         {
-            ImGui::Begin(Cool::icon_fmt("Open Empty Window", ICOMOON_WRENCH).c_str(), &instance().empty_window, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Open Empty Window", ICOMOON_WRENCH).c_str(), &instance().empty_window, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().empty_window) // Window has just been closed manually by the user
                 save();
         }
     }
-    static void test_message_console__window(std::function<void()> callback)
+
+    static void test_message_console__window(std::function<void()> const& callback)
     {
         if (instance().test_message_console__window)
         {
-            ImGui::Begin(Cool::icon_fmt("Test Message Console", ICOMOON_WRENCH).c_str(), &instance().test_message_console__window, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Test Message Console", ICOMOON_WRENCH).c_str(), &instance().test_message_console__window, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().test_message_console__window) // Window has just been closed manually by the user
                 save();
         }
     }
-    static void test_notifications__window(std::function<void()> callback)
+
+    static void test_notifications__window(std::function<void()> const& callback)
     {
         if (instance().test_notifications__window)
         {
-            ImGui::Begin(Cool::icon_fmt("Test Notifications", ICOMOON_WRENCH).c_str(), &instance().test_notifications__window, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Test Notifications", ICOMOON_WRENCH).c_str(), &instance().test_notifications__window, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().test_notifications__window) // Window has just been closed manually by the user
                 save();
         }
     }
-    static void test_tasks__window(std::function<void()> callback)
+
+    static void test_tasks__window(std::function<void()> const& callback)
     {
         if (instance().test_tasks__window)
         {
-            ImGui::Begin(Cool::icon_fmt("Test Tasks", ICOMOON_WRENCH).c_str(), &instance().test_tasks__window, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Test Tasks", ICOMOON_WRENCH).c_str(), &instance().test_tasks__window, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().test_tasks__window) // Window has just been closed manually by the user
                 save();
         }
     }
-    [[nodiscard]] static auto log_when_autosaving() -> bool& { return instance().log_when_autosaving; }
-    [[nodiscard]] static auto log_when_rendering_alpha_checkerboard_background() -> bool& { return instance().log_when_rendering_alpha_checkerboard_background; }
-    [[nodiscard]] static auto log_when_creating_textures() -> bool& { return instance().log_when_creating_textures; }
-    [[nodiscard]] static auto log_when_computing_audio_features() -> bool& { return instance().log_when_computing_audio_features; }
-    [[nodiscard]] static auto log_tasks() -> bool& { return instance().log_tasks; }
-    static void               texture_library_debug_view(std::function<void()> callback)
+
+    [[nodiscard]] static auto log_when_autosaving() -> bool { return instance().log_when_autosaving; }
+
+    [[nodiscard]] static auto log_when_rendering_alpha_checkerboard_background() -> bool { return instance().log_when_rendering_alpha_checkerboard_background; }
+
+    [[nodiscard]] static auto log_when_creating_textures() -> bool { return instance().log_when_creating_textures; }
+
+    [[nodiscard]] static auto log_when_computing_audio_features() -> bool { return instance().log_when_computing_audio_features; }
+
+    [[nodiscard]] static auto log_tasks() -> bool { return instance().log_tasks; }
+
+    static void texture_library_debug_view(std::function<void()> const& callback)
     {
         if (instance().texture_library_debug_view)
         {
-            ImGui::Begin(Cool::icon_fmt("Texture Library", ICOMOON_WRENCH).c_str(), &instance().texture_library_debug_view, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Texture Library", ICOMOON_WRENCH).c_str(), &instance().texture_library_debug_view, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().texture_library_debug_view) // Window has just been closed manually by the user
                 save();
         }
     }
+
 #if DEBUG
-    [[nodiscard]] static auto log_opengl_info() -> bool& { return instance().log_opengl_info; }
+
+    [[nodiscard]] static auto log_opengl_info() -> bool { return instance().log_opengl_info; }
+
 #endif
-    [[nodiscard]] static auto log_internal_warnings() -> bool& { return instance().log_internal_warnings; }
-    [[nodiscard]] static auto log_mouse_position_in_view() -> bool& { return instance().log_mouse_position_in_view; }
-    [[nodiscard]] static auto log_ui_scale_changes() -> bool& { return instance().log_ui_scale_changes; }
-    [[nodiscard]] static auto show_command_line_arguments() -> bool& { return instance().show_command_line_arguments; }
-    static void               test_presets__window(std::function<void()> callback)
+
+    [[nodiscard]] static auto log_internal_warnings() -> bool { return instance().log_internal_warnings; }
+
+    [[nodiscard]] static auto log_mouse_position_in_view() -> bool { return instance().log_mouse_position_in_view; }
+
+    [[nodiscard]] static auto log_ui_scale_changes() -> bool { return instance().log_ui_scale_changes; }
+
+    [[nodiscard]] static auto show_command_line_arguments() -> bool { return instance().show_command_line_arguments; }
+
+    static void test_presets__window(std::function<void()> const& callback)
     {
         if (instance().test_presets__window)
         {
-            ImGui::Begin(Cool::icon_fmt("Test Presets", ICOMOON_WRENCH).c_str(), &instance().test_presets__window, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Test Presets", ICOMOON_WRENCH).c_str(), &instance().test_presets__window, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().test_presets__window) // Window has just been closed manually by the user
                 save();
         }
     }
-    static void test_markdown_formatting_window(std::function<void()> callback)
+
+    static void test_markdown_formatting_window(std::function<void()> const& callback)
     {
         if (instance().test_markdown_formatting_window)
         {
-            ImGui::Begin(Cool::icon_fmt("Test Markdown Formatting", ICOMOON_WRENCH).c_str(), &instance().test_markdown_formatting_window, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Test Markdown Formatting", ICOMOON_WRENCH).c_str(), &instance().test_markdown_formatting_window, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().test_markdown_formatting_window) // Window has just been closed manually by the user
                 save();
         }
     }
-    static void emulate_midi_keyboard(std::function<void()> callback)
+
+    static void emulate_midi_keyboard(std::function<void()> const& callback)
     {
         if (instance().emulate_midi_keyboard)
         {
-            ImGui::Begin(Cool::icon_fmt("Emulate midi keyboard", ICOMOON_WRENCH).c_str(), &instance().emulate_midi_keyboard, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Emulate midi keyboard", ICOMOON_WRENCH).c_str(), &instance().emulate_midi_keyboard, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().emulate_midi_keyboard) // Window has just been closed manually by the user
                 save();
         }
     }
-    static void test_tips(std::function<void()> callback)
+
+    static void test_tips(std::function<void()> const& callback)
     {
         if (instance().test_tips)
         {
-            ImGui::Begin(Cool::icon_fmt("Test tips", ICOMOON_WRENCH).c_str(), &instance().test_tips, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Test tips", ICOMOON_WRENCH).c_str(), &instance().test_tips, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().test_tips) // Window has just been closed manually by the user
                 save();
         }
     }
-    [[nodiscard]] static auto public_exhibition_mode() -> bool& { return instance().public_exhibition_mode; }
-    static void               style_editor(std::function<void()> callback)
+
+    [[nodiscard]] static auto public_exhibition_mode() -> bool { return instance().public_exhibition_mode; }
+
+    static void style_editor(std::function<void()> const& callback)
     {
         if (instance().style_editor)
         {
-            ImGui::Begin(Cool::icon_fmt("Style Editor", ICOMOON_WRENCH).c_str(), &instance().style_editor, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Style Editor", ICOMOON_WRENCH).c_str(), &instance().style_editor, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().style_editor) // Window has just been closed manually by the user
                 save();
         }
     }
-    static void color_themes_editor(std::function<void()> callback)
+
+    static void color_themes_editor(std::function<void()> const& callback)
     {
         if (instance().color_themes_editor)
         {
-            ImGui::Begin(Cool::icon_fmt("Color Themes: Editor", ICOMOON_WRENCH).c_str(), &instance().color_themes_editor, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Color Themes: Editor", ICOMOON_WRENCH).c_str(), &instance().color_themes_editor, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().color_themes_editor) // Window has just been closed manually by the user
                 save();
         }
     }
-    static void color_themes_advanced_config_window(std::function<void()> callback)
+
+#if DEBUG
+
+    static void color_themes_advanced_config_window(std::function<void()> const& callback)
     {
         if (instance().color_themes_advanced_config_window)
         {
-            ImGui::Begin(Cool::icon_fmt("Color Themes: Advanced Config", ICOMOON_WRENCH).c_str(), &instance().color_themes_advanced_config_window, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Color Themes: Advanced Config", ICOMOON_WRENCH).c_str(), &instance().color_themes_advanced_config_window, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().color_themes_advanced_config_window) // Window has just been closed manually by the user
                 save();
         }
     }
+
+#endif
 #if DEBUG
-    static void show_all_icons(std::function<void()> callback)
+
+    static void show_all_icons(std::function<void()> const& callback)
     {
         if (instance().show_all_icons)
         {
-            ImGui::Begin(Cool::icon_fmt("Show all icons", ICOMOON_WRENCH).c_str(), &instance().show_all_icons, ImGuiWindowFlags_NoFocusOnAppearing);
+            ImGui::Begin(Cool::icon_fmt("Show all icons", ICOMOON_WRENCH).c_str(), &instance().show_all_icons, ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoCollapse);
             callback();
             ImGui::End();
             if (!instance().show_all_icons) // Window has just been closed manually by the user
                 save();
         }
     }
+
 #endif
 #if DEBUG
-    [[nodiscard]] static auto imgui_item_picker() -> bool& { return instance().imgui_item_picker; }
+
+    [[nodiscard]] static auto imgui_item_picker() -> bool { return instance().imgui_item_picker; }
+
 #endif
+
+    [[nodiscard]] static auto benchmark_test_tasks() -> bool { return instance().benchmark_test_tasks; }
+
+    struct Set {
+        static void show_framerate_window(bool val)
+        {
+            if (val == instance().show_framerate_window)
+                return;
+            instance().show_framerate_window = val;
+            save();
+        }
+
+        static void show_imgui_demo_window(bool val)
+        {
+            if (val == instance().show_imgui_demo_window)
+                return;
+            instance().show_imgui_demo_window = val;
+            save();
+        }
+
+        static void test_all_variable_widgets__window(bool val)
+        {
+            if (val == instance().test_all_variable_widgets__window)
+                return;
+            instance().test_all_variable_widgets__window = val;
+            save();
+        }
+
+        static void empty_window(bool val)
+        {
+            if (val == instance().empty_window)
+                return;
+            instance().empty_window = val;
+            save();
+        }
+
+        static void test_message_console__window(bool val)
+        {
+            if (val == instance().test_message_console__window)
+                return;
+            instance().test_message_console__window = val;
+            save();
+        }
+
+        static void test_notifications__window(bool val)
+        {
+            if (val == instance().test_notifications__window)
+                return;
+            instance().test_notifications__window = val;
+            save();
+        }
+
+        static void test_tasks__window(bool val)
+        {
+            if (val == instance().test_tasks__window)
+                return;
+            instance().test_tasks__window = val;
+            save();
+        }
+
+        static void log_when_autosaving(bool val)
+        {
+            if (val == instance().log_when_autosaving)
+                return;
+            instance().log_when_autosaving = val;
+            save();
+        }
+
+        static void log_when_rendering_alpha_checkerboard_background(bool val)
+        {
+            if (val == instance().log_when_rendering_alpha_checkerboard_background)
+                return;
+            instance().log_when_rendering_alpha_checkerboard_background = val;
+            save();
+        }
+
+        static void log_when_creating_textures(bool val)
+        {
+            if (val == instance().log_when_creating_textures)
+                return;
+            instance().log_when_creating_textures = val;
+            save();
+        }
+
+        static void log_when_computing_audio_features(bool val)
+        {
+            if (val == instance().log_when_computing_audio_features)
+                return;
+            instance().log_when_computing_audio_features = val;
+            save();
+        }
+
+        static void log_tasks(bool val)
+        {
+            if (val == instance().log_tasks)
+                return;
+            instance().log_tasks = val;
+            save();
+        }
+
+        static void texture_library_debug_view(bool val)
+        {
+            if (val == instance().texture_library_debug_view)
+                return;
+            instance().texture_library_debug_view = val;
+            save();
+        }
+
+#if DEBUG
+
+        static void log_opengl_info(bool val)
+        {
+            if (val == instance().log_opengl_info)
+                return;
+            instance().log_opengl_info = val;
+            save();
+        }
+
+#endif
+
+        static void log_internal_warnings(bool val)
+        {
+            if (val == instance().log_internal_warnings)
+                return;
+            instance().log_internal_warnings = val;
+            save();
+        }
+
+        static void log_mouse_position_in_view(bool val)
+        {
+            if (val == instance().log_mouse_position_in_view)
+                return;
+            instance().log_mouse_position_in_view = val;
+            save();
+        }
+
+        static void log_ui_scale_changes(bool val)
+        {
+            if (val == instance().log_ui_scale_changes)
+                return;
+            instance().log_ui_scale_changes = val;
+            save();
+        }
+
+        static void show_command_line_arguments(bool val)
+        {
+            if (val == instance().show_command_line_arguments)
+                return;
+            instance().show_command_line_arguments = val;
+        }
+
+        static void test_presets__window(bool val)
+        {
+            if (val == instance().test_presets__window)
+                return;
+            instance().test_presets__window = val;
+            save();
+        }
+
+        static void test_markdown_formatting_window(bool val)
+        {
+            if (val == instance().test_markdown_formatting_window)
+                return;
+            instance().test_markdown_formatting_window = val;
+            save();
+        }
+
+        static void emulate_midi_keyboard(bool val)
+        {
+            if (val == instance().emulate_midi_keyboard)
+                return;
+            instance().emulate_midi_keyboard = val;
+            save();
+        }
+
+        static void test_tips(bool val)
+        {
+            if (val == instance().test_tips)
+                return;
+            instance().test_tips = val;
+            save();
+        }
+
+        static void public_exhibition_mode(bool val)
+        {
+            if (val == instance().public_exhibition_mode)
+                return;
+            instance().public_exhibition_mode = val;
+            save();
+        }
+
+        static void style_editor(bool val)
+        {
+            if (val == instance().style_editor)
+                return;
+            instance().style_editor = val;
+            save();
+        }
+
+        static void color_themes_editor(bool val)
+        {
+            if (val == instance().color_themes_editor)
+                return;
+            instance().color_themes_editor = val;
+            save();
+        }
+
+#if DEBUG
+
+        static void color_themes_advanced_config_window(bool val)
+        {
+            if (val == instance().color_themes_advanced_config_window)
+                return;
+            instance().color_themes_advanced_config_window = val;
+            save();
+        }
+
+#endif
+#if DEBUG
+
+        static void show_all_icons(bool val)
+        {
+            if (val == instance().show_all_icons)
+                return;
+            instance().show_all_icons = val;
+            save();
+        }
+
+#endif
+#if DEBUG
+
+        static void imgui_item_picker(bool val)
+        {
+            if (val == instance().imgui_item_picker)
+                return;
+            instance().imgui_item_picker = val;
+        }
+
+#endif
+
+        static void benchmark_test_tasks(bool val)
+        {
+            if (val == instance().benchmark_test_tasks)
+                return;
+            instance().benchmark_test_tasks = val;
+            save();
+        }
+    };
 
     static void save() { instance()._serializer.save(); }
 
@@ -243,13 +526,16 @@ private:
         bool public_exhibition_mode{false};
         bool style_editor{false};
         bool color_themes_editor{false};
+#if DEBUG
         bool color_themes_advanced_config_window{false};
+#endif
 #if DEBUG
         bool show_all_icons{false};
 #endif
 #if DEBUG
         bool imgui_item_picker{false};
 #endif
+        bool benchmark_test_tasks{false};
 
         // Must be declared last, after all the variables it serializes, so that the values it loads overwrite the default values, and not the other way around
         Cool::JsonAutoSerializer _serializer
@@ -285,6 +571,7 @@ private:
                     Cool::json_get(json, "Color Themes: Editor", color_themes_editor);
                     Cool::json_get(json, "Color Themes: Advanced Config", color_themes_advanced_config_window);
                     Cool::json_get(json, "Show all icons", show_all_icons);
+                    Cool::json_get(json, "Benchmark test tasks", benchmark_test_tasks);
 #else
                     Cool::json_get(json, "Framerate window", show_framerate_window);
                     Cool::json_get(json, "ImGui Demo window", show_imgui_demo_window);
@@ -309,7 +596,7 @@ private:
                     Cool::json_get(json, "Public exhibition mode", public_exhibition_mode);
                     Cool::json_get(json, "Style Editor", style_editor);
                     Cool::json_get(json, "Color Themes: Editor", color_themes_editor);
-                    Cool::json_get(json, "Color Themes: Advanced Config", color_themes_advanced_config_window);
+                    Cool::json_get(json, "Benchmark test tasks", benchmark_test_tasks);
 #endif
                 },
                 [&](nlohmann::json& json) {
@@ -341,6 +628,7 @@ private:
                     Cool::json_set(json, "Color Themes: Editor", color_themes_editor);
                     Cool::json_set(json, "Color Themes: Advanced Config", color_themes_advanced_config_window);
                     Cool::json_set(json, "Show all icons", show_all_icons);
+                    Cool::json_set(json, "Benchmark test tasks", benchmark_test_tasks);
 #else
                     Cool::json_set(json, "Framerate window", show_framerate_window);
                     Cool::json_set(json, "ImGui Demo window", show_imgui_demo_window);
@@ -365,7 +653,7 @@ private:
                     Cool::json_set(json, "Public exhibition mode", public_exhibition_mode);
                     Cool::json_set(json, "Style Editor", style_editor);
                     Cool::json_set(json, "Color Themes: Editor", color_themes_editor);
-                    Cool::json_set(json, "Color Themes: Advanced Config", color_themes_advanced_config_window);
+                    Cool::json_set(json, "Benchmark test tasks", benchmark_test_tasks);
 #endif
                 },
                 false /*use_shared_user_data*/,
@@ -413,19 +701,22 @@ private:
             false
 #endif
             ;
-        instance().log_mouse_position_in_view          = false;
-        instance().log_ui_scale_changes                = false;
-        instance().test_presets__window                = false;
-        instance().test_markdown_formatting_window     = false;
-        instance().emulate_midi_keyboard               = false;
-        instance().test_tips                           = false;
-        instance().public_exhibition_mode              = false;
-        instance().style_editor                        = false;
-        instance().color_themes_editor                 = false;
+        instance().log_mouse_position_in_view      = false;
+        instance().log_ui_scale_changes            = false;
+        instance().test_presets__window            = false;
+        instance().test_markdown_formatting_window = false;
+        instance().emulate_midi_keyboard           = false;
+        instance().test_tips                       = false;
+        instance().public_exhibition_mode          = false;
+        instance().style_editor                    = false;
+        instance().color_themes_editor             = false;
+#if DEBUG
         instance().color_themes_advanced_config_window = false;
+#endif
 #if DEBUG
         instance().show_all_icons = false;
 #endif
+        instance().benchmark_test_tasks = false;
         save();
     }
 
@@ -595,12 +886,15 @@ private:
                 save();
         }
 
+#if DEBUG
+
         if (wafl::similarity_match({filter, "Color Themes: Advanced Config"}) >= wafl::Matches::Strongly)
         {
             if (Cool::ImGuiExtras::toggle("Color Themes: Advanced Config", &instance().color_themes_advanced_config_window))
                 save();
         }
 
+#endif
 #if DEBUG
 
         if (wafl::similarity_match({filter, "Show all icons"}) >= wafl::Matches::Strongly)
@@ -624,6 +918,12 @@ private:
         }
 
 #endif
+
+        if (wafl::similarity_match({filter, "Benchmark test tasks"}) >= wafl::Matches::Strongly)
+        {
+            if (Cool::ImGuiExtras::toggle("Benchmark test tasks", &instance().benchmark_test_tasks))
+                save();
+        }
     }
 
     static void toggle_first_option(std::string_view filter)
@@ -807,6 +1107,8 @@ private:
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
+#if DEBUG
+
         if (wafl::similarity_match({filter, "Color Themes: Advanced Config"}) >= wafl::Matches::Strongly)
         {
             instance().color_themes_advanced_config_window = !instance().color_themes_advanced_config_window;
@@ -814,6 +1116,7 @@ private:
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
+#endif
 #if DEBUG
 
         if (wafl::similarity_match({filter, "Show all icons"}) >= wafl::Matches::Strongly)
@@ -834,6 +1137,13 @@ private:
         }
 
 #endif
+
+        if (wafl::similarity_match({filter, "Benchmark test tasks"}) >= wafl::Matches::Strongly)
+        {
+            instance().benchmark_test_tasks = !instance().benchmark_test_tasks;
+            save();
+            throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
+        }
     }
 };
 

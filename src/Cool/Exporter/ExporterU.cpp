@@ -48,12 +48,16 @@ auto notification_after_video_export_success(std::filesystem::path const& path) 
     };
 }
 
-auto notification_after_video_export_failure(std::string const& error_message) -> ImGuiNotify::Notification
+auto notification_after_video_export_failure(std::filesystem::path const& path, std::string const& error_message) -> ImGuiNotify::Notification
 {
     return {
-        .type    = ImGuiNotify::Type::Error,
-        .title   = "Video Export Failed",
-        .content = error_message,
+        .type                 = ImGuiNotify::Type::Error,
+        .title                = "Video Export Failed",
+        .content              = error_message,
+        .custom_imgui_content = [path]() {
+            if (ImGui::Button(fmt::format("Open \"{}\" folder", Cool::File::file_name(path)).c_str()))
+                open_folder_in_explorer(path);
+        },
     };
 }
 

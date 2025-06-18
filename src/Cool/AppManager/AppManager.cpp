@@ -8,7 +8,7 @@
 #include "Cool/ImGui/Fonts.h"
 #include "Cool/ImGui/ImGuiExtrasStyle.h"
 #include "Cool/ImGui/StyleEditor.h"
-#include "Cool/ImGui/apply_imgui_style_scale_ifn.hpp"
+#include "Cool/ImGui/apply_imgui_style_scale.hpp"
 #include "Cool/ImGui/need_to_apply_imgui_style_scale.hpp"
 #include "Cool/Input/MouseButtonEvent.h"
 #include "Cool/Input/MouseCoordinates.h"
@@ -191,7 +191,7 @@ static void check_for_imgui_item_picker_request()
 {
 #if DEBUG
     if (DebugOptions::imgui_item_picker()
-        || ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiMod_Shift | ImGuiKey_I))
+        || ImGui::IsKeyChordPressed(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_I))
     {
         ImGui::DebugStartItemPicker();
     }
@@ -254,7 +254,7 @@ void AppManager::update()
 
     restore_imgui_ini_state_ifn(); // Must be done before imgui_new_frame() (this is a constraint from Dear ImGui (https://github.com/ocornut/imgui/issues/6263#issuecomment-1479727227))
     imgui_build_fonts_ifn();       // Must be done before imgui_new_frame()
-    apply_imgui_style_scale_ifn(); // Must be done before imgui_new_frame()
+    apply_imgui_style_scale_ifn();
 
     imgui_new_frame();
     check_for_imgui_item_picker_request();
@@ -294,12 +294,12 @@ static void imgui_new_frame()
 
 void AppManager::imgui_render(IApp& app)
 {
-    float window_title_height_bias = 0.f;
+    float title_bar_height_bias = 0.f;
 
     // Apply normal font. The default font is the bold one because the window titles can only use the default font. We then have to push the regular() font back.
-    window_title_height_bias += ImGui::GetFontSize();
+    title_bar_height_bias += ImGui::GetFontSize();
     ImGui::PushFont(Font::regular());
-    window_title_height_bias -= ImGui::GetFontSize();
+    title_bar_height_bias -= ImGui::GetFontSize();
 
     // Menu bar
     if (app.wants_to_show_menu_bar())
@@ -312,11 +312,11 @@ void AppManager::imgui_render(IApp& app)
     }
 
     // Apply normal FramePadding. The one stored in ImGui::GetStyle() is used by the window titles only.
-    window_title_height_bias += 2.f * ImGui::GetStyle().FramePadding.y;
+    title_bar_height_bias += 2.f * ImGui::GetStyle().FramePadding.y;
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImGuiExtras::GetStyle().frame_padding);
-    window_title_height_bias -= 2.f * ImGui::GetStyle().FramePadding.y;
+    title_bar_height_bias -= 2.f * ImGui::GetStyle().FramePadding.y;
 
-    ImGui::GetCurrentContext()->window_title_height_bias = window_title_height_bias;
+    ImGui::GetCurrentContext()->title_bar_height_bias = title_bar_height_bias;
 
     // Windows
     app.imgui_windows();
@@ -375,7 +375,7 @@ static void imgui_dockspace()
 {
     if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable) // NOLINT
     {
-        constexpr ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+        constexpr ImGuiDockNodeFlags dockspace_flags = static_cast<int>(ImGuiDockNodeFlags_PassthruCentralNode) | static_cast<int>(ImGuiDockNodeFlags_NoCloseButton);
         constexpr ImGuiWindowFlags   window_flags    = ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
         ImGuiViewport* viewport = ImGui::GetMainViewport();

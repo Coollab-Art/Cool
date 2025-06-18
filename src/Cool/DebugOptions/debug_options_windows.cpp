@@ -23,9 +23,12 @@ void debug_options_windows(TipsManager* tips_manager, Window& main_window)
         frame_time_stopwatch().imgui_plot();
     });
 
-    if (DebugOptions::show_imgui_demo_window())                         // Show the big demo window (Most of the sample code is
-        ImGui::ShowDemoWindow(&DebugOptions::show_imgui_demo_window()); // in ImGui::ShowDemoWindow()! You can browse its code
-                                                                        // to learn more about Dear ImGui!).
+    if (DebugOptions::show_imgui_demo_window())
+    {
+        bool b = DebugOptions::show_imgui_demo_window();
+        ImGui::ShowDemoWindow(&b);
+        DebugOptions::Set::show_imgui_demo_window(b);
+    }
 
     DebugOptions::test_all_variable_widgets__window(&test_variables);
     DebugOptions::empty_window([] {});
@@ -70,9 +73,11 @@ void debug_options_windows(TipsManager* tips_manager, Window& main_window)
             test_tips(*tips_manager);
         });
 
+#if defined(DEBUG)
     DebugOptions::color_themes_advanced_config_window([]() {
         color_themes()->imgui_advanced_config();
     });
+#endif
 
 #if defined(DEBUG)
     DebugOptions::show_all_icons([]() {

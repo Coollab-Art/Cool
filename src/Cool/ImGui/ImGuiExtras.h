@@ -69,12 +69,12 @@ auto checkbox_button(const char* icon, bool* v) -> bool;
 auto close_button() -> bool;
 
 struct image_framed_options {
-    std::optional<float> frame_thickness       = std::nullopt;
-    ImVec4               frame_color           = ImVec4(0, 0, 0, 0);
-    ImVec4               background_color      = ImVec4(0, 0, 0, 1);
-    ImVec4               tint_color            = ImVec4(1, 1, 1, 1);
-    bool                 flip_y                = false;
-    ImTextureID          background_texture_id = nullptr;
+    std::optional<float>       frame_thickness       = std::nullopt;
+    ImVec4                     frame_color           = ImVec4(0, 0, 0, 0);
+    ImVec4                     background_color      = ImVec4(0, 0, 0, 1);
+    ImVec4                     tint_color            = ImVec4(1, 1, 1, 1);
+    bool                       flip_y                = false;
+    std::optional<ImTextureID> background_texture_id = {};
 };
 /**
  * @brief Displays an image with a frame around it
@@ -191,7 +191,7 @@ void before_export_button();
 void before_export_button(std::filesystem::path const& file_to_be_exported, PathChecks const& path_checks);
 
 /// Equivalent to ImGui::Image except the image will be centered in the window
-void image_centered(ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 1), const ImVec2& uv1 = ImVec2(1, 0), const ImVec4& tint_col = ImVec4(1, 1, 1, 1), const ImVec4& border_col = ImVec4(0, 0, 0, 0));
+void image_centered(ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 1), const ImVec2& uv1 = ImVec2(1, 0));
 
 /// A toggle that, when set to on, displays a menu on the side.
 /// `submenu` is a function that calls the imgui widgets that should appear in the submenu, and returns true iff one of these widgets returned true.

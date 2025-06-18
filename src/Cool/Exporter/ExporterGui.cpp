@@ -65,9 +65,7 @@ void ExporterGui::imgui_menu_items(exporter_imgui_menu_items_Params const& p, st
         if (p.open_video_exporter)
             (*p.open_video_exporter)();
         else
-        {
             _video_export_window.open();
-        }
     }
 }
 
@@ -145,17 +143,15 @@ auto ExporterGui::begin_video_export(std::optional<VideoExportProcess>& video_ex
     if (!user_accepted_our_frames_overwrite_behaviour())
         return false;
 
-    if (File::create_folders_if_they_dont_exist(folder_path_for_video()))
+    if (!File::create_folders_if_they_dont_exist(folder_path_for_video()))
     {
-        video_export_process.emplace(_video_export_params, time_speed, folder_path_for_video(), _export_size);
-        on_video_export_start();
-        return true;
-    }
-    else
-    {
-        ImGuiNotify::send(ExporterU::notification_after_video_export_failure("Maybe you are not allowed to save files in this folder?"));
+        ImGuiNotify::send(ExporterU::notification_after_video_export_failure(folder_path_for_video(), "Maybe you are not allowed to save files in this folder?"));
         return false;
     }
+
+    video_export_process.emplace(_video_export_params, time_speed, folder_path_for_video(), _export_size);
+    on_video_export_start();
+    return true;
 }
 
 void ExporterGui::update(Polaroid const& polaroid, std::optional<VideoExportProcess>& video_export_process)
@@ -176,7 +172,7 @@ void ExporterGui::imgui_window_export_video(std::function<void()> const& widgets
 {
     if (is_exporting(video_export_process))
     {
-        ImGui::Begin("Video export in progress");
+        ImGui::Begin(icon_fmt("Video export in progress", ICOMOON_FILM, true).c_str());
         video_export_process->imgui(widgets_in_window_video_export_in_progress);
         ImGui::End();
     }

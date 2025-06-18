@@ -5,6 +5,8 @@
 #include <memory>
 #include <reg/src/generate_uuid.hpp>
 #include <string>
+#include "Cool/Benchmark/Benchmark.hpp"
+#include "Cool/DebugOptions/DebugOptions.h"
 #include "Cool/Task/TaskManager.hpp"
 #include "Cool/Task/TaskWithProgressBar.hpp"
 
@@ -14,51 +16,49 @@ namespace {
 
 auto next_id() -> int&
 {
-    static int instance{0};
+    static int instance{1};
     return instance;
 }
 
 class Task_LongProcess : public TaskWithProgressBar {
 public:
-    explicit Task_LongProcess(int count_max)
-        : _count_max{count_max}
+    explicit Task_LongProcess(int iterations_count)
+        : TaskWithProgressBar{fmt::format("Long Process {}", next_id()++)}
+        , _iterations_count{iterations_count}
     {}
 
-    auto name() const -> std::string override { return fmt::format("Long Process {}", _id); }
-
 private:
-    void execute() override
+    auto execute() -> TaskCoroutine override
     {
-        TaskWithProgressBar::change_notification_when_execution_starts();
-
-        int count{0};
-        for (int _ = 0; _ < _count_max; ++_)
+        for (int i = 0; i < _iterations_count; ++i)
         {
-            count++;
+            if (has_been_canceled())
+                break;
+            set_progress(static_cast<float>(i) / static_cast<float>(_iterations_count));
 
-            if (cancel_requested())
-                return;
-            set_progress(static_cast<float>(count) / static_cast<float>(_count_max));
+            std::this_thread::sleep_for(10ms);
+            co_await SuspendTask{};
         }
+        co_return;
     }
 
     auto needs_user_confirmation_to_cancel_when_closing_app() const -> bool override { return true; }
 
 private:
-    int _id{next_id()++};
-    int _count_max;
+    int _iterations_count;
+
+    BENCHMARK(name(), DebugOptions::benchmark_test_tasks())
 };
 
 class Task_SayHello : public Task {
 public:
     explicit Task_SayHello(bool loop = false)
-        : _loop{loop}
+        : Task{fmt::format("Say Hello {}", next_id()++)}
+        , _loop{loop}
     {}
 
-    auto name() const -> std::string override { return fmt::format("Say Hello {}", _id); }
-
 private:
-    void execute() override
+    auto execute() -> TaskCoroutine override
     {
         ImGuiNotify::send({
             .type    = _loop ? ImGuiNotify::Type::Warning : ImGuiNotify::Type::Success,
@@ -67,14 +67,12 @@ private:
         });
         if (_loop)
             task_manager().submit(after(2s), std::make_shared<Task_SayHello>(true));
+        co_return;
     }
 
-    auto is_quick_task() const -> bool override { return true; }
-    void cancel() override {}
     auto needs_user_confirmation_to_cancel_when_closing_app() const -> bool override { return false; }
 
 private:
-    int  _id{next_id()++};
     bool _loop{};
 
     std::chrono::steady_clock::time_point _start_time{std::chrono::steady_clock::now()};
@@ -84,24 +82,19 @@ private:
 
 void TestTasks::imgui()
 {
-    ImGui::TextUnformatted(fmt::format("Waiting for condition: {}", task_manager().num_tasks_waiting_for_condition()).c_str());
-    ImGui::TextUnformatted(fmt::format("Waiting for thread: {}", task_manager().num_tasks_waiting_for_thread()).c_str());
-    ImGui::TextUnformatted(fmt::format("Processing: {}", task_manager().num_tasks_processing()).c_str());
-
     if (ImGui::Button("Long Task"))
-        task_manager().submit(std::make_shared<Task_LongProcess>(1000000000));
+        task_manager().submit(std::make_shared<Task_LongProcess>(1000));
     if (ImGui::Button("Medium Task"))
-        task_manager().submit(std::make_shared<Task_LongProcess>(100000000));
+        task_manager().submit(std::make_shared<Task_LongProcess>(100));
     if (ImGui::Button("Short Task"))
-        task_manager().submit(std::make_shared<Task_LongProcess>(10000000));
+        task_manager().submit(std::make_shared<Task_LongProcess>(3));
     if (ImGui::Button("Run in 2 seconds"))
         task_manager().submit(after(2s), std::make_shared<Task_SayHello>());
     if (ImGui::Button("Loop every 2 seconds"))
         task_manager().submit(std::make_shared<Task_SayHello>(true));
 
     ImGui::NewLine();
-    if (ImGui::Button("Cancel all tasks"))
-        task_manager().cancel_all();
+    task_manager().imgui_show_debug_tasks_list();
 }
 
 } // namespace Cool

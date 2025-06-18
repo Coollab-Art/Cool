@@ -20,7 +20,7 @@ public:
     img::Image          download_pixels() const;
     GLuint              texture_id() const { return _texture_fb.textureID(); }
     auto                texture_ref() const -> TextureRef { return TextureRef{texture_id(), size()}; }
-    ImTextureID         imgui_texture_id() const { return reinterpret_cast<ImTextureID>(static_cast<uint64_t>(_texture_fb.textureID())); } // Double-cast to fix a warning : first we convert to the correct size (uint32_t -> uint64_t) then from integral type to pointer type (uint64_t -> ImTextureID)
+    ImTextureID         imgui_texture_id() const { return static_cast<ImTextureID>(_texture_fb.textureID()); }
 
     void imgui_window();
 

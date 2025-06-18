@@ -48,7 +48,7 @@ void View::imgui_window(ViewWindowParams const& params)
     }
     ImGui::PopStyleVar();
     check_for_fullscreen_toggle();
-    ImGui::PushStyleColor(ImGuiCol_NavHighlight, {0.f, 0.f, 0.f, 0.f});                                   // Hack because when escaping view's fullscreen with the ESCAPE key it gets nav-highlighted.
+    ImGui::PushStyleColor(ImGuiCol_NavCursor, {0.f, 0.f, 0.f, 0.f});                                      // Hack because when escaping view's fullscreen with the ESCAPE key it gets nav-highlighted.
     ImGui::BeginChild("##ChildWindow", {0.f, 0.f}, false, _is_output_view ? 0 : ImGuiWindowFlags_NoMove); // Hack to emulate `ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;` for this window only. Since we can drag a camera in a View we don't want the window to move at the same time.
     {
         store_window_size();
@@ -224,10 +224,12 @@ void View::display_image(ImTextureID image_texture_id, img::Size image_size)
     auto const size       = img::fit_into(*_window_size, image_size);
     _has_vertical_margins = img::aspect_ratio(size) <= img::aspect_ratio(*_window_size);
 
+    ImGui::PushStyleVar(ImGuiStyleVar_ImageBorderSize, 0.f);
     // Alpha checkerboard background
     ImGuiExtras::image_centered(_checkerboard_texture.get(img::Size{size}).imgui_texture_id(), as_imvec2(size));
     // Actual image. It needs to use straight alpha as this is what ImGui expects.
     ImGuiExtras::image_centered(image_texture_id, as_imvec2(size));
+    ImGui::PopStyleVar();
 }
 
 auto View::aspect_ratio() const -> float
