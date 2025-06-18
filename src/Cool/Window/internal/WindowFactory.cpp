@@ -16,6 +16,9 @@ static void glfw_error_callback(int error, const char* description)
 static void initialize_glfw()
 {
     glfwSetErrorCallback(&glfw_error_callback);
+#if defined(__linux__)
+    glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11); // HACK because for now Wayland has two problems: not compatible with ImGui's multiviewport, and requires libdecor-gtk.so to create window decorations, which I struggle to ship in the AppImage
+#endif
     if (!glfwInit())
     {
         const char* error_description; // NOLINT(*-init-variables)
