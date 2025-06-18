@@ -4,6 +4,11 @@ namespace Cool {
 
 // TODO(Websocket) Crash when two sockets are connected at the same time ? Is it because they connect to the same address?
 
+void Task_WebsocketConnection::handle_command(std::string const& command)
+{
+    command_handler()(command);
+}
+
 auto Task_WebsocketConnection::execute() -> TaskCoroutine
 {
     while (true)
@@ -12,7 +17,7 @@ auto Task_WebsocketConnection::execute() -> TaskCoroutine
         // sockpp::result<size_t> res;
 
         std::string            result;
-        char                   buf[6];
+        char                   buf[6]; // TODO(Websocket) What is a good buffer size ?
         sockpp::result<size_t> n;
 
         // sock.set_non_blocking();
@@ -25,7 +30,17 @@ auto Task_WebsocketConnection::execute() -> TaskCoroutine
                 n = _socket.recv(buf, sizeof(buf));
                 if (n.is_error())
                     break;
-                result.append(buf, n.value());
+                for (int i = 0; i < n.value(); ++i)
+                {
+                    if (buf[i] == 0)
+                    {
+                        handle_command(result);
+                        // std::cout << "Received: " << result << std::endl;
+                        result = "";
+                    }
+                    else
+                        result += buf[i];
+                }
                 // if (n.value() < sizeof(buf))
                 //     break;
             }
@@ -35,9 +50,7 @@ auto Task_WebsocketConnection::execute() -> TaskCoroutine
             }
         }
 
-        std::cout << "Received: " << result << std::endl;
-
-        _socket.send("TEST Pthonsdf");
+        // _socket.send("TEST Pthonsdf");
         co_await SuspendTask{}; // TODO(Websocket) should sleep for 100ms
     }
     // while ((res = sock.read(buf, sizeof(buf))) && res.value() > 0)
