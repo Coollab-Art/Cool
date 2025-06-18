@@ -65,9 +65,7 @@ void ExporterGui::imgui_menu_items(exporter_imgui_menu_items_Params const& p, st
         if (p.open_video_exporter)
             (*p.open_video_exporter)();
         else
-        {
             _video_export_window.open();
-        }
     }
 }
 
@@ -174,7 +172,7 @@ void ExporterGui::imgui_window_export_video(std::function<void()> const& widgets
 {
     if (is_exporting(video_export_process))
     {
-        ImGui::Begin("Video export in progress");
+        ImGui::Begin(icon_fmt("Video export in progress", ICOMOON_FILM, true).c_str());
         video_export_process->imgui(widgets_in_window_video_export_in_progress);
         ImGui::End();
     }
