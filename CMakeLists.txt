@@ -341,6 +341,8 @@ set(SOCKPP_WITH_UNIX_SOCKETS ON CACHE BOOL "" FORCE)
 add_subdirectory(lib/sockpp)
 target_link_libraries(Cool-PublicProperties INTERFACE Sockpp::sockpp)
 
+# TODO(Websocket) License
+
 # ----------------
 # ---Copy files---
 # ----------------
