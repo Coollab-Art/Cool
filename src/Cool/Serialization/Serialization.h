@@ -3,6 +3,7 @@
 #include <string>
 #include "Cool/File/File.h"
 #include "Cool/Log/ErrorMessage.hpp"
+#include "Cool/Utils/getline.hpp"
 #include "tl/expected.hpp"
 
 namespace Cool::Serialization {
@@ -22,7 +23,7 @@ auto load(T& data, std::filesystem::path const& file_path, std::string* extra_li
 
     std::ifstream ifs{file_path};
     if (extra_line_at_the_beginning_of_the_file != nullptr)
-        std::getline(ifs, *extra_line_at_the_beginning_of_the_file);
+        Cool::getline(ifs, *extra_line_at_the_beginning_of_the_file);
     try
     {
         auto archive = InputArchive{ifs};

@@ -1,13 +1,13 @@
-#include <exception>
-#include <filesystem>
 #if defined(COOL_OPENGL)
-
+#include "preprocess_shader_source.h"
 #include <Cool/File/File.h>
 #include <Cool/Path/Path.h>
 #include <Cool/RegExp/RegExp.h>
 #include <Cool/String/String.h>
+#include <exception>
+#include <filesystem>
 #include <sstream>
-#include "preprocess_shader_source.h"
+#include "Cool/Utils/getline.hpp"
 
 namespace Cool::OpenGL {
 
@@ -66,7 +66,7 @@ static auto preprocess_shader_source_impl(std::string_view source, std::vector<s
     std::ostringstream output;
 
     std::string line;
-    while (std::getline(stream, line))
+    while (Cool::getline(stream, line))
     {
         String::replace_all_inplace(line, "_COOL_RES_", Path::cool_res().string());
         String::replace_all_inplace(line, "_ROOT_FOLDER_", Path::root().string());
