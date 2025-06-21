@@ -63,7 +63,15 @@ void TaskManager::thread_update_loop()
 
         try
         {
+#if DEBUG
+            auto const start = std::chrono::steady_clock::now();
+#endif
             task->coroutine.do_some_work();
+#if DEBUG
+            auto const end = std::chrono::steady_clock::now();
+            if (end - start > 1s)
+                Cool::Log::warning(task->task->name(), fmt::format("Took {} without pausing the coroutine. We should pause this coroutine more often", time_formatted_hms(end - start)));
+#endif
         }
         catch (std::exception const& e)
         {
