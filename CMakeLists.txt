@@ -343,6 +343,14 @@ target_link_libraries(Cool-PublicProperties INTERFACE Sockpp::sockpp)
 
 # TODO(Websocket) License
 
+# IXWebSocket
+set(USE_ZLIB OFF CACHE BOOL "" FORCE) # I don't want to have to install zlib, and also for the small jsons we send it might be better to not compress the messages anyways
+set(IXWEBSOCKET_INSTALL OFF CACHE BOOL "" FORCE)
+add_subdirectory(lib/IXWebSocket)
+target_link_libraries(Cool-PublicProperties INTERFACE ixwebsocket::ixwebsocket) # TODO(Websockets) should be private?
+
+# TODO(Websocket) License
+
 # ----------------
 # ---Copy files---
 # ----------------

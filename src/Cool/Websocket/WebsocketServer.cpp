@@ -1,46 +1,70 @@
 #include "WebsocketServer.hpp"
 #include "Cool/Task/TaskManager.hpp"
+#include "Cool/Websocket/EventQueue.hpp"
 #include "Task_WebsocketConnection.hpp"
 
 namespace Cool {
 
 void WebsocketServer::check_accept_connection()
 {
-    sockpp::inet_address peer;
-
-    // Accept a new client connection
-    acceptor().set_non_blocking();
-    if (auto res = acceptor().accept(&peer); !res)
+    server(); // HACK make sure the server is created
+              // server().poll();     // Non-blocking
+              // server().dispatch(); // Process events
     {
-        // TODO(Websocket) error handling
-        // std::cerr << "Error accepting incoming connection: " << res.error_message() << std::endl;
-    }
-    else
-    {
-        std::cout << "Received a connection request from " << peer << std::endl;
-        task_manager().submit(std::make_shared<Task_WebsocketConnection>(res.release()));
+        auto lock = std::unique_lock{event_queue_mutex()};
+        for (auto const& event : event_queue())
+        {
+            // TODO(Commands) Should use nlohmann json to convert to proper json string, instead of doing all the quoting and escaping of \ in paths etc
+            for (auto const& client : server().getClients())
+                client->send(fmt::format(R"JSON({{
+                "event": "ImageExportFinished",
+                "width": {},
+                "height": {},
+                "path": "{}"
+            }})JSON",
+                                         event.size.width(), event.size.height(), "yo" /* event.path.string() */));
+        }
+        event_queue().clear();
     }
 }
 
-auto WebsocketServer::acceptor() -> sockpp::tcp_acceptor&
+auto WebsocketServer::server() -> ix::WebSocketServer&
 {
-    if (_acceptor.has_value())
-        return *_acceptor;
+    if (_server.has_value())
+        return *_server;
 
-    sockpp::initialize();
+    _server.emplace(12345, "0.0.0.0"); // TODO(Websocket) Choose a more unique port / let users choose the port
 
-    in_port_t       port = sockpp::TEST_PORT;
-    std::error_code ec;
-    _acceptor = sockpp::tcp_acceptor{port, 4, ec};
+    _server->setOnConnectionCallback([](std::weak_ptr<ix::WebSocket>         connection,
+                                        std::shared_ptr<ix::ConnectionState> state) {
+        std::cout << "Received a connection request from " << state << std::endl;
+        auto const co = connection.lock();
+        if (!co)
+            return;
+        // co->send("HELLO");
+        co->setOnMessageCallback([connection](const ix::WebSocketMessagePtr& msg) {
+            if (msg->type == ix::WebSocketMessageType::Message)
+            {
+                std::cout << "Received: " << msg->str << std::endl;
+                auto const co = connection.lock();
+                if (!co)
+                    return;
 
-    if (ec)
+                command_handler()(msg->str);
+            }
+        });
+    });
+
+    if (!_server->listen().first)
     {
-        std::cerr << "Error creating the acceptor: " << ec.message() << std::endl; // TODO(Websocket) proper errorr handling
+        std::cerr << "Server failed to listen" << std::endl;
         // TODO(Websocket) return nullopt then
         // return 1;
     }
 
-    return *_acceptor;
+    _server->start(); // Starts accepting connections, but doesn't start a poll thread
+
+    return *_server;
 }
 
 } // namespace Cool

@@ -127,3 +127,6 @@
 [submodule "lib/sockpp"]
 	path = lib/sockpp
 	url = https://github.com/fpagliughi/sockpp
+[submodule "lib/IXWebSocket"]
+	path = lib/IXWebSocket
+	url = https://github.com/machinezone/IXWebSocket

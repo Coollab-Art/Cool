@@ -1,5 +1,5 @@
 #pragma once
-#include "sockpp/tcp_acceptor.h"
+#include "ixwebsocket/IXWebSocketServer.h"
 
 namespace Cool {
 
@@ -8,10 +8,10 @@ public:
     void check_accept_connection();
 
 private:
-    auto acceptor() -> sockpp::tcp_acceptor&;
+    auto server() -> ix::WebSocketServer&;
 
 private:
-    std::optional<sockpp::tcp_acceptor> _acceptor;
+    std::optional<ix::WebSocketServer> _server;
 };
 
 inline auto websocket_server() -> WebsocketServer&
