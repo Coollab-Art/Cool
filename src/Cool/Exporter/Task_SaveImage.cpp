@@ -1,7 +1,9 @@
 #include "Task_SaveImage.hpp"
+#include <mutex>
 #include <open/open.hpp>
 #include "Cool/Image/SaveImage.h"
 #include "Cool/Task/TaskWithProgressBar.hpp"
+#include "Cool/Websocket/EventQueue.hpp"
 #include "ExporterU.h"
 #include "ImGuiNotify/ImGuiNotify.hpp"
 
@@ -25,6 +27,13 @@ auto Task_SaveImage::execute() -> TaskCoroutine
             .set_progress     = [&](float progress) { set_progress(progress); },
         }
     );
+    {
+        auto lock = std::unique_lock{event_queue_mutex()};
+        event_queue().push_back(Event_ExportedImage{
+            .size = _image.size(),
+            .path = _file_path,
+        });
+    }
     co_return;
 }
 

@@ -1,0 +1,19 @@
+#pragma once
+#include <mutex>
+#include "Event_ExportedImage.hpp"
+
+namespace Cool {
+
+inline auto event_queue() -> auto&
+{
+    static auto instance = std::vector<Event_ExportedImage>{};
+    return instance;
+}
+
+inline auto event_queue_mutex() -> auto&
+{
+    static auto instance = std::mutex{};
+    return instance;
+}
+
+} // namespace Cool
