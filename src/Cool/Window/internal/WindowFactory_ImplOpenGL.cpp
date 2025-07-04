@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include "Cool/CommandLineArgs/CommandLineArgs.h"
 #include "GLFW/glfw3.h"
 #if defined(COOL_OPENGL)
 #include "WindowFactory_ImplOpenGL.h" // Must be included first
@@ -81,6 +82,8 @@ auto WindowFactory_ImplOpenGL::make_window(WindowConfig const& config, WindowMan
     if constexpr (COOL_OPENGL_VERSION >= 430)
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 #endif
+    if (std::find(Cool::command_line_args().get().begin(), Cool::command_line_args().get().end(), "--hide_window") != Cool::command_line_args().get().end())
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     // Create window
     auto&       windows      = window_manager.windows();
     GLFWwindow* other_window = windows.empty() ? nullptr : windows.back().glfw();
