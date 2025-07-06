@@ -1,12 +1,12 @@
 #pragma once
 #include <mutex>
-#include "Event_ExportedImage.hpp"
+#include "Event.hpp"
 
 namespace Cool {
 
 inline auto event_queue() -> auto&
 {
-    static auto instance = std::vector<Event_ExportedImage>{};
+    static auto instance = std::vector<Event>{};
     return instance;
 }
 

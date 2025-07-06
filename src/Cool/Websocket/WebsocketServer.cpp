@@ -8,21 +8,16 @@ namespace Cool {
 void WebsocketServer::check_accept_connection()
 {
     server(); // HACK make sure the server is created
-              // server().poll();     // Non-blocking
-              // server().dispatch(); // Process events
+
+    // server().poll();     // Non-blocking
+    // server().dispatch(); // Process events
     {
         auto lock = std::unique_lock{event_queue_mutex()};
         for (auto const& event : event_queue())
         {
-            // TODO(Commands) Should use nlohmann json to convert to proper json string, instead of doing all the quoting and escaping of \ in paths etc
+            auto const json = std::visit([](auto&& event) { return event.to_json(); }, event);
             for (auto const& client : server().getClients())
-                client->send(fmt::format(R"JSON({{
-                "event": "ImageExportFinished",
-                "width": {},
-                "height": {},
-                "path": "{}"
-            }})JSON",
-                                         event.size.width(), event.size.height(), "yo" /* event.path.string() */));
+                client->send(json);
         }
         event_queue().clear();
     }

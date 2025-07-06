@@ -1,3 +1,4 @@
+from time import sleep
 from typing import Callable
 import websocket
 import json
@@ -16,6 +17,7 @@ def on_open(ws):
 class Coollab:
     _ws: websocket.WebSocketApp
     _callback: Callable[[], None]
+    _next_id: int = 0
 
     def __init__(self, host: str = "127.0.0.1", port: int = 12345) -> None:
         self._ws = websocket.WebSocketApp(
@@ -29,6 +31,8 @@ class Coollab:
 
     def _send_command(self, command: str, params: dict):
         params["command"] = command
+        params["command_id"] = self._next_id
+        self._next_id += 1
         self._ws.send(json.dumps(params))
 
     def _on_message(self, ws, message):
@@ -36,6 +40,8 @@ class Coollab:
         d = json.loads(message)
         if d["event"] == "ImageExportFinished":
             self._callback()
+        elif d["event"] == "OpenedProject":
+            pass
 
     def export_image(self, width: int = 500, height: int = 500) -> None:
         self._send_command(
@@ -64,6 +70,14 @@ class Coollab:
             },
         )
 
+    def open_project(self, path: str) -> None:
+        self._send_command(
+            "OpenProject",
+            {
+                "path": path,
+            },
+        )
+
     def on_image_export_finished(self, callback: Callable[[], None]) -> None:
         self._callback = callback
 
@@ -89,6 +103,10 @@ def increase_image_count():
 coollab.on_image_export_finished(increase_image_count)
 for i in range(10):
     coollab.log(title="Script", content=f"This is {i}")
+    coollab.open_project(
+        "C:/Users/fouch/AppData/Roaming/Coollab Launcher/Projects/Untitled(1).coollab"
+    )
+    sleep(1)
     coollab.export_image(2000, 2000)
 
 # Need to keep the script running to listen to the responses from Coollab
