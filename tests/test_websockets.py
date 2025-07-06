@@ -3,6 +3,7 @@ from typing import Callable
 import websocket
 import json
 import threading
+import asyncio
 
 
 can_start = False
@@ -18,6 +19,7 @@ class Coollab:
     _ws: websocket.WebSocketApp
     _callback: Callable[[], None]
     _next_id: int = 0
+    _future: asyncio.Future
 
     def __init__(self, host: str = "127.0.0.1", port: int = 12345) -> None:
         self._ws = websocket.WebSocketApp(
@@ -41,7 +43,7 @@ class Coollab:
         if d["event"] == "ImageExportFinished":
             self._callback()
         elif d["event"] == "OpenedProject":
-            pass
+            self._loop.call_soon_threadsafe(self._future.set_result, None)
 
     def export_image(self, width: int = 500, height: int = 500) -> None:
         self._send_command(
@@ -70,48 +72,48 @@ class Coollab:
             },
         )
 
-    def open_project(self, path: str) -> None:
+    def open_project(self, path: str) -> asyncio.Future:
         self._send_command(
             "OpenProject",
             {
                 "path": path,
             },
         )
+        self._loop = asyncio.get_running_loop()
+        self._future = self._loop.create_future()
+        return self._future
 
     def on_image_export_finished(self, callback: Callable[[], None]) -> None:
         self._callback = callback
 
 
-coollab = Coollab()
+async def main() -> None:
+    coollab = Coollab()
 
-IMAGE_MAX = 10
-image_count = 0
+    image_count = 0
 
-has_finished_exporting = False
+    def decrease_image_count():
+        nonlocal image_count
+        image_count -= 1
+
+    coollab.on_image_export_finished(decrease_image_count)
+    import os
+
+    mypath = "C:/Users/fouch/AppData/Roaming/Coollab Launcher/Projects/test"
+    for filename in os.listdir(mypath):
+        filepath = os.path.join(mypath, filename)
+        if os.path.isfile(filepath):
+            image_count += 1
+            await coollab.open_project(filepath)
+            coollab.export_image()
+
+    # Need to keep the script running to listen to the responses from Coollab
+    while image_count > 0:
+        pass
+    coollab.close_app()
 
 
-def increase_image_count():
-    global image_count
-    global has_finished_exporting
-    image_count += 1
-    print(image_count)
-    if image_count == IMAGE_MAX:
-        coollab.close_app()
-        has_finished_exporting = True
-
-
-coollab.on_image_export_finished(increase_image_count)
-for i in range(10):
-    coollab.log(title="Script", content=f"This is {i}")
-    coollab.open_project(
-        "C:/Users/fouch/AppData/Roaming/Coollab Launcher/Projects/Untitled(1).coollab"
-    )
-    sleep(1)
-    coollab.export_image(2000, 2000)
-
-# Need to keep the script running to listen to the responses from Coollab
-while not has_finished_exporting:
-    pass
+asyncio.run(main())
 
 # for i in range(IMAGE_MAX):
 #     coollab.export_image(width=500, height=500)

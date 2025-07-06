@@ -32,7 +32,7 @@ auto WebsocketServer::server() -> ix::WebSocketServer&
 
     _server->setOnConnectionCallback([](std::weak_ptr<ix::WebSocket>         connection,
                                         std::shared_ptr<ix::ConnectionState> state) {
-        std::cout << "Received a connection request from " << state << std::endl;
+        // std::cout << "Received a connection request from " << state << std::endl;
         auto const co = connection.lock();
         if (!co)
             return;
@@ -40,7 +40,7 @@ auto WebsocketServer::server() -> ix::WebSocketServer&
         co->setOnMessageCallback([connection](const ix::WebSocketMessagePtr& msg) {
             if (msg->type == ix::WebSocketMessageType::Message)
             {
-                std::cout << "Received: " << msg->str << std::endl;
+                // std::cout << "Received: " << msg->str << std::endl;
                 auto const co = connection.lock();
                 if (!co)
                     return;
