@@ -3,6 +3,7 @@
 #include <open/open.hpp>
 #include "Cool/Image/SaveImage.h"
 #include "Cool/Task/TaskWithProgressBar.hpp"
+#include "Cool/Websocket/Event.hpp"
 #include "Cool/Websocket/EventQueue.hpp"
 #include "ExporterU.h"
 #include "ImGuiNotify/ImGuiNotify.hpp"
@@ -20,6 +21,13 @@ Task_SaveImage::Task_SaveImage(std::filesystem::path file_path, img::Image image
 auto Task_SaveImage::execute() -> TaskCoroutine
 {
     // TODO(Task) pause the coroutine regularly
+    {
+        auto lock = std::unique_lock{event_queue_mutex()};
+        event_queue().push_back(Event_ImageExportStarted{
+            .size = _image.size(),
+            .path = _file_path,
+        });
+    }
     _result = ImageU::save(
         _file_path, _image,
         {

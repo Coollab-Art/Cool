@@ -43,17 +43,37 @@ class Coollab:
         if d["event"] == "ImageExportFinished":
             self._callback()
         elif d["event"] == "OpenedProject":
+            self._loop.call_soon_threadsafe(
+                self._future.set_result, None
+            )  # TODO use command_id to know which future to set
+        elif d["event"] == "ImageExportStarted":
             self._loop.call_soon_threadsafe(self._future.set_result, None)
 
-    def export_image(self, width: int = 500, height: int = 500) -> None:
+    # Starts the export, it only only be finished a lot later, and then the callback on_image_export_finished() will be called
+    async def start_image_export(
+        self,
+        width: int = 500,
+        height: int = 500,
+        folder: str | None = None,
+        filename: str | None = None,
+        extension: str | None = None,
+        export_file_overwrite: bool = False,
+    ) -> None:
         self._send_command(
             "ExportImage",
             {
                 "width": width,
                 "height": height,
                 "format": ".png",
+                "folder": folder,  # TODO handle the case where it is None
+                "filename": filename,  # TODO handle the case where it is None
+                "extension": extension,  # TODO handle the case where it is None
+                "export_file_overwrite": export_file_overwrite,
             },
         )
+        self._loop = asyncio.get_running_loop()
+        self._future = self._loop.create_future()
+        await self._future
 
     def log(self, title: str, content: str) -> None:
         self._send_command(
@@ -72,7 +92,7 @@ class Coollab:
             },
         )
 
-    def open_project(self, path: str) -> asyncio.Future:
+    async def open_project(self, path: str) -> None:
         self._send_command(
             "OpenProject",
             {
@@ -81,7 +101,7 @@ class Coollab:
         )
         self._loop = asyncio.get_running_loop()
         self._future = self._loop.create_future()
-        return self._future
+        await self._future
 
     def on_image_export_finished(self, callback: Callable[[], None]) -> None:
         self._callback = callback
@@ -98,6 +118,7 @@ async def main() -> None:
 
     coollab.on_image_export_finished(decrease_image_count)
     import os
+    from pathlib import Path
 
     mypath = "C:/Users/fouch/AppData/Roaming/Coollab Launcher/Projects/test"
     for filename in os.listdir(mypath):
@@ -105,7 +126,14 @@ async def main() -> None:
         if os.path.isfile(filepath):
             image_count += 1
             await coollab.open_project(filepath)
-            coollab.export_image()
+            await coollab.start_image_export(
+                2000,
+                2000,
+                folder=mypath + "/img",
+                filename=Path(filename).stem,
+                extension="png",
+                export_file_overwrite=True,
+            )
 
     # Need to keep the script running to listen to the responses from Coollab
     while image_count > 0:
