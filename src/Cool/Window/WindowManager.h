@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Window.h"
 
 namespace Cool {
@@ -17,11 +16,7 @@ public:
 
 private:
     friend class WindowFactory;
-    void set_main_window(Window& window)
-    {
-        assert(_main_window == nullptr && "You can only have one main window!"); // NOLINT(readability-simplify-boolean-expr)
-        _main_window = &window;
-    }
+    void set_main_window(Window& window);
 
 private:
     std::list<Window> _windows;
