@@ -95,7 +95,10 @@ private:
     void store_window_size();
     void store_window_position();
     void display_image(ImTextureID image_texture_id, img::Size image_size);
-    void check_for_fullscreen_toggle() const;
+    void check_for_fullscreen_toggle();
+
+    void toggle_fullscreen();
+    void exit_fullscreen();
 
 private:
     std::string                           _name;
@@ -114,6 +117,8 @@ private:
     MessageId _log_position_message_id{};
 
     bool _has_vertical_margins{false};
+
+    bool _need_to_toggle_fullscreen{false};
 
 private:
     // Serialization

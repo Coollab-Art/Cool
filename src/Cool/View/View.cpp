@@ -3,11 +3,13 @@
 #include "Cool/ImGui/ImGuiExtras.h"
 #include "Cool/Input/MouseCoordinates.h"
 #include "Cool/Log/message_console.hpp"
+#include "Cool/UserSettings/UserSettings.h"
+#include "Cool/Window/set_main_window_fullscreen.hpp"
 #include "img/src/SizeU.h"
 
 namespace Cool {
 
-void View::check_for_fullscreen_toggle() const
+void View::check_for_fullscreen_toggle()
 {
     // if (!_is_output_view)
     //     return;
@@ -15,9 +17,24 @@ void View::check_for_fullscreen_toggle() const
         return;
 
     if (ImGui::IsKeyChordPressed(ImGuiKey_F10))
-        ImGui::ToggleWindowFullscreen();
+        toggle_fullscreen();
+
     if (ImGui::IsKeyChordPressed(ImGuiKey_Escape))
-        ImGui::ExitWindowFullscreen();
+        exit_fullscreen();
+}
+
+void View::toggle_fullscreen()
+{
+    if (!user_settings().enable_multi_viewport) // If this imgui window cannot escape the main window, we need the main window itself to go fullscreen if we want this imgui window to be able to take the full screen
+        toggle_main_window_fullscreen();
+    _need_to_toggle_fullscreen = true; // We delay it by 1 frame so that the main window has time to go fullscreen, which we need to know the size that our imgui window needs to take to be fullscreen
+}
+
+void View::exit_fullscreen()
+{
+    if (!user_settings().enable_multi_viewport) // If this imgui window cannot escape the main window, we need the main window itself to go fullscreen if we want this imgui window to be able to take the full screen
+        set_main_window_fullscreen(false);
+    ImGui::ExitWindowFullscreen();
 }
 
 void View::imgui_window(ViewWindowParams const& params)
@@ -47,6 +64,11 @@ void View::imgui_window(ViewWindowParams const& params)
             ImGui::Begin(_name.c_str(), p_open, flags);
     }
     ImGui::PopStyleVar();
+    if (_need_to_toggle_fullscreen)
+    {
+        ImGui::ToggleWindowFullscreen();
+        _need_to_toggle_fullscreen = false;
+    }
     check_for_fullscreen_toggle();
     ImGui::PushStyleColor(ImGuiCol_NavCursor, {0.f, 0.f, 0.f, 0.f});                                      // Hack because when escaping view's fullscreen with the ESCAPE key it gets nav-highlighted.
     ImGui::BeginChild("##ChildWindow", {0.f, 0.f}, false, _is_output_view ? 0 : ImGuiWindowFlags_NoMove); // Hack to emulate `ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = true;` for this window only. Since we can drag a camera in a View we don't want the window to move at the same time.
@@ -63,17 +85,14 @@ void View::imgui_window(ViewWindowParams const& params)
     ImGui::EndChild();
     if (_is_output_view)
     {
-        bool wants_to_toggle_fullscreen{false};
         if (ImGui::BeginPopupContextItem("##close"))
         {
             if (ImGui::Button("Toggle Fullscreen (F10)"))
-                wants_to_toggle_fullscreen = true; // Can't call ToggleWindowFullscreen() here because it would affect the popup and not the actual window
+                toggle_fullscreen();
             if (ImGui::Button("Close window"))
                 close();
             ImGui::EndPopup();
         }
-        if (wants_to_toggle_fullscreen)
-            ImGui::ToggleWindowFullscreen();
     }
     ImGui::PopStyleColor();
     ImGui::End();
