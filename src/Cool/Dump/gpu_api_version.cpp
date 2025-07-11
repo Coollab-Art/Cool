@@ -1,4 +1,4 @@
-#include "gpu_api_version.h"
+#include "gpu_api_version.hpp"
 #include "Cool/Utils/Version.h"
 
 namespace Cool {
