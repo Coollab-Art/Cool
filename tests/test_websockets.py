@@ -12,7 +12,7 @@ can_start = False
 def on_open(ws):
     global can_start
     can_start = True
-    print("Connected")
+    print("[COOLLAB INFO] Connected")
 
 
 class Coollab:
@@ -38,10 +38,12 @@ class Coollab:
         self._ws.send(json.dumps(params))
 
     def _on_message(self, ws, message):
-        print("Received:", message)
+        print("[COOLLAB INFO] Received:", message)
         d = json.loads(message)
         if d["event"] == "ImageExportFinished":
-            self._callback()
+            self._loop.call_soon_threadsafe(
+                self._callback, d["path"]
+            )
         elif d["event"] == "OpenedProject":
             self._loop.call_soon_threadsafe(
                 self._future.set_result, None
@@ -57,17 +59,19 @@ class Coollab:
         folder: str | None = None,
         filename: str | None = None,
         extension: str | None = None,
+        project_autosave: bool = False,
         export_file_overwrite: bool = False,
     ) -> None:
+        print(f"Exporting image : {filename}")
         self._send_command(
             "ExportImage",
             {
                 "width": width,
                 "height": height,
-                "format": ".png",
                 "folder": folder,  # TODO handle the case where it is None
                 "filename": filename,  # TODO handle the case where it is None
                 "extension": extension,  # TODO handle the case where it is None
+                "project_autosave": project_autosave,
                 "export_file_overwrite": export_file_overwrite,
             },
         )
