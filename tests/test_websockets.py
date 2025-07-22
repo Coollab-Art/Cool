@@ -49,7 +49,7 @@ class Coollab:
                 self._future.set_result, None
             )  # TODO use command_id to know which future to set
         elif d["event"] == "ImageExportStarted":
-            self._loop.call_soon_threadsafe(self._future.set_result, None)
+            self._loop.call_soon_threadsafe(self._future.set_result, None) # TODO(Websocket) We should put the data of the event in that future (e.g. path and size in that case)
 
     # Starts the export, it only only be finished a lot later, and then the callback on_image_export_finished() will be called
     async def start_image_export(
