@@ -14,7 +14,7 @@ public:
 
 private:
     static uint32_t next_id;
-    VideoDescriptor _video_descriptor{}; // TODO(Video) Ship a default video with Coollab? A short and lightweight one
+    VideoDescriptor _video_descriptor{};
     uint32_t        _id{next_id++};
 
 private:

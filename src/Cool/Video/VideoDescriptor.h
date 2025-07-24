@@ -1,4 +1,5 @@
 #pragma once
+#include "Cool/Path/Path.h"
 #include "Cool/Time/Time.hpp"
 #include "Cool/Time/TimeSpeed.h"
 
@@ -34,7 +35,7 @@ private:
 };
 
 struct VideoDescriptor {
-    std::filesystem::path path{};
+    std::filesystem::path path{Cool::Path::default_video()};
     VideoPlayerSettings   settings{};
 
     auto imgui_widget() -> bool;
