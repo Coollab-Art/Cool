@@ -46,12 +46,22 @@ private:
     // Serialization
     friend class ser20::access;
     template<class Archive>
-    void serialize(Archive& archive)
+    void save(Archive& archive) const
     {
         archive(
             ser20::make_nvp("File Path", path),
             ser20::make_nvp("Settings", settings)
         );
+    }
+    template<class Archive>
+    void load(Archive& archive)
+    {
+        archive(
+            ser20::make_nvp("File Path", path),
+            ser20::make_nvp("Settings", settings)
+        );
+        if (path.empty())
+            path = Cool::Path::default_video();
     }
 };
 

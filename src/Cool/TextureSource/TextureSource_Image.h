@@ -17,11 +17,20 @@ private:
     // Serialization
     friend class ser20::access;
     template<class Archive>
-    void serialize(Archive& archive)
+    void save(Archive& archive) const
     {
         archive(
             ser20::make_nvp("Path", absolute_path)
         );
+    }
+    template<class Archive>
+    void load(Archive& archive)
+    {
+        archive(
+            ser20::make_nvp("Path", absolute_path)
+        );
+        if (absolute_path.empty())
+            absolute_path = Cool::Path::default_texture();
     }
 };
 
