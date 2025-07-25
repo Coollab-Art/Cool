@@ -13,6 +13,6 @@ using TextureSource = std::variant<
 
 auto get_texture(TextureSource const&) -> Texture const&;
 auto imgui_widget(TextureSource&) -> bool;
-auto get_error(TextureSource const&) -> std::optional<std::string>;
+auto get_error_notification(TextureSource const&) -> std::optional<ImGuiNotify::Notification>;
 
 } // namespace Cool

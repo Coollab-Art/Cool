@@ -32,11 +32,12 @@ auto with_extension(std::filesystem::path file_path, std::filesystem::path const
 /// Returns the folders in the path, removes the file name if there is one at the end
 auto without_file_name(std::filesystem::path const& file_path) -> std::filesystem::path;
 
-auto find_closest_existing_folder(std::filesystem::path const& file_path) -> std::filesystem::path;
+auto find_first_existing_folder_in_path(std::filesystem::path path) -> std::filesystem::path;
 
 auto weakly_canonical(std::filesystem::path const& path) -> std::filesystem::path;
 auto relative(std::filesystem::path const& path, std::filesystem::path const& base) -> std::filesystem::path;
 auto is_regular_file(std::filesystem::path const& path) -> bool;
+auto is_folder(std::filesystem::path const& path) -> bool;
 auto is_empty(std::filesystem::path const& path) -> bool;
 auto is_absolute(std::filesystem::path const& path) -> bool;
 auto is_relative(std::filesystem::path const& path) -> bool;

@@ -1,9 +1,8 @@
 #pragma once
-#include <optional>
-#include <string>
 #include <wcam/wcam.hpp>
 #include "Cool/Gpu/Texture.h"
 #include "Cool/Serialization/wcam_serialization.h"
+#include "ImGuiNotify/ImGuiNotify.hpp"
 
 namespace Cool {
 
@@ -11,7 +10,7 @@ class TextureSource_Webcam {
 public:
     auto               imgui_widget() -> bool;
     [[nodiscard]] auto get_texture() const -> Texture const*;
-    [[nodiscard]] auto get_error() const -> std::optional<std::string>;
+    [[nodiscard]] auto get_error_notification() const -> std::optional<ImGuiNotify::Notification>;
 
     friend auto operator==(TextureSource_Webcam const& a, TextureSource_Webcam const& b) -> bool
     {

@@ -1,6 +1,7 @@
 #pragma once
 #include "Cool/Gpu/Texture.h"
 #include "Cool/Path/Path.h"
+#include "ImGuiNotify/ImGuiNotify.hpp"
 
 namespace Cool {
 
@@ -9,7 +10,7 @@ struct TextureSource_Image {
 
     auto               imgui_widget() -> bool;
     [[nodiscard]] auto get_texture() const -> Texture const*;
-    [[nodiscard]] auto get_error() const -> std::optional<std::string>;
+    [[nodiscard]] auto get_error_notification() const -> std::optional<ImGuiNotify::Notification>;
 
     friend auto operator==(TextureSource_Image const&, TextureSource_Image const&) -> bool = default;
 

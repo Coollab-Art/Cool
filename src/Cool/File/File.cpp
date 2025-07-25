@@ -105,13 +105,28 @@ auto without_file_name(std::filesystem::path const& file_path) -> std::filesyste
     return file_path.parent_path();
 }
 
-auto find_closest_existing_folder(std::filesystem::path const& file_path) -> std::filesystem::path
+auto find_first_existing_folder_in_path(std::filesystem::path path) -> std::filesystem::path
 {
-    auto previous_length = file_path.string().size();
+    if (File::exists(path))
+    {
+        if (is_folder(path))
+            return path;
+        else // NOLINT(*else-after-return)
+            return without_file_name(path);
+    }
 
-    auto path = Cool::File::without_file_name(file_path);
-    while (!Cool::File::exists(path) && previous_length > path.string().size())
-        path = path.parent_path();
+    auto prev_size = path.string().size();
+    while (true)
+    {
+        if (File::exists(path))
+            break;
+
+        path            = path.parent_path();
+        auto const size = path.string().size();
+        if (size >= prev_size)
+            break;
+        prev_size = size;
+    }
     return path;
 }
 
@@ -150,6 +165,19 @@ auto is_regular_file(std::filesystem::path const& path) -> bool
     catch (std::exception const& e)
     {
         Log::internal_warning("File", fmt::format("Failed to check if \"{}\" is a regular file:\n{}", path, e.what()));
+        return false;
+    }
+}
+
+auto is_folder(std::filesystem::path const& path) -> bool
+{
+    try
+    {
+        return std::filesystem::is_directory(path);
+    }
+    catch (std::exception const& e)
+    {
+        Log::internal_warning("File", fmt::format("Failed to check if \"{}\" is a folder:\n{}", path, e.what()));
         return false;
     }
 }
@@ -298,7 +326,7 @@ auto find_available_name(
     PathChecks const&            path_checks
 ) -> std::filesystem::path // NOLINT(*easily-swappable-parameters)
 {
-    std::string const name = Cool::File::without_extension(file_name).string();
+    std::string const name = without_extension(file_name).string();
     // Split file_name into a number in parenthesis and the base_name that is before those parenthesis
     auto [k, base_name] = [&]() {
         if (auto const pos = name.find_last_of('(');

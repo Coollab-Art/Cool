@@ -22,9 +22,9 @@ auto imgui_widget(TextureSource& source) -> bool
     return std::visit([](auto& source) { return source.imgui_widget(); }, source);
 }
 
-auto get_error(const TextureSource& source) -> std::optional<std::string>
+auto get_error_notification(TextureSource const& source) -> std::optional<ImGuiNotify::Notification>
 {
-    return std::visit([](auto const& source) { return source.get_error(); }, source);
+    return std::visit([](auto const& source) { return source.get_error_notification(); }, source);
 }
 
 } // namespace Cool
