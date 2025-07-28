@@ -1,6 +1,7 @@
 #pragma once
 #include "Cool/File/File.h"
 #include "nlohmann/json.hpp"
+#include "Cool/Dump/app_version.hpp"
 
 namespace Cool {
 
@@ -50,10 +51,21 @@ struct Event_OpenedProject {
             .dump();
     }
 };
+struct Event_GetVersionName {
+    auto to_json() const -> std::string
+    {
+        return nlohmann::json{
+            {"event", "GetVersionName"},
+            {"version_name", app_version()},
+        }
+            .dump();
+    }
+};
 
 using Event = std::variant<
     Event_ExportedImage,
     Event_ImageExportStarted,
+    Event_GetVersionName,
     Event_OpenedProject>;
 
 } // namespace Cool
