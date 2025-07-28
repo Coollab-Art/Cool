@@ -4,7 +4,7 @@
 #include "Cool/Image/SaveImage.h"
 #include "Cool/Task/TaskWithProgressBar.hpp"
 #include "Cool/Websocket/Event.hpp"
-#include "Cool/Websocket/EventQueue.hpp"
+#include "Cool/Websocket/ResponseQueue.hpp"
 #include "ExporterU.h"
 #include "ImGuiNotify/ImGuiNotify.hpp"
 
@@ -22,8 +22,8 @@ auto Task_SaveImage::execute() -> TaskCoroutine
 {
     // TODO(Task) pause the coroutine regularly
     {
-        auto lock = std::unique_lock{event_queue_mutex()};
-        event_queue().push_back(Event_ImageExportStarted{
+        auto lock = std::unique_lock{response_queue_mutex()};
+        response_queue().push_back(Event_ImageExportStarted{
             .size = _image.size(),
             .path = _file_path,
         });
@@ -36,8 +36,8 @@ auto Task_SaveImage::execute() -> TaskCoroutine
         }
     );
     {
-        auto lock = std::unique_lock{event_queue_mutex()};
-        event_queue().push_back(Event_ExportedImage{
+        auto lock = std::unique_lock{response_queue_mutex()};
+        response_queue().push_back(Event_ExportedImage{
             .size = _image.size(),
             .path = _file_path,
         });

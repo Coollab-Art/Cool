@@ -1,6 +1,6 @@
 #include "WebsocketServer.hpp"
 #include "Cool/Task/TaskManager.hpp"
-#include "Cool/Websocket/EventQueue.hpp"
+#include "Cool/Websocket/ResponseQueue.hpp"
 #include "Task_WebsocketConnection.hpp"
 
 namespace Cool {
@@ -12,14 +12,14 @@ void WebsocketServer::check_accept_connection()
     // server().poll();     // Non-blocking
     // server().dispatch(); // Process events
     {
-        auto lock = std::unique_lock{event_queue_mutex()};
-        for (auto const& event : event_queue())
+        auto lock = std::unique_lock{response_queue_mutex()};
+        for (auto const& event : response_queue())
         {
             auto const json = std::visit([](auto&& event) { return event.to_json(); }, event);
             for (auto const& client : server().getClients())
                 client->send(json);
         }
-        event_queue().clear();
+        response_queue().clear();
     }
 }
 
@@ -45,7 +45,7 @@ auto WebsocketServer::server() -> ix::WebSocketServer&
                 if (!co)
                     return;
 
-                command_handler()(msg->str);
+                request_handler()(msg->str);
             }
         });
     });

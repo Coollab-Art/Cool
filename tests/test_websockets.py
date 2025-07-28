@@ -55,9 +55,9 @@ class Coollab:
         except Exception as e:
             print(f"[COOLLAB ERROR] Exception during connection :",e)
 
-    def _send_command(self, command: str, params: dict):
-        params["command"] = command
-        params["command_id"] = self._next_id
+    def _send_request(self, request: str, params: dict):
+        params["request"] = request
+        params["request_id"] = self._next_id
         self._next_id += 1
         self._ws.send(json.dumps(params))
 
@@ -71,7 +71,7 @@ class Coollab:
         elif d["event"] == "OpenedProject":
             self._loop.call_soon_threadsafe(
                 self._future.set_result, None
-            )  # TODO use command_id to know which future to set
+            )  # TODO use request_id to know which future to set
         elif d["event"] == "ImageExportStarted":
             self._loop.call_soon_threadsafe(self._future.set_result, None)
         elif d["event"] == "GetVersionName":
@@ -93,7 +93,7 @@ class Coollab:
         print(f"Exporting image : {filename}")
         self._loop = asyncio.get_running_loop()
         self._future = self._loop.create_future()
-        self._send_command(
+        self._send_request(
             "ExportImage",
             {
                 "width": width,
@@ -108,7 +108,7 @@ class Coollab:
         await self._future
 
     def log(self, title: str, content: str) -> None:
-        self._send_command(
+        self._send_request(
             "Log",
             {
                 "title": title,
@@ -117,7 +117,7 @@ class Coollab:
         )
 
     def close_app(self) -> None:
-        self._send_command(
+        self._send_request(
             "CloseApp",
             {
                 "force_kill_task_in_progress": False,
@@ -127,7 +127,7 @@ class Coollab:
     async def get_version_name(self) -> None:
         self._loop = asyncio.get_running_loop()
         self._future = self._loop.create_future()
-        self._send_command(
+        self._send_request(
             "GetVersionName",
             {
                 # "param1": False,
@@ -138,7 +138,7 @@ class Coollab:
     async def open_project(self, path: str) -> None:
         self._loop = asyncio.get_running_loop()
         self._future = self._loop.create_future()
-        self._send_command(
+        self._send_request(
             "OpenProject",
             {
                 "path": path,
