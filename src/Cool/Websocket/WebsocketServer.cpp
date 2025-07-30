@@ -13,9 +13,10 @@ void WebsocketServer::check_accept_connection()
     // server().dispatch(); // Process events
     {
         auto lock = std::unique_lock{response_queue_mutex()};
-        for (auto const& event : response_queue())
+        for (auto const& response : response_queue())
         {
-            auto const json = std::visit([](auto&& event) { return event.to_json(); }, event);
+            auto const json = response.to_json();
+            // std::cout << "Sending response: " << json << std::endl; // TODO remove
             for (auto const& client : server().getClients())
                 client->send(json);
         }

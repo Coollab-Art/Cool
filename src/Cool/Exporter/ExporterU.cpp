@@ -11,10 +11,10 @@
 
 namespace Cool::ExporterU {
 
-void export_image_using_a_task(img::Size size, Time time, Time delta_time, Polaroid const& polaroid, std::filesystem::path const& file_path)
+void export_image_using_a_task(img::Size size, Time time, Time delta_time, Polaroid const& polaroid, std::filesystem::path const& file_path, std::function<void(Cool::Event)> const& start_callback, std::function<void(Cool::Event)> const& end_callback)
 {
     polaroid.render(size, time, delta_time);
-    task_manager().submit(std::make_shared<Task_SaveImage>(file_path, polaroid.texture().download_pixels()));
+    task_manager().submit(std::make_shared<Task_SaveImage>(file_path, polaroid.texture().download_pixels(), start_callback, end_callback));
 }
 
 auto user_accepted_to_ignore_warnings(std::filesystem::path const& file_path, PathChecks const& path_checks) -> bool

@@ -1,5 +1,6 @@
 #pragma once
 #include "Cool/Exporter/Polaroid.hpp"
+#include "Cool/Websocket/Event.hpp"
 #include "ExporterGui.h"
 #include "VideoExportProcess.h"
 
@@ -36,8 +37,8 @@ public:
 
     /// Returns the path where the image will be exported
     /// (Note that by the time the function returns, the image will not have been exported yet since this is done in a task)
-    auto export_image_with_current_settings_using_a_task(Time time, Time delta_time, Polaroid const& polaroid, PathChecks const& path_checks) -> std::filesystem::path;
-    auto export_image_depending_on_params_using_a_task(Time time, Time delta_time, Polaroid const& polaroid, PathChecks const& path_checks, img::ImageExportParams const& image_export_params) -> std::filesystem::path;
+    // auto export_image_with_current_settings_using_a_task(Time time, Time delta_time, Polaroid const& polaroid, PathChecks const& path_checks) -> std::filesystem::path;
+    auto export_image_depending_on_params_using_a_task(Time time, Time delta_time, Polaroid const& polaroid, PathChecks const& path_checks, img::ImageExportParams const& image_export_params, std::function<void(Cool::Event)> const& start_callback = nullptr, std::function<void(Cool::Event)> const& end_callback = nullptr) -> std::filesystem::path;
 
     auto create_path_depending_on_params(img::ImageExportParams const& image_export_params) -> std::filesystem::path;
 

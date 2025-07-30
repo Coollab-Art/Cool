@@ -1,12 +1,12 @@
 #pragma once
 #include <mutex>
-#include "Event.hpp"
+#include "Response.hpp"
 
 namespace Cool {
 
 inline auto response_queue() -> auto&
 {
-    static auto instance = std::vector<Event>{};
+    static auto instance = std::vector<Response>{};
     return instance;
 }
 

@@ -2,12 +2,13 @@
 #include "Cool/File/File.h"
 #include "Cool/Task/TaskWithProgressBar.hpp"
 #include "no_sleep/no_sleep.hpp"
+#include "Cool/Websocket/Event.hpp"
 
 namespace Cool {
 
 class Task_SaveImage : public TaskWithProgressBar {
 public:
-    Task_SaveImage(std::filesystem::path file_path, img::Image image);
+    Task_SaveImage(std::filesystem::path file_path, img::Image image, std::function<void(Event)> _start_callback = nullptr, std::function<void(Event)> _end_callback = nullptr);
 
 private:
     auto execute() -> TaskCoroutine override;
@@ -19,6 +20,8 @@ private:
     img::Image                      _image;
     no_sleep::Scoped                _disable_sleep{COOL_APP_NAME, COOL_APP_NAME " is exporting an image", no_sleep::Mode::ScreenCanTurnOffButKeepComputing};
     tl::expected<void, std::string> _result;
+    std::function<void(Event)> _start_callback;
+    std::function<void(Event)> _end_callback;
 };
 
 } // namespace Cool
