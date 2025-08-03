@@ -13,7 +13,10 @@ public:
     friend auto operator==(TextureSource_SpoutSyphon const& a, TextureSource_SpoutSyphon const& b) -> bool = default;
 
 private:
-    std::string _sender_name{};
+    void init_sender_name_ifn() const;
+
+private:
+    mutable std::string _sender_name{};
 
 private:
     // Serialization

@@ -1,4 +1,5 @@
 #include "TextureLibrary_Spout.hpp"
+#include <SpoutGL/SpoutSenderNames.h>
 
 namespace Cool {
 
@@ -14,6 +15,15 @@ namespace Cool {
 // }
 
 // TODO(Spout) fallback to purple texture when sender disconnects ? or if it has never been connected
+
+// TODO(Spout) destroy sender + texture when unused for a while
+
+auto TextureLibrary_Spout::get_sender_names() -> std::vector<std::string>
+{
+    std::set<std::string> sendernames;
+    _names.GetSenderNames(&sendernames);
+    return {sendernames.begin(), sendernames.end()};
+}
 
 auto TextureLibrary_Spout::get_texture(std::string const& sender_name) -> Texture const*
 {
@@ -39,24 +49,10 @@ auto TextureLibrary_Spout::get_texture(std::string const& sender_name) -> Textur
     GLint currentFBO;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFBO);
 
-    unsigned int w = sharedTexture.size().width();
-    unsigned int h = sharedTexture.size().width();
+    receiver.ReceiveTexture(sharedTexture.id(), GL_TEXTURE_2D, true /*inverted*/, currentFBO);
 
-    char bob[256];
-
-    if (receiver.ReceiveTexture(bob /*senderName*/, w, h, sharedTexture.id(), GL_TEXTURE_2D, true /*inverted*/, currentFBO))
-    {
-        sharedTexture.bob_size(w, h);
-        // Texture received successfully
-        // Use sharedTextureID for rendering
-        // Cool::Log::info("spout", senderName);
-        // std::cout << senderName << ' ' << w << ' ' << h << std::endl;
-        // needs_to_rerender_flag().set_dirty(); // TODO(Spout) warn dependency
-    }
     if (receiver.IsUpdated())
-    {
         sharedTexture.set_size({receiver.GetSenderWidth(), receiver.GetSenderHeight()});
-    }
     return &sharedTexture;
 }
 

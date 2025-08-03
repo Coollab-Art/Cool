@@ -47,11 +47,6 @@ public:
 
     [[nodiscard]] auto aspect_ratio() const -> float { return img::aspect_ratio(_size); }
     [[nodiscard]] auto size() const -> img::Size { return _size; }
-    void               bob_size(unsigned int w, unsigned int h)
-    {
-        _size.set_width(w);
-        _size.set_height(h);
-    }
 
     [[nodiscard]] auto need_to_flip_y() const -> bool { return _need_to_flip_y; }
 
