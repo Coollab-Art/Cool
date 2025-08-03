@@ -84,7 +84,7 @@ auto UserSettings::imgui_enable_multi_viewport() -> bool
     ImGuiExtras::help_marker(
         "When enabled, allows you to drag windows outside of the main window."
 #if defined(__linux__)
-        "\nNote that on Linux this can cause issues with context menus if you use a custom window manager."
+        "\nWARNING: on Linux enabling this can cause a few UI issues, most notably with context menus"
 #endif
     );
     if (b)
@@ -165,32 +165,10 @@ void UserSettings::apply_multi_viewport_setting() const
 
 auto should_enable_multi_viewport_by_default() -> bool
 {
-#if !defined(__linux__)
-    return true;
+#if defined(__linux__)
+    return false;
 #else
-    // On Linux this can conflict with tiling WM and make our context menus behave weirdly.
-    // https://cdn.discordapp.com/attachments/848704719987671070/1127711921651597332/ui-linux.mp4
-    // https://github.com/ocornut/imgui/issues/2117
-    // For example i3 has issues with it.
-    // The desktops listed here should be okay though: https://wiki.archlinux.org/title/Xdg-utils#Environment_variables
-    char const* var = std::getenv("XDG_CURRENT_DESKTOP");
-    if (!var)
-        return false;
-    auto const vari = std::string{var};
-    return vari == "Cinnamon"
-           || vari == "X-Cinnamon"
-           || vari == "Deepin"
-           || vari == "DEEPIN"
-           || vari == "deepin"
-           || vari == "ENLIGHTENMENT"
-           || vari == "GNOME"
-           || vari == "GNOME-Flashback"
-           || vari == "GNOME-Flashback:GNOME"
-           || vari == "KDE"
-           || vari == "LXDE"
-           || vari == "LXQt"
-           || vari == "MATE"
-           || vari == "XFCE";
+    return true;
 #endif
 }
 

@@ -28,6 +28,7 @@ public:
 
     /// Path to the default texture used by TextureInfo.
     [[nodiscard]] static auto default_texture() -> std::filesystem::path const&;
+    [[nodiscard]] static auto default_video() -> std::filesystem::path const&;
 
     [[nodiscard]] static auto project_folder() -> std::optional<std::filesystem::path>& { return _project_folder; }
 

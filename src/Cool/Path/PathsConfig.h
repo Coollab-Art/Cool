@@ -19,6 +19,7 @@ public:
     [[nodiscard]] virtual auto default_user_data() const -> std::filesystem::path;
     [[nodiscard]] virtual auto initial_user_data() const -> std::filesystem::path;
     [[nodiscard]] virtual auto default_texture() const -> std::filesystem::path;
+    [[nodiscard]] virtual auto default_video() const -> std::filesystem::path;
 };
 
 } // namespace Cool

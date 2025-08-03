@@ -57,10 +57,19 @@ auto TextureSource_SpoutSyphon::get_texture() const -> Texture const*
     // return TextureLibrary_Webcam::instance().get_texture(_device_id);
 }
 
-auto TextureSource_SpoutSyphon::get_error() const -> std::optional<std::string>
+auto TextureSource_SpoutSyphon::get_error_notification() const -> std::optional<ImGuiNotify::Notification>
 {
-    return std::nullopt;
-    // return TextureLibrary_Webcam::instance().get_error(_device_id);
+    auto const err = texture_library_spout().get_error(_sender_name);
+    if (!err.has_value())
+        return std::nullopt;
+
+    return ImGuiNotify::Notification{
+        .type     = ImGuiNotify::Type::Error,
+        .title    = "Spout error", // TODO(Spout) or "Syphon error"
+        .content  = fmt::format("\"{}\"\n\n{}", _sender_name, *err),
+        .duration = std::nullopt,
+        .closable = false,
+    };
 }
 
 } // namespace Cool

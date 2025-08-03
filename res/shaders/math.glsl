@@ -83,6 +83,15 @@ vec2 complex_division(vec2 n, vec2 d)
     return vec2(n.x * d.x + n.y * d.y, n.y * d.x - n.x * d.y) / (d.x * d.x + d.y * d.y);
 }
 
+vec2 complex_pow(vec2 z, float n)
+{
+    float theta = atan(z.y, z.x);
+    float log_r = log2(dot(z, z)) * 0.5; // log2(r) = 0.5 * log2(x^2 + y^2)
+    float rn    = exp2(log_r * n);
+    float angle = n * theta;
+    return vec2(rn * cos(angle), rn * sin(angle));
+}
+
 vec2 Cool_apply_matrix_to_position_2D(mat3 matrix, vec2 pos)
 {
     vec3 tmp = matrix * vec3(pos, 1.);

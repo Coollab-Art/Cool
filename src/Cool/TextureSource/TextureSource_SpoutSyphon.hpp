@@ -1,4 +1,5 @@
 #pragma once
+#include <ImGuiNotify/ImGuiNotify.hpp>
 #include "Cool/Gpu/Texture.h"
 
 namespace Cool {
@@ -7,7 +8,7 @@ class TextureSource_SpoutSyphon {
 public:
     auto               imgui_widget() -> bool;
     [[nodiscard]] auto get_texture() const -> Texture const*;
-    [[nodiscard]] auto get_error() const -> std::optional<std::string>;
+    [[nodiscard]] auto get_error_notification() const -> std::optional<ImGuiNotify::Notification>;
 
     friend auto operator==(TextureSource_SpoutSyphon const& a, TextureSource_SpoutSyphon const& b) -> bool = default;
 
