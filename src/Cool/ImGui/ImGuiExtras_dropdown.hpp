@@ -23,6 +23,9 @@ auto dropdown(const char* label, const char* preview, std::vector<DropdownEntry>
                 }
                 select_next = entries[static_cast<size_t>(i)].is_selected();
             }
+            if (!select_next) // The value is not present in the list
+                if (!entries.empty())
+                    entries[0].apply_value();
         }
     };
 
@@ -42,9 +45,12 @@ auto dropdown(const char* label, const char* preview, std::vector<DropdownEntry>
         }
         ImGui::EndCombo();
     }
+    ImGui::SetItemKeyOwner(ImGuiKey_MouseWheelY); // Make sure scrolling on the dropdown will not cause the window to scroll
     check_for_scroll_on_item();
 
     return b;
 }
+
+auto dropdown(const char* label, std::string* value, std::vector<std::string> const& entries) -> bool;
 
 } // namespace Cool::ImGuiExtras
