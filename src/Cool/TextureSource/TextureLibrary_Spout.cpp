@@ -1,5 +1,5 @@
+#if defined(COOL_SPOUT)
 #include "TextureLibrary_Spout.hpp"
-#include <SpoutGL/SpoutSenderNames.h>
 
 namespace Cool {
 
@@ -21,7 +21,7 @@ namespace Cool {
 auto TextureLibrary_Spout::get_sender_names() -> std::vector<std::string>
 {
     std::set<std::string> sendernames;
-    _names.GetSenderNames(&sendernames);
+    _names_getter.GetSenderNames(&sendernames);
     return {sendernames.begin(), sendernames.end()};
 }
 
@@ -34,10 +34,10 @@ auto TextureLibrary_Spout::get_texture(std::string const& sender_name) -> Textur
     {
         _spouts.emplace_back();
         it = std::prev(_spouts.end());
-        _spouts.back().receiver.SetVerticalSync(false); // TODO(Spout) This seems to reduce lag, but is it a good idea?
+        _spouts.back().receiver.SetVerticalSync(false); // Otherwise there is some noticeable lag in the video
     }
-    auto& receiver      = it->receiver;
-    auto& sharedTexture = it->sharedTexture;
+    auto& receiver = it->receiver;
+    auto& texture  = it->texture;
 
     receiver.SetReceiverName(sender_name.c_str());
 
@@ -46,14 +46,14 @@ auto TextureLibrary_Spout::get_texture(std::string const& sender_name) -> Textur
     //     webcam_data.has_been_requested_this_frame = true;
     //     webcam_data.maybe_image                   = webcam_data.webcam.image(); // We need to keep the image alive till the end of the frame, so we take a copy of the shared_ptr. The image stored in the webcam_data.webcam can be destroyed at any time if a new image is created by the background thread
     // }
-    GLint currentFBO;
+    GLint currentFBO; // NOLINT(*init-variables)
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFBO);
 
-    receiver.ReceiveTexture(sharedTexture.id(), GL_TEXTURE_2D, true /*inverted*/, currentFBO);
+    receiver.ReceiveTexture(texture.id(), GL_TEXTURE_2D, true /*inverted*/, currentFBO);
 
     if (receiver.IsUpdated())
-        sharedTexture.set_size({receiver.GetSenderWidth(), receiver.GetSenderHeight()});
-    return &sharedTexture;
+        texture.set_size({receiver.GetSenderWidth(), receiver.GetSenderHeight()});
+    return &texture;
 }
 
 auto TextureLibrary_Spout::get_error(std::string const& sender_name) const -> std::optional<std::string>
@@ -77,3 +77,5 @@ void TextureLibrary_Spout::shut_down()
 }
 
 } // namespace Cool
+
+#endif

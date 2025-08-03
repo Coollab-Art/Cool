@@ -21,6 +21,7 @@
 #include "Cool/Log/reset_log_file_if_not_already_reset.hpp"
 #include "Cool/Path/Path.h"
 #include "Cool/Serialization/JsonSerializer.hpp"
+#include "Cool/TextureSource/TextureLibrary_Spout.hpp"
 #include "Cool/TextureSource/TextureLibrary_Webcam.hpp"
 #include "Cool/UserSettings/UserSettings.h"
 #include "Cool/View/ViewsManager.h"
@@ -172,7 +173,10 @@ void run_impl(
     color_themes().reset(); // Destroy it to make sure it saves now, before the ImGui context is destroyed, otherwise it wouldn't be able to access the ImGuiStyle anymore
     Audio::shut_down();
     TextureLibrary_Webcam::instance().shut_down(); // We must destroy the textures in the WebcamImages before the texture_pool() gets destroyed
-    stop_redirecting_cout_cerr_to_log_file();      // Need to do this explicitly, otherwise we will sync the cout buffers during static deinitialization, and the file_logger might have already been destroyed
+#if defined(COOL_SPOUT)
+    texture_library_spout().shut_down(); // Must destroy the spout opengl objects before the opengl context is destroyed
+#endif
+    stop_redirecting_cout_cerr_to_log_file(); // Need to do this explicitly, otherwise we will sync the cout buffers during static deinitialization, and the file_logger might have already been destroyed
 }
 
 } // namespace Cool::internal
