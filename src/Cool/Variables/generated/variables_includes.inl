@@ -19,6 +19,7 @@
 #include <Cool/Variables/Variable_OSCChannel.h>
 #include <Cool/Variables/Variable_Point2D.h>
 #include <Cool/Variables/Variable_TextureDescriptor_Image.h>
+#include <Cool/Variables/Variable_TextureDescriptor_SpoutSyphon.h>
 #include <Cool/Variables/Variable_TextureDescriptor_Video.h>
 #include <Cool/Variables/Variable_TextureDescriptor_Webcam.h>
 #include <Cool/Variables/Variable_Time.h>

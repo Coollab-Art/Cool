@@ -1,25 +1,18 @@
 #pragma once
-#include <optional>
-#include <string>
-#include <wcam/wcam.hpp>
 #include "Cool/Gpu/Texture.h"
-#include "Cool/Serialization/wcam_serialization.h"
 
 namespace Cool {
 
-class TextureSource_Webcam {
+class TextureSource_SpoutSyphon {
 public:
     auto               imgui_widget() -> bool;
     [[nodiscard]] auto get_texture() const -> Texture const*;
     [[nodiscard]] auto get_error() const -> std::optional<std::string>;
 
-    friend auto operator==(TextureSource_Webcam const& a, TextureSource_Webcam const& b) -> bool = default;
+    friend auto operator==(TextureSource_SpoutSyphon const& a, TextureSource_SpoutSyphon const& b) -> bool = default;
 
 private:
-    void set_device_id(wcam::DeviceId const& id) const;
-
-private:
-    mutable wcam::DeviceId _device_id{};
+    std::string _sender_name{};
 
 private:
     // Serialization
@@ -28,7 +21,7 @@ private:
     void serialize(Archive& archive)
     {
         archive(
-            ser20::make_nvp("Device ID", _device_id)
+            ser20::make_nvp("Sender Name", _sender_name)
         );
     }
 };

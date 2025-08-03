@@ -32,4 +32,5 @@ using AnySharedVariable = std::variant<
     SharedVariable<Cool::OSCChannel>,
     SharedVariable<Cool::TimeSpeed>,
     SharedVariable<Cool::TextureDescriptor_Video>,
-    SharedVariable<Cool::Time> >;
+    SharedVariable<Cool::Time>,
+    SharedVariable<Cool::TextureDescriptor_SpoutSyphon> >;
