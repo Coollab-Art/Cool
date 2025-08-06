@@ -2,6 +2,7 @@
 #include <filesystem>
 #include "Cool/File/File.h"
 #include "Cool/File/PathChecks.hpp"
+#include "Cool/Gpu/Texture.h"
 #include "Cool/StrongTypes/Color.h"
 
 namespace Cool::ImGuiExtras {
@@ -86,7 +87,7 @@ struct image_framed_options {
  * @param background_color Color that will appear in places where your image is transparent
  * @param tint_color You can tint your image
  */
-void image_framed(ImTextureID tex_id, const ImVec2& size, image_framed_options const& = {});
+void image_framed(ImTextureID tex_id, ImVec2 size, image_framed_options const& = {});
 
 /**
  * @brief Like ImGui::InputInt, but for an unsigned int

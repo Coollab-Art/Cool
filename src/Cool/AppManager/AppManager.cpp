@@ -264,8 +264,8 @@ void AppManager::update()
     for (auto& view : _views)
         view->on_frame_end();
     TextureLibrary_Webcam::instance().on_frame_end();
-    texture_library_spout().on_frame_end();
     end_frame(_window_manager);
+    texture_library_spout().on_frame_end(); // Must be after end_frame(_window_manager) in order to destroy the textures only after imgui has used them for its rendering
 }
 
 static void prepare_windows(WindowManager& window_manager)

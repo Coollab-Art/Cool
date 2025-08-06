@@ -1,5 +1,6 @@
 #include "TextureLibrary_Webcam.hpp"
 #include <wcam/wcam.hpp>
+#include "Cool/ImGui/ImGuiExtras.h"
 #include "Cool/Webcam/WebcamImage.hpp"
 
 namespace Cool {
@@ -58,6 +59,24 @@ auto TextureLibrary_Webcam::get_error(wcam::DeviceId const& id) const -> std::op
 void TextureLibrary_Webcam::shut_down()
 {
     _webcams.clear();
+}
+
+void TextureLibrary_Webcam::imgui_debug_view() const
+{
+    for (auto const& data : _webcams)
+    {
+        auto const* image = std::get_if<std::shared_ptr<wcam::Image const>>(&data.maybe_image);
+        if (!image)
+            continue;
+        auto const& texture = static_cast<WebcamImage const*>(image->get())->get_texture(); // NOLINT(*static-cast-downcast)
+        ImGuiExtras::image_framed(
+            texture.imgui_texture_id(),
+            {100.f * texture.aspect_ratio(), 100.f},
+            {.frame_thickness = 2.f, .flip_y = texture.need_to_flip_y()}
+        );
+        ImGui::SameLine();
+        ImGui::TextUnformatted(wcam::get_name(data.webcam.id()).value_or(data.webcam.id().as_string()).c_str());
+    }
 }
 
 } // namespace Cool

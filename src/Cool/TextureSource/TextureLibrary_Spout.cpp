@@ -1,6 +1,7 @@
-#include <SpoutGL/SpoutUtils.h>
 #if defined(COOL_SPOUT)
 #include "TextureLibrary_Spout.hpp"
+#include <imgui.h>
+#include "Cool/ImGui/ImGuiExtras.h"
 
 namespace Cool {
 
@@ -8,16 +9,11 @@ void TextureLibrary_Spout::on_frame_end()
 {
     auto const names = get_sender_names();
     std::erase_if(_spouts, [&](SpoutData& data) {
-        return !data.has_been_requested_this_frame
-               || !sender_is_connected(data.receiver.GetSenderName()); // TODO(Spout) also, when we get_texture, need to check that list
+        return !data.has_been_requested_this_frame;
     });
     for (auto& data : _spouts)
         data.has_been_requested_this_frame = false;
 }
-
-// TODO(Spout) fallback to purple texture when sender disconnects ? or if it has never been connected
-
-// TODO(Spout) destroy sender + texture when unused for a while
 
 auto TextureLibrary_Spout::get_sender_names() const -> std::vector<std::string>
 {
@@ -64,12 +60,10 @@ auto TextureLibrary_Spout::get_texture(std::string const& sender_name) -> Textur
     return &texture;
 }
 
-// TODO(Spout) debug option to view all the textures in the lib (append us to the thing that already has image and video, and add webcam as well)
-
 auto TextureLibrary_Spout::get_error(std::string const& sender_name) const -> std::optional<std::string>
 {
     if (!sender_is_connected(sender_name))
-        return fmt::format("The spout sender has been disconnected", sender_name);
+        return fmt::format("This Spout sender is not connected", sender_name);
 
     return std::nullopt;
 }
@@ -77,6 +71,20 @@ auto TextureLibrary_Spout::get_error(std::string const& sender_name) const -> st
 void TextureLibrary_Spout::shut_down()
 {
     _spouts.clear();
+}
+
+void TextureLibrary_Spout::imgui_debug_view() const
+{
+    for (auto const& data : _spouts)
+    {
+        ImGuiExtras::image_framed(
+            data.texture.imgui_texture_id(),
+            {100.f * data.texture.aspect_ratio(), 100.f},
+            {.frame_thickness = 2.f, .flip_y = data.texture.need_to_flip_y()}
+        );
+        ImGui::SameLine();
+        ImGui::TextUnformatted(data.receiver.GetSenderName());
+    }
 }
 
 } // namespace Cool

@@ -11,6 +11,7 @@ public:
     [[nodiscard]] auto get_texture(wcam::DeviceId const&) -> Texture const*;
     [[nodiscard]] auto get_error(wcam::DeviceId const&) const -> std::optional<std::string>;
 
+    void imgui_debug_view() const;
     void shut_down();
 
 private:

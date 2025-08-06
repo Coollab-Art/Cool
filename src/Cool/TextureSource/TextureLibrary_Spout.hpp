@@ -13,6 +13,7 @@ public:
 
     auto get_sender_names() const -> std::vector<std::string>;
 
+    void imgui_debug_view() const;
     void on_frame_end();
     void shut_down();
 
@@ -21,9 +22,9 @@ private:
 
 private:
     struct SpoutData {
-        SpoutReceiver receiver{};
-        Cool::Texture texture{};
-        bool          has_been_requested_this_frame{false};
+        mutable SpoutReceiver receiver{};
+        Cool::Texture         texture{};
+        bool                  has_been_requested_this_frame{false};
     };
 
     std::list<SpoutData>     _spouts{}; // We use a list instead of a vector because Spout objects are not movable (more precisely: their move constructor is buggy and will cause a crash, we could take the time to fix the library)
