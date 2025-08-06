@@ -11,18 +11,23 @@ public:
     auto get_texture(std::string const& sender_name) -> Texture const*;
     auto get_error(std::string const& sender_name) const -> std::optional<std::string>;
 
-    auto get_sender_names() -> std::vector<std::string>;
+    auto get_sender_names() const -> std::vector<std::string>;
 
+    void on_frame_end();
     void shut_down();
+
+private:
+    auto sender_is_connected(std::string const& sender_name) const -> bool;
 
 private:
     struct SpoutData {
         SpoutReceiver receiver{};
         Cool::Texture texture{};
+        bool          has_been_requested_this_frame{false};
     };
 
-    std::list<SpoutData> _spouts{}; // We use a list instead of a vector because Spout objects are not movable (more precisely: their move constructor is buggy and will cause a crash, we could take the time to fix the library)
-    spoutSenderNames     _names_getter{};
+    std::list<SpoutData>     _spouts{}; // We use a list instead of a vector because Spout objects are not movable (more precisely: their move constructor is buggy and will cause a crash, we could take the time to fix the library)
+    mutable spoutSenderNames _names_getter{};
 };
 
 inline auto texture_library_spout() -> TextureLibrary_Spout&

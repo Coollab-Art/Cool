@@ -16,6 +16,7 @@
 #include "Cool/Midi/MidiManager.h"
 #include "Cool/Task/TaskManager.hpp"
 #include "Cool/TextureSource/TextureLibrary_Image.h"
+#include "Cool/TextureSource/TextureLibrary_Spout.hpp"
 #include "Cool/TextureSource/TextureLibrary_Video.h"
 #include "Cool/TextureSource/TextureLibrary_Webcam.hpp"
 #include "Cool/UI Scale/need_to_rebuild_fonts.hpp"
@@ -263,6 +264,7 @@ void AppManager::update()
     for (auto& view : _views)
         view->on_frame_end();
     TextureLibrary_Webcam::instance().on_frame_end();
+    texture_library_spout().on_frame_end();
     end_frame(_window_manager);
 }
 

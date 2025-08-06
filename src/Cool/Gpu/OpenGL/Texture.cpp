@@ -54,6 +54,14 @@ void Texture::set_size(img::Size const& size)
     _data_has_been_uploaded = true;
 }
 
+auto Texture::set_size_ifn(img::Size const& size) -> bool
+{
+    if (_data_has_been_uploaded && _size == size)
+        return false;
+    set_size(size);
+    return true;
+}
+
 void Texture::set_image(img::Image const& img, bool need_to_flip_y)
 {
     set_image(img.size(), img.channels_count(), img.data(), need_to_flip_y);

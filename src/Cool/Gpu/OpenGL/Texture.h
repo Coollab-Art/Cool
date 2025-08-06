@@ -29,6 +29,7 @@ public:
     Texture(img::Size const&, uint8_t const* data, glpp::TextureLayout const&, bool need_to_flip_y = false, TextureConfig = {});
 
     void set_size(img::Size const&);
+    auto set_size_ifn(img::Size const&) -> bool;
     void set_image(img::Image const&, bool need_to_flip_y = false);
     /// `channels_count` should be 3 for RGB and 4 for RGBA.
     void set_image(img::Size const&, size_t channels_count, uint8_t const* data, bool need_to_flip_y = false);

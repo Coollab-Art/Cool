@@ -64,7 +64,7 @@ void SpoutOutManager::imgui_window()
 #elif defined(__APPLE__)
             "Syphon is not yet supported on MacOS";
 #else
-            "Not supported yet";
+            "Spout and Syphon are not supported yet";
 #endif
         Cool::ImGuiExtras::disabled_if(true, disable_reason, [&]() {
             Cool::ImGuiExtras::toggle("Active", &is_active);
