@@ -1,25 +1,21 @@
 #if defined(COOL_SPOUT)
 #include "TextureLibrary_Spout.hpp"
-#include <imgui.h>
 #include "Cool/ImGui/ImGuiExtras.h"
 
 namespace Cool {
 
 void TextureLibrary_Spout::on_frame_end()
 {
-    auto const names = get_sender_names();
-    std::erase_if(_spouts, [&](SpoutData& data) {
-        return !data.has_been_requested_this_frame;
-    });
+    std::erase_if(_spouts, [&](SpoutData& data) { return !data.has_been_requested_this_frame; });
     for (auto& data : _spouts)
         data.has_been_requested_this_frame = false;
 }
 
 auto TextureLibrary_Spout::get_sender_names() const -> std::vector<std::string>
 {
-    std::set<std::string> sendernames;
-    _names_getter.GetSenderNames(&sendernames);
-    return {sendernames.begin(), sendernames.end()};
+    auto names = std::set<std::string>{};
+    _names_getter.GetSenderNames(&names);
+    return std::vector<std::string>{names.begin(), names.end()};
 }
 
 auto TextureLibrary_Spout::sender_is_connected(std::string const& sender_name) const -> bool
@@ -51,7 +47,7 @@ auto TextureLibrary_Spout::get_texture(std::string const& sender_name) -> Textur
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFBO);
 
     receiver.ReceiveTexture(texture.id(), GL_TEXTURE_2D, true /*inverted*/, currentFBO);
-    if (receiver.IsUpdated())
+    if (receiver.IsUpdated()) // e.g. the texture size has changed
     {
         if (texture.set_size_ifn({receiver.GetSenderWidth(), receiver.GetSenderHeight()}))
             // Texture has been resized and therefore pixels have been cleared so we need to receive it again to avoid having an empty texture for 1 frame
