@@ -13,12 +13,12 @@ auto dropdown(const char* label, std::string* value, std::vector<std::string> co
         void apply_value() const { *value = *entry; }
     };
 
-    std::vector<DropdownEntry> entries2;
-    entries2.reserve(entries.size());
+    auto actual_entries = std::vector<DropdownEntry>{};
+    actual_entries.reserve(entries.size());
     for (auto const& entry : entries)
-        entries2.emplace_back(value, &entry);
+        actual_entries.emplace_back(value, &entry);
 
-    return dropdown(label, value->c_str(), entries2);
+    return dropdown(label, value->c_str(), actual_entries);
 }
 
 } // namespace Cool::ImGuiExtras

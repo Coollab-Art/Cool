@@ -2,7 +2,6 @@
 #include <filesystem>
 #include "Cool/File/File.h"
 #include "Cool/File/PathChecks.hpp"
-#include "Cool/Gpu/Texture.h"
 #include "Cool/StrongTypes/Color.h"
 
 namespace Cool::ImGuiExtras {
