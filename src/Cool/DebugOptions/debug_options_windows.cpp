@@ -42,8 +42,10 @@ void debug_options_windows(TipsManager* tips_manager, Window& main_window)
         TextureLibrary_Video::instance().imgui_debug_view();
         ImGui::SeparatorText("Webcam");
         TextureLibrary_Webcam::instance().imgui_debug_view();
+#if defined(COOL_SPOUT)
         ImGui::SeparatorText("Spout");
         texture_library_spout().imgui_debug_view();
+#endif
     });
 
     DebugOptions::test_message_console__window([]() {
