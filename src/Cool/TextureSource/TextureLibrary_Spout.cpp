@@ -46,12 +46,14 @@ auto TextureLibrary_Spout::get_texture(std::string const& sender_name) -> Textur
     GLint currentFBO; // NOLINT(*init-variables)
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFBO);
 
-    receiver.ReceiveTexture(texture.id(), GL_TEXTURE_2D, true /*inverted*/, currentFBO);
+    auto const receive_texture = [&]() { receiver.ReceiveTexture(texture.id(), GL_TEXTURE_2D, true /*inverted*/, static_cast<GLuint>(currentFBO)); };
+
+    receive_texture();
     if (receiver.IsUpdated()) // e.g. the texture size has changed
     {
         if (texture.set_size_ifn({receiver.GetSenderWidth(), receiver.GetSenderHeight()}))
             // Texture has been resized and therefore pixels have been cleared so we need to receive it again to avoid having an empty texture for 1 frame
-            receiver.ReceiveTexture(texture.id(), GL_TEXTURE_2D, true /*inverted*/, currentFBO);
+            receive_texture();
     }
     return &texture;
 }
