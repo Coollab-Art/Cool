@@ -1,13 +1,11 @@
 #include "TextureSource_SpoutSyphon.hpp"
-#include "Cool/ImGui/IcoMoonCodepoints.h"
 #include "Cool/ImGui/ImGuiExtras_dropdown.hpp"
 #include "TextureLibrary_Spout.hpp"
-// #include "TextureLibrary_Spout.hpp"
 
 namespace Cool {
 
 // If we have no sender name (e.g. there was none connected when we created the texture source)
-// Then we want to connect automatically to the first one that becomes available
+// then we want to connect automatically to the first one that becomes available
 void TextureSource_SpoutSyphon::init_sender_name_ifn() const
 {
 #if defined(COOL_SPOUT)
@@ -15,7 +13,7 @@ void TextureSource_SpoutSyphon::init_sender_name_ifn() const
         return;
 
     auto const sender_names = texture_library_spout().get_sender_names();
-    if (sender_names.empty()) // When creating a new webcam we want it to use the default webcam, but we might not know what the available webcams are at that point (if the wcam library has just been initialized). So we defer that to here
+    if (sender_names.empty())
         return;
 
     _sender_name = sender_names[0];
@@ -69,7 +67,7 @@ auto TextureSource_SpoutSyphon::get_error_notification() const -> std::optional<
 #endif
     return ImGuiNotify::Notification{
         .type     = ImGuiNotify::Type::Error,
-        .title    = "Spout / Syphon error",
+        .title    = "Spout/Syphon error",
         .content  = error_message,
         .duration = std::nullopt,
         .closable = false,
