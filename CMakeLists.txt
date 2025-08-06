@@ -334,6 +334,14 @@ target_link_libraries(Cool-PublicProperties INTERFACE ImGuiNotify::ImGuiNotify)
 add_subdirectory(lib/no-sleep)
 target_link_libraries(Cool-PublicProperties INTERFACE no_sleep::no_sleep)
 
+# Spout
+if(WIN32)
+    add_subdirectory(lib/SpoutGL)
+    target_link_libraries(Cool-PublicProperties INTERFACE Spout_static)
+    target_compile_definitions(Cool-PublicProperties INTERFACE COOL_SPOUT)
+    install(FILES "lib/SpoutGL/licence.txt" DESTINATION "license/Spout")
+endif()
+
 # ----------------
 # ---Copy files---
 # ----------------

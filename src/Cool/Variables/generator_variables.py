@@ -68,7 +68,7 @@ def angle_metadatas():
     ]
 
 
-def float_metadatas(is_double = False):
+def float_metadatas(is_double=False):
     return [
         VariableMetadata(
             field_name="bounds",
@@ -85,6 +85,7 @@ def float_metadatas(is_double = False):
             """,
         ),
     ]
+
 
 def hdr_metadata():
     return VariableMetadata(
@@ -328,7 +329,7 @@ def all_variable_descriptions():
             always_requires_shader_code_generation=False,
         ),
         VariableDescription(
-            input_type=["TimeSpeed"],   
+            input_type=["TimeSpeed"],
             cpp_type="Cool::TimeSpeed",
             glsl_type="float",
             include="<Cool/Time/TimeSpeed.h>",
@@ -375,7 +376,7 @@ def all_variable_descriptions():
             always_requires_shader_code_generation=False,
         ),
         VariableDescription(
-            input_type=["Time"],   
+            input_type=["Time"],
             cpp_type="Cool::Time",
             glsl_type="float",
             include="<Cool/Time/Time.hpp>",
@@ -417,6 +418,14 @@ def all_variable_descriptions():
                     default_value="true",
                 ),
             ],
+            always_requires_shader_code_generation=False,
+        ),
+        VariableDescription(
+            input_type=["SpoutSyphon"],
+            cpp_type="Cool::TextureDescriptor_SpoutSyphon",
+            glsl_type="Cool_Texture",
+            include="<Cool/TextureSource/TextureDescriptor.h>",
+            metadatas=[],
             always_requires_shader_code_generation=False,
         ),
     ]

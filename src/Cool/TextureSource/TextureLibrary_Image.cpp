@@ -87,17 +87,18 @@ void TextureLibrary_Image::imgui_debug_view() const
 {
     for (auto const& kv : _textures)
     {
-        ImGuiExtras::image_framed(
-            kv.second.texture ? kv.second.texture->imgui_texture_id() : dummy_texture().imgui_texture_id(),
-            {100.f * (kv.second.texture ? kv.second.texture->aspect_ratio() : 1.f), 100.f},
-            {.frame_thickness = 2.f}
-        );
-
+        {
+            ImGuiExtras::image_framed(
+                kv.second.texture ? kv.second.texture->imgui_texture_id() : dummy_texture().imgui_texture_id(),
+                {100.f * (kv.second.texture ? kv.second.texture->aspect_ratio() : 1.f), 100.f},
+                {.frame_thickness = 2.f, .flip_y = kv.second.texture ? kv.second.texture->need_to_flip_y() : false}
+            );
+        }
         ImGui::SameLine();
-        ImGui::BeginGroup();
-
-        ImGui::TextUnformatted(kv.first.string().c_str());
-
+        ImGui::BeginGroup(); // So that the two texts are on the right of the image
+        {
+            ImGui::TextUnformatted(kv.first.string().c_str());
+        }
         {
             auto const time_since_last_use = std::chrono::steady_clock::now() - kv.second.date_of_last_request;
             auto const time_to_live        = kv.second.time_to_live;
@@ -106,7 +107,6 @@ void TextureLibrary_Image::imgui_debug_view() const
             else
                 ImGui::TextUnformatted(fmt::format("Expired (Not used for {})", time_to_live).c_str());
         }
-
         ImGui::EndGroup();
     }
 }

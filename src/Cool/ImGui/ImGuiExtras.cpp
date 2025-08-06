@@ -215,7 +215,7 @@ auto close_button() -> bool
     );
 }
 
-void image_framed(ImTextureID tex_id, const ImVec2& size, image_framed_options const& o)
+void image_framed(ImTextureID tex_id, ImVec2 size, image_framed_options const& o)
 {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems)

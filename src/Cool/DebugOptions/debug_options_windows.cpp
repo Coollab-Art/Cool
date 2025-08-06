@@ -5,7 +5,9 @@
 #include "Cool/Log/TestMessageConsole.h"
 #include "Cool/Midi/MidiManager.h"
 #include "Cool/TextureSource/TextureLibrary_Image.h"
+#include "Cool/TextureSource/TextureLibrary_Spout.hpp"
 #include "Cool/TextureSource/TextureLibrary_Video.h"
+#include "Cool/TextureSource/TextureLibrary_Webcam.hpp"
 #include "Cool/Tips/test_tips.h"
 #include "Cool/Variables/TestPresets.h"
 #include "Cool/Variables/TestVariables.h"
@@ -38,6 +40,12 @@ void debug_options_windows(TipsManager* tips_manager, Window& main_window)
         TextureLibrary_Image::instance().imgui_debug_view();
         ImGui::SeparatorText("Video");
         TextureLibrary_Video::instance().imgui_debug_view();
+        ImGui::SeparatorText("Webcam");
+        TextureLibrary_Webcam::instance().imgui_debug_view();
+#if defined(COOL_SPOUT)
+        ImGui::SeparatorText("Spout");
+        texture_library_spout().imgui_debug_view();
+#endif
     });
 
     DebugOptions::test_message_console__window([]() {
