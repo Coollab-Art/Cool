@@ -16,7 +16,7 @@ auto dropdown(const char* label, std::string* value, std::vector<std::string> co
     auto actual_entries = std::vector<DropdownEntry>{};
     actual_entries.reserve(entries.size());
     for (auto const& entry : entries)
-        actual_entries.emplace_back(value, &entry);
+        actual_entries.push_back({value, &entry});
 
     return dropdown(label, value->c_str(), actual_entries);
 }
