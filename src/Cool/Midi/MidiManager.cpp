@@ -229,17 +229,21 @@ void MidiManager::midi_error_callback(RtMidiError::Type type, std::string const&
     if (type == RtMidiError::Type::DRIVER_ERROR)
     {
         ImGuiNotify::send({
-            .type    = ImGuiNotify::Type::Warning,
-            .title   = "MIDI",
-            .content = fmt::format("Failed to connect to the device. Maybe it is already used in another software? You will need to restart {} to try to reconnect to the MIDI device.\n\n{}", COOL_APP_NAME, error_text),
+            .type     = ImGuiNotify::Type::Warning,
+            .title    = "MIDI",
+            .content  = fmt::format("Failed to connect to the device. Maybe it is already used in another software? You will need to restart {} to try to reconnect to the MIDI device.\n\n{}", COOL_APP_NAME, error_text),
+            .duration = std::nullopt,
+            .closable = true,
         });
     }
     else
     {
         ImGuiNotify::send({
-            .type    = ImGuiNotify::Type::Warning,
-            .title   = "MIDI",
-            .content = error_text,
+            .type     = ImGuiNotify::Type::Warning,
+            .title    = "MIDI",
+            .content  = error_text,
+            .duration = std::nullopt,
+            .closable = true,
         });
     }
 }
