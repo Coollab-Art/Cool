@@ -33,7 +33,7 @@ auto Task_SaveImage::notification_after_execution_completes() const -> ImGuiNoti
     if (_result.has_value())
     {
         auto success_notification                 = TaskWithProgressBar::notification_after_execution_completes();
-        success_notification.custom_imgui_content = [path = _file_path]() {
+        success_notification.custom_imgui_content = [path = _file_path](auto&&) {
             if (ImGui::Button(fmt::format("Open in file explorer").c_str()))
                 open_focused_in_explorer(path);
         };

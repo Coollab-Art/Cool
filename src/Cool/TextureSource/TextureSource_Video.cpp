@@ -27,7 +27,7 @@ auto TextureSource_Video::get_error_notification() const -> std::optional<ImGuiN
         .type                 = ImGuiNotify::Type::Error,
         .title                = "Video error",
         .content              = fmt::format("\"{}\"\n\n{}", Cool::File::weakly_canonical(_video_descriptor.path), *err),
-        .custom_imgui_content = [path = _video_descriptor.path]() {
+        .custom_imgui_content = [path = _video_descriptor.path](auto&&) {
             if (ImGui::Button("Try to open file in explorer"))
                 Cool::open_focused_in_explorer(path);
         },

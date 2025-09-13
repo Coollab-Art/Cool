@@ -29,7 +29,7 @@ auto TextureSource_Image::get_error_notification() const -> std::optional<ImGuiN
         .type                 = ImGuiNotify::Type::Error,
         .title                = "Image error",
         .content              = fmt::format("\"{}\"\n\n{}", Cool::File::weakly_canonical(absolute_path), *err),
-        .custom_imgui_content = [path = absolute_path]() {
+        .custom_imgui_content = [path = absolute_path](auto&&) {
             if (ImGui::Button("Try to open file in explorer"))
                 Cool::open_focused_in_explorer(path);
         },

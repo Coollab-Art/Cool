@@ -30,7 +30,7 @@ void TestNotification::imgui()
             .type                 = ImGuiNotify::Type::Info,
             .title                = "Long text",
             .content              = "jxdhfg sdfhg sufgze jxcgfh uyzey gjg yuezg jxhgdv ukezyg hv eizag jvgh ezug fxjvb uezg fsdkfbkhjzeg fusgfv jhgur gdsjfhv ezf dsufdhfgseifuzgeurfgjdsvbkxjhgfzeiugrzekhddjvfgzeyuig sjdhfgezyu gjsdf guezygr djsf gyuezg sfhj",
-            .custom_imgui_content = []() {
+            .custom_imgui_content = [](auto&&) {
                 ImGui::Button("sdkjfh sdkfjh iuez kjdsf gsdfjh ksghdf uyzeg sdjkfg yuzeg ksdhgfyu e");
             },
         });

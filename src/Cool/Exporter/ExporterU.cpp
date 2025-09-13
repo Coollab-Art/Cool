@@ -41,7 +41,7 @@ auto notification_after_video_export_success(std::filesystem::path const& path) 
     return {
         .type                 = ImGuiNotify::Type::Success,
         .title                = "Video Export Success",
-        .custom_imgui_content = [path]() {
+        .custom_imgui_content = [path](auto&&) {
             if (ImGui::Button(fmt::format("Open \"{}\" folder", Cool::File::file_name(path)).c_str()))
                 open_folder_in_explorer(path);
         },
@@ -54,7 +54,7 @@ auto notification_after_video_export_failure(std::filesystem::path const& path, 
         .type                 = ImGuiNotify::Type::Error,
         .title                = "Video Export Failed",
         .content              = error_message,
-        .custom_imgui_content = [path]() {
+        .custom_imgui_content = [path](auto&&) {
             if (ImGui::Button(fmt::format("Open \"{}\" folder", Cool::File::file_name(path)).c_str()))
                 open_folder_in_explorer(path);
         },
@@ -66,7 +66,7 @@ auto notification_after_video_export_canceled(std::filesystem::path const& path)
     return {
         .type                 = ImGuiNotify::Type::Warning,
         .title                = "Video Export Canceled",
-        .custom_imgui_content = [path]() {
+        .custom_imgui_content = [path](auto&&) {
             if (ImGui::Button(fmt::format("Open \"{}\" folder", Cool::File::file_name(path)).c_str()))
                 open_folder_in_explorer(path);
         },

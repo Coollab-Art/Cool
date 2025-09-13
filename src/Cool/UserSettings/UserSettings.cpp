@@ -121,12 +121,12 @@ void UserSettings::change_ui_zoom(float delta)
         {
             .type                 = ImGuiNotify::Type::Info,
             .title                = "UI Zoom",
-            .custom_imgui_content = [&id = _notif_ui_zoom]() {
+            .custom_imgui_content = [](ImGuiNotify::NotificationId const& this_notification_id) {
                 ImGui::TextUnformatted(fmt::format("{:.3f}", Cool::user_settings().ui_zoom).c_str());
                 if (ImGui::Button("Reset"))
                 {
                     Cool::user_settings().set_ui_zoom(1.f);
-                    ImGuiNotify::close_immediately(id);
+                    ImGuiNotify::close_immediately(this_notification_id);
                 }
             },
             .duration = 1s,

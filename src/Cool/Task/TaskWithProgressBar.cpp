@@ -19,7 +19,7 @@ auto TaskWithProgressBar::notification_while_in_progress() const -> ImGuiNotify:
     return ImGuiNotify::Notification{
         .type                 = ImGuiNotify::Type::Info,
         .title                = name(),
-        .custom_imgui_content = [data = _data, task_id = owner_id(), extra_imgui = extra_imgui_below_progress_bar()]() {
+        .custom_imgui_content = [data = _data, task_id = owner_id(), extra_imgui = extra_imgui_below_progress_bar()](auto&&) {
             ImGuiExtras::progress_bar(data->progress.load());
             extra_imgui();
             if (ImGui::Button("Cancel"))
