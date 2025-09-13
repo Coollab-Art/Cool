@@ -370,16 +370,45 @@ void mark_file_path_unavailable(std::filesystem::path const& path)
     create_file_if_it_doesnt_exist(path);
 }
 
+auto transactional_save(std::filesystem::path const& file_path, std::function<void(std::ofstream&)> const& write) -> bool
+{
+    if (!File::create_folders_for_file_if_they_dont_exist(file_path))
+        return false;
+
+    // First save to a temporary file
+    auto temp_path = file_path;
+    temp_path += ".tempsave";
+    {
+        auto ofs = std::ofstream{temp_path};
+        if (!ofs.is_open())
+            return false;
+        write(ofs);
+    }
+
+    // If this succeeds then replace the previous file with the temporary
+    auto old_path = file_path;
+    old_path += ".oldsave";
+    if (!File::rename(file_path, old_path)) // NOLINT(*suspicious-call-argument)
+    {
+        File::remove_file(temp_path);
+        return false;
+    }
+    if (!File::rename(temp_path, file_path))
+    {
+        // Restore the old file in case we fail to replace it with the temporary file
+        File::rename(old_path, file_path);
+        File::remove_file(temp_path);
+        return false;
+    }
+    File::remove_file(old_path);
+    return true;
+}
+
 void set_content(std::filesystem::path const& file_path, std::string_view content)
 {
-    if (!create_folders_for_file_if_they_dont_exist(file_path))
-        return;
-
-    auto file = std::ofstream{file_path};
-    if (!file.is_open())
-        return;
-
-    file << content;
+    transactional_save(file_path, [&](std::ofstream& ofs) {
+        ofs << content;
+    });
 }
 
 void set_time_of_last_change_to_now(std::filesystem::path const& file_path)

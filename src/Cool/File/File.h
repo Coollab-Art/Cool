@@ -1,6 +1,6 @@
 #pragma once
-
 #include <filesystem>
+#include <fstream>
 #include <string_view>
 #include "Cool/File/PathChecks.hpp"
 
@@ -72,6 +72,9 @@ auto find_available_path(std::filesystem::path const& path, PathChecks const& pa
 /// Usefull when you know that a file will be created soon (e.g. by a Task in 1 or 2 seconds) and want to prevent others from trying to create a file with the same path
 void mark_file_path_unavailable(std::filesystem::path const& path);
 
+/// Guarantees that the file will not be corrupted if there is a crash in the middle of the save
+/// Returns true iff the save succeeded
+auto transactional_save(std::filesystem::path const& file_path, std::function<void(std::ofstream&)> const& write) -> bool;
 /// Overwrites the content of the file and set it to `content`.
 /// Creates the file if it doesn't exist yet.
 void set_content(std::filesystem::path const& file_path, std::string_view content);
