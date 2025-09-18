@@ -22,7 +22,7 @@ void JsonSerializer::save()
     try
     {
         _to_json(_json);
-        std::ofstream{file_path()} << _json.dump(1);
+        File::transactional_save(file_path(), [&](std::ofstream& ofs) { ofs << _json.dump(1); });
     }
     catch (std::exception const& e)
     {

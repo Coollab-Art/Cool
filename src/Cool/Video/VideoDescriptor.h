@@ -1,4 +1,5 @@
 #pragma once
+#include "Cool/Path/Path.h"
 #include "Cool/Time/Time.hpp"
 #include "Cool/Time/TimeSpeed.h"
 
@@ -34,7 +35,7 @@ private:
 };
 
 struct VideoDescriptor {
-    std::filesystem::path path{};
+    std::filesystem::path path{Cool::Path::default_video()};
     VideoPlayerSettings   settings{};
 
     auto imgui_widget() -> bool;
@@ -45,12 +46,22 @@ private:
     // Serialization
     friend class ser20::access;
     template<class Archive>
-    void serialize(Archive& archive)
+    void save(Archive& archive) const
     {
         archive(
             ser20::make_nvp("File Path", path),
             ser20::make_nvp("Settings", settings)
         );
+    }
+    template<class Archive>
+    void load(Archive& archive)
+    {
+        archive(
+            ser20::make_nvp("File Path", path),
+            ser20::make_nvp("Settings", settings)
+        );
+        if (path.empty())
+            path = Cool::Path::default_video();
     }
 };
 

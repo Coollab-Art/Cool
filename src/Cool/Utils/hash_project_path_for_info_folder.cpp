@@ -1,4 +1,5 @@
 #include "hash_project_path_for_info_folder.hpp"
+#include <sstream>
 #include "Cool/File/File.h"
 
 namespace Cool {

@@ -1,9 +1,10 @@
 #include "UserSettings.h"
 #include "Cool/ImGui/ImGuiExtras.h"
-#include "Cool/ImGui/need_to_apply_imgui_style_scale.hpp"
+#include "Cool/ImGui/apply_imgui_style_scale.hpp"
 #include "Cool/Input/CTRL_OR_CMD.hpp"
 #include "Cool/UI Scale/need_to_rebuild_fonts.hpp"
 #include "Cool/UI Scale/ui_scale.hpp"
+#include "GLFW/glfw3.h"
 #include "imgui.h"
 
 namespace Cool {
@@ -60,13 +61,30 @@ auto UserSettings::imgui_single_click_to_input_in_drag_widgets() -> bool
     return b;
 }
 
+static auto multi_viewport_disabled_reason() -> std::optional<std::string>
+{
+    if (ImGui::GetIO().BackendFlags & ImGuiBackendFlags_PlatformHasViewports)
+        return std::nullopt;
+
+    if (glfwGetPlatform() == GLFW_PLATFORM_WAYLAND)
+        return "Not supported on Wayland yet";
+
+    return "Not supported on your platform yet";
+}
+
 auto UserSettings::imgui_enable_multi_viewport() -> bool
 {
-    bool const b = ImGuiExtras::toggle("Enable multi-viewport", &enable_multi_viewport);
+    bool b = false;
+
+    std::optional<std::string> const reason = multi_viewport_disabled_reason();
+    Cool::ImGuiExtras::disabled_if(reason, [&]() {
+        static bool dummy{false}; // We always want to display it as off if we cannot enable it
+        b = ImGuiExtras::toggle("Enable multi-viewport", reason.has_value() ? &dummy : &enable_multi_viewport);
+    });
     ImGuiExtras::help_marker(
         "When enabled, allows you to drag windows outside of the main window."
 #if defined(__linux__)
-        "\nNote that on Linux this can cause issues with context menus if you use a custom window manager."
+        "\nWARNING: on Linux enabling this can cause a few UI issues, most notably with context menus"
 #endif
     );
     if (b)
@@ -103,12 +121,12 @@ void UserSettings::change_ui_zoom(float delta)
         {
             .type                 = ImGuiNotify::Type::Info,
             .title                = "UI Zoom",
-            .custom_imgui_content = [&id = _notif_ui_zoom]() {
+            .custom_imgui_content = [](ImGuiNotify::NotificationId const& this_notification_id) {
                 ImGui::TextUnformatted(fmt::format("{:.3f}", Cool::user_settings().ui_zoom).c_str());
                 if (ImGui::Button("Reset"))
                 {
                     Cool::user_settings().set_ui_zoom(1.f);
-                    ImGuiNotify::close_immediately(id);
+                    ImGuiNotify::close_immediately(this_notification_id);
                 }
             },
             .duration = 1s,
@@ -124,14 +142,14 @@ void UserSettings::set_ui_zoom(float zoom)
 
 void UserSettings::apply_ui_zoom() const
 {
-    need_to_rebuild_fonts()           = true;
-    need_to_apply_imgui_style_scale() = true;
+    need_to_rebuild_fonts() = true;
+    apply_imgui_style_scale();
 }
 
 void UserSettings::apply_ui_zoom_preview() const
 {
-    ImGui::GetIO().FontGlobalScale    = Cool::ui_scale() / _ui_scale_at_the_beginning_of_preview;
-    need_to_apply_imgui_style_scale() = true;
+    ImGui::GetIO().FontGlobalScale = Cool::ui_scale() / _ui_scale_at_the_beginning_of_preview;
+    apply_imgui_style_scale();
 }
 
 void UserSettings::apply_multi_viewport_setting() const
@@ -147,32 +165,10 @@ void UserSettings::apply_multi_viewport_setting() const
 
 auto should_enable_multi_viewport_by_default() -> bool
 {
-#if !defined(__linux__)
-    return true;
+#if defined(__linux__)
+    return false;
 #else
-    // On Linux this can conflict with tiling WM and make our context menus behave weirdly.
-    // https://cdn.discordapp.com/attachments/848704719987671070/1127711921651597332/ui-linux.mp4
-    // https://github.com/ocornut/imgui/issues/2117
-    // For example i3 has issues with it.
-    // The desktops listed here should be okay though: https://wiki.archlinux.org/title/Xdg-utils#Environment_variables
-    char const* var = std::getenv("XDG_CURRENT_DESKTOP");
-    if (!var)
-        return false;
-    auto const vari = std::string{var};
-    return vari == "Cinnamon"
-           || vari == "X-Cinnamon"
-           || vari == "Deepin"
-           || vari == "DEEPIN"
-           || vari == "deepin"
-           || vari == "ENLIGHTENMENT"
-           || vari == "GNOME"
-           || vari == "GNOME-Flashback"
-           || vari == "GNOME-Flashback:GNOME"
-           || vari == "KDE"
-           || vari == "LXDE"
-           || vari == "LXQt"
-           || vari == "MATE"
-           || vari == "XFCE";
+    return true;
 #endif
 }
 

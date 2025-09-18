@@ -85,3 +85,6 @@ if constexpr (std::is_same_v<T, Cool::TextureDescriptor_Video>)
 
 if constexpr (std::is_same_v<T, Cool::Time>)
     return false;
+
+if constexpr (std::is_same_v<T, Cool::TextureDescriptor_SpoutSyphon>)
+    return false;

@@ -9,6 +9,9 @@ class ExportSize {
 public:
     operator img::Size() const { return _size; }
 
+    auto width() const { return _size.width(); }
+    auto height() const { return _size.height(); }
+
     auto imgui() -> bool;
 
     void set_shared_aspect_ratio(SharedAspectRatio& shared_aspect_ratio) { _shared_aspect_ratio = &shared_aspect_ratio; }

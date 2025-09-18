@@ -1,4 +1,4 @@
-#include "apply_imgui_style_scale_ifn.hpp"
+#include "apply_imgui_style_scale.hpp"
 #include "Cool/DebugOptions/DebugOptions.h"
 #include "Cool/UI Scale/ui_scale.hpp"
 #include "imgui-node-editor/imgui_node_editor.h"
@@ -13,7 +13,11 @@ void apply_imgui_style_scale_ifn()
     if (!need_to_apply_imgui_style_scale())
         return;
     need_to_apply_imgui_style_scale() = false;
+    apply_imgui_style_scale();
+}
 
+void apply_imgui_style_scale()
+{
     if (Cool::DebugOptions::log_ui_scale_changes())
         Cool::Log::info("UI Scale", "Applied to style");
 

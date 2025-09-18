@@ -30,4 +30,5 @@ Variable<bool>,
     Variable<Cool::OSCChannel>,
     Variable<Cool::TimeSpeed>,
     Variable<Cool::TextureDescriptor_Video>,
-    Variable<Cool::Time>
+    Variable<Cool::Time>,
+    Variable<Cool::TextureDescriptor_SpoutSyphon>

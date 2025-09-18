@@ -14,7 +14,7 @@ void imgui_timeline(Cool::Clock& clock, std::function<void()> const& extra_widge
     {
         auto const button_size = ImVec2{1.1f * ImGui::GetFrameHeight(), ImGui::GetFrameHeight()};
         // Reset time
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0.6f * ImGui::GetFontSize(), ImGui::GetStyle().FramePadding.y}); // HACK to force the icon to be centered.
+        ImGui::PushStyleVarX(ImGuiStyleVar_FramePadding, 0.6f * ImGui::GetFontSize()); // HACK to force the icon to be centered.
         if (ImGui::Button(ICOMOON_PREVIOUS2, button_size, ImDrawFlags_RoundCornersLeft))
         {
             clock.set_time(0s, /*force_delta_time_to_ignore_the_change=*/true);

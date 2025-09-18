@@ -40,7 +40,7 @@ public:
     struct Id {
         operator ImTextureID() const
         {
-            return reinterpret_cast<ImTextureID>(id);
+            return static_cast<ImTextureID>(id);
         }
 #if defined(COOL_OPENGL)
         GLuint id;

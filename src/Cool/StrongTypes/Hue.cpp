@@ -12,7 +12,12 @@ auto Hue::imgui_widget(std::string_view name) -> bool
 
     ImGui::SameLine();
 
-    b |= ImGui::SliderFloat("", &value, 0.f, 1.f);
+    int as_int = static_cast<int>(value * 360.f);
+    if (ImGui::SliderInt("", &as_int, 0, 360))
+    {
+        b     = true;
+        value = static_cast<float>(as_int) / 360.f;
+    }
 
     ImGui::PopID();
     return b;

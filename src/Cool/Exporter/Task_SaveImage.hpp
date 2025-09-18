@@ -7,12 +7,10 @@ namespace Cool {
 
 class Task_SaveImage : public TaskWithProgressBar {
 public:
-    Task_SaveImage(std::filesystem::path const& file_path, img::Image image);
-
-    auto name() const -> std::string override { return fmt::format("Exporting image \"{}\"", Cool::File::file_name(_file_path)); }
+    Task_SaveImage(std::filesystem::path file_path, img::Image image);
 
 private:
-    void execute() override;
+    auto execute() -> TaskCoroutine override;
     auto needs_user_confirmation_to_cancel_when_closing_app() const -> bool override { return true; }
     auto notification_after_execution_completes() const -> ImGuiNotify::Notification override;
 

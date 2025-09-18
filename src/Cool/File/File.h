@@ -1,6 +1,6 @@
 #pragma once
-
 #include <filesystem>
+#include <fstream>
 #include <string_view>
 #include "Cool/File/PathChecks.hpp"
 
@@ -32,11 +32,12 @@ auto with_extension(std::filesystem::path file_path, std::filesystem::path const
 /// Returns the folders in the path, removes the file name if there is one at the end
 auto without_file_name(std::filesystem::path const& file_path) -> std::filesystem::path;
 
-auto find_closest_existing_folder(std::filesystem::path const& file_path) -> std::filesystem::path;
+auto find_first_existing_folder_in_path(std::filesystem::path path) -> std::filesystem::path;
 
 auto weakly_canonical(std::filesystem::path const& path) -> std::filesystem::path;
 auto relative(std::filesystem::path const& path, std::filesystem::path const& base) -> std::filesystem::path;
 auto is_regular_file(std::filesystem::path const& path) -> bool;
+auto is_folder(std::filesystem::path const& path) -> bool;
 auto is_empty(std::filesystem::path const& path) -> bool;
 auto is_absolute(std::filesystem::path const& path) -> bool;
 auto is_relative(std::filesystem::path const& path) -> bool;
@@ -71,6 +72,9 @@ auto find_available_path(std::filesystem::path const& path, PathChecks const& pa
 /// Usefull when you know that a file will be created soon (e.g. by a Task in 1 or 2 seconds) and want to prevent others from trying to create a file with the same path
 void mark_file_path_unavailable(std::filesystem::path const& path);
 
+/// Guarantees that the file will not be corrupted if there is a crash in the middle of the save
+/// Returns true iff the save succeeded
+auto transactional_save(std::filesystem::path const& file_path, std::function<void(std::ofstream&)> const& write) -> bool;
 /// Overwrites the content of the file and set it to `content`.
 /// Creates the file if it doesn't exist yet.
 void set_content(std::filesystem::path const& file_path, std::string_view content);

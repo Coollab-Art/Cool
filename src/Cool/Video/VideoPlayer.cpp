@@ -37,7 +37,7 @@ void VideoPlayer::create_capture()
     else
     {
         _capture_state.reset();
-        _error_message = fmt::format("Failed to open video file {}:\n{}", path(), maybe.error());
+        _error_message = maybe.error();
     }
 }
 

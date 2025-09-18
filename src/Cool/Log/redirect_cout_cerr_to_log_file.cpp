@@ -1,5 +1,6 @@
 #include "redirect_cout_cerr_to_log_file.hpp"
 #include <optional>
+#include <sstream>
 #include "Log.hpp"
 
 namespace Cool {
@@ -41,7 +42,7 @@ private:
 
 class StreamRedirectionRAII {
 public:
-    explicit StreamRedirectionRAII(bool is_cout)
+    /* explicit */ StreamRedirectionRAII(bool is_cout) // NOLINT(*explicit*) Removed it because it caused a bug on old MacOS standard library
         : _buffer{is_cout}
         , _stream{is_cout ? std::cout : std::cerr}
         , _original_buffer{_stream.rdbuf()}

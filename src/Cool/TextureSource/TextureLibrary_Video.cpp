@@ -74,45 +74,33 @@ auto TextureLibrary_Video::detailed_video_info(std::filesystem::path const& path
 
 void TextureLibrary_Video::imgui_debug_view() const
 {
-    static constexpr ImGuiTableFlags flags = ImGuiTableFlags_SizingStretchSame
-                                             | ImGuiTableFlags_Resizable
-                                             | ImGuiTableFlags_BordersOuter
-                                             | ImGuiTableFlags_BordersV
-                                             | ImGuiTableFlags_BordersH
-                                             | ImGuiTableFlags_ContextMenuInBody;
-
-    if (ImGui::BeginTable("vid_library", 3, flags))
+    for (auto const& kv : _videos)
     {
-        for (auto const& kv : _videos)
         {
-            ImGui::TableNextRow();
+            auto const* maybe_tex = kv.second.player.get_current_texture();
+            if (maybe_tex)
+                ImGuiExtras::image_framed(maybe_tex->imgui_texture_id(), {100.f * maybe_tex->aspect_ratio(), 100.f}, {.frame_thickness = 2.f, .flip_y = maybe_tex->need_to_flip_y()});
+            else
+                ImGui::TextUnformatted("INVALID");
+        }
+        ImGui::SameLine();
+        ImGui::BeginGroup(); // So that the two texts are on the right of the image
+        {
+            ImGui::TextUnformatted(kv.first.path.string().c_str());
+        }
+        {
+            auto const time_since_last_use = std::chrono::steady_clock::now() - kv.second.date_of_last_request;
+            if (time_since_last_use < time_to_live)
             {
-                ImGui::TableSetColumnIndex(0);
-                auto const* maybe_tex = kv.second.player.get_current_texture();
-                if (maybe_tex)
-                    ImGuiExtras::image_framed(maybe_tex->imgui_texture_id(), {100.f * maybe_tex->aspect_ratio(), 100.f}, {.frame_thickness = 2.f, .flip_y = true});
-                else
-                    ImGui::TextUnformatted("INVALID");
+                auto const duration = time_to_live - time_since_last_use;
+                ImGui::TextUnformatted(time_formatted_hms(duration).c_str());
             }
+            else
             {
-                ImGui::TableSetColumnIndex(1);
-                ImGui::TextUnformatted(kv.first.path.string().c_str());
-            }
-            {
-                ImGui::TableSetColumnIndex(2);
-                auto const time_since_last_use = std::chrono::steady_clock::now() - kv.second.date_of_last_request;
-                if (time_since_last_use < time_to_live)
-                {
-                    auto const duration = time_to_live - time_since_last_use;
-                    ImGui::TextUnformatted(time_formatted_hms(duration).c_str());
-                }
-                else
-                {
-                    ImGui::TextUnformatted(fmt::format("Expired (Not used for {})", time_to_live).c_str());
-                }
+                ImGui::TextUnformatted(fmt::format("Expired (Not used for {})", time_to_live).c_str());
             }
         }
-        ImGui::EndTable();
+        ImGui::EndGroup();
     }
 }
 

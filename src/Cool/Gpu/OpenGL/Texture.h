@@ -29,6 +29,7 @@ public:
     Texture(img::Size const&, uint8_t const* data, glpp::TextureLayout const&, bool need_to_flip_y = false, TextureConfig = {});
 
     void set_size(img::Size const&);
+    auto set_size_ifn(img::Size const&) -> bool;
     void set_image(img::Image const&, bool need_to_flip_y = false);
     /// `channels_count` should be 3 for RGB and 4 for RGBA.
     void set_image(img::Size const&, size_t channels_count, uint8_t const* data, bool need_to_flip_y = false);
@@ -43,7 +44,7 @@ public:
     /// The native OpenGL ID of the texture.
     [[nodiscard]] auto id() const -> GLuint { return _tex.id(); }
     /// The ID that ImGui expects
-    [[nodiscard]] auto imgui_texture_id() const -> ImTextureID { return reinterpret_cast<ImTextureID>(static_cast<uint64_t>(id())); } // Double-cast to fix a warning : first we convert to the correct size (uint32_t -> uint64_t) then from integral type to pointer type (uint64_t -> ImTextureID)
+    [[nodiscard]] auto imgui_texture_id() const -> ImTextureID { return static_cast<ImTextureID>(id()); }
 
     [[nodiscard]] auto aspect_ratio() const -> float { return img::aspect_ratio(_size); }
     [[nodiscard]] auto size() const -> img::Size { return _size; }

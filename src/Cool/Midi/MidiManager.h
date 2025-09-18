@@ -88,15 +88,18 @@ private:
     static void midi_callback(double delta_time, std::vector<unsigned char>* message, void* user_data);
     static void midi_error_callback(RtMidiError::Type type, std::string const& error_text, void* user_data);
 
+    void send_error_notification_if_any() const;
+
 private:
-    mutable std::mutex          _mutex{};
-    std::optional<RtMidiIn>     _midi{}; // Optional because the creation might fail and throw an exception: http://www.music.mcgill.ca/~gary/rtmidi/index.html#start
-    std::string                 _port_name{};
-    std::optional<unsigned int> _port_index{};
-    MidiValues                  _all_values{};
-    Cool::ImGuiWindow           _config_window;
-    std::set<MidiChannel>       _channels_that_have_changed{};
-    bool                        _last_button_pressed_has_changed{false};
+    mutable std::mutex                 _mutex{};
+    std::optional<RtMidiIn>            _midi{}; // Optional because the creation might fail and throw an exception: http://www.music.mcgill.ca/~gary/rtmidi/index.html#start
+    std::string                        _port_name{};
+    std::optional<unsigned int>        _port_index{};
+    MidiValues                         _all_values{};
+    Cool::ImGuiWindow                  _config_window;
+    std::set<MidiChannel>              _channels_that_have_changed{};
+    bool                               _last_button_pressed_has_changed{false};
+    mutable std::optional<std::string> _error_message{}; // When we receive an error message, we don't log it immediately because people might not be using midi yet so they don't care. It will be logged the first time we try to access a midi value
 
 private:
     // Serialization

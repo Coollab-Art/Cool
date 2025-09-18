@@ -194,3 +194,8 @@ template<>
 struct from_impl<"Time"> {
     using type = Cool::Time;
 };
+
+template<>
+struct from_impl<"SpoutSyphon"> {
+    using type = Cool::TextureDescriptor_SpoutSyphon;
+};

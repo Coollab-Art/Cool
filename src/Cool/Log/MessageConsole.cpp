@@ -243,7 +243,7 @@ void MessageConsole::imgui_window()
         // All the messages
         ImGui::BeginChild(
             "##Messages", ImVec2(0.f, 0.f), false,
-            ImGuiWindowFlags_AlwaysUseWindowPadding
+            ImGuiChildFlags_AlwaysUseWindowPadding
         );
         ImGui::PushFont(Font::monospace());
         imgui_show_all_messages();

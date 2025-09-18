@@ -59,9 +59,22 @@ auto TextureSource_Webcam::get_texture() const -> Texture const*
     return TextureLibrary_Webcam::instance().get_texture(_device_id);
 }
 
-auto TextureSource_Webcam::get_error() const -> std::optional<std::string>
+auto TextureSource_Webcam::get_error_notification() const -> std::optional<ImGuiNotify::Notification>
 {
-    return TextureLibrary_Webcam::instance().get_error(_device_id);
+    auto const err = TextureLibrary_Webcam::instance().get_error(_device_id);
+    if (!err.has_value())
+        return std::nullopt;
+
+    auto const maybe_name = wcam::get_name(_device_id);
+    return ImGuiNotify::Notification{
+        .type     = ImGuiNotify::Type::Error,
+        .title    = "Webcam error",
+        .content  = maybe_name.has_value()
+                        ? fmt::format("\"{}\"\n\n{}", *maybe_name, *err)
+                        : fmt::format("{}", *err),
+        .duration = std::nullopt,
+        .closable = false,
+    };
 }
 
 } // namespace Cool

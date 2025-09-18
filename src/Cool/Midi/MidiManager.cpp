@@ -64,7 +64,7 @@ MidiManager::MidiManager()
     try
     {
         _midi.emplace();
-        _midi->setErrorCallback(&midi_error_callback);
+        _midi->setErrorCallback(&midi_error_callback, this);
         _midi->setCallback(&midi_callback, this);
         _midi->ignoreTypes(true, true, true); // ignore sysex, timing, and active sensing messages.
     }
@@ -76,12 +76,14 @@ MidiManager::MidiManager()
 
 auto MidiManager::get_value(MidiChannel const& channel) const -> float
 {
+    send_error_notification_if_any();
     std::lock_guard lock{_mutex};
     return get_value_no_locking(channel);
 }
 
 auto MidiManager::get_value_no_locking(MidiChannel const& channel) const -> float
 {
+    send_error_notification_if_any();
     auto const& map = _all_values.get_map(channel.kind);
     auto const  it  = map.find(channel.index);
     if (it == map.end())
@@ -224,24 +226,33 @@ void MidiManager::midi_callback(double /* delta_time */, std::vector<unsigned ch
     }
 }
 
-void MidiManager::midi_error_callback(RtMidiError::Type type, std::string const& error_text, void* /* user_data */)
+void MidiManager::midi_error_callback(RtMidiError::Type type, std::string const& error_text, void* user_data)
 {
-    if (type == RtMidiError::Type::DRIVER_ERROR)
-    {
-        ImGuiNotify::send({
-            .type    = ImGuiNotify::Type::Warning,
-            .title   = "MIDI",
-            .content = fmt::format("Failed to connect to the device. Maybe it is already used in another software? You will need to restart {} to try to reconnect to the MIDI device.\n\n{}", COOL_APP_NAME, error_text),
-        });
-    }
+    auto& This = *static_cast<MidiManager*>(user_data);
+
+    auto const error_message = type == RtMidiError::Type::DRIVER_ERROR
+                                   ? fmt::format("Failed to connect to the device. Maybe it is already used in another software? You will need to restart {} to try to reconnect to the MIDI device.\n\n{}", This._port_name, COOL_APP_NAME, error_text)
+                                   : error_text;
+
+    if (This._error_message.has_value())
+        *This._error_message += "\n\n" + error_message;
     else
-    {
-        ImGuiNotify::send({
-            .type    = ImGuiNotify::Type::Warning,
-            .title   = "MIDI",
-            .content = error_text,
-        });
-    }
+        This._error_message = error_message;
+}
+
+void MidiManager::send_error_notification_if_any() const
+{
+    if (!_error_message)
+        return;
+
+    ImGuiNotify::send({
+        .type     = ImGuiNotify::Type::Warning,
+        .title    = "MIDI",
+        .content  = *_error_message,
+        .duration = std::nullopt,
+        .closable = true,
+    });
+    _error_message.reset();
 }
 
 void MidiManager::open_port(unsigned int index)
@@ -294,6 +305,8 @@ auto MidiManager::max_index(MidiChannelKind kind) const -> int
 void MidiManager::imgui_window()
 {
     _config_window.show([&](bool /*is_opening*/) {
+        send_error_notification_if_any();
+
         imgui_controllers_dropdown();
         ImGui::NewLine();
         imgui_visualize_channels();

@@ -60,4 +60,9 @@ auto PathsConfig::default_texture() const -> std::filesystem::path
     return "";
 }
 
+auto PathsConfig::default_video() const -> std::filesystem::path
+{
+    return "";
+}
+
 } // namespace Cool

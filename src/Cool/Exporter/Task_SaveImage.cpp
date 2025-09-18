@@ -7,24 +7,25 @@
 
 namespace Cool {
 
-Task_SaveImage::Task_SaveImage(std::filesystem::path const& file_path, img::Image image)
-    : _file_path{file_path}
+Task_SaveImage::Task_SaveImage(std::filesystem::path file_path, img::Image image)
+    : TaskWithProgressBar{fmt::format("Exporting image \"{}\"", Cool::File::file_name(file_path))}
+    , _file_path{std::move(file_path)}
     , _image{std::move(image)}
 {
-    File::mark_file_path_unavailable(file_path); // The file will not be created immediately, but we must know that it is already taken so that we don't try to create another image with the same path
+    File::mark_file_path_unavailable(_file_path); // The file will not be created immediately, but we must know that it is already taken so that we don't try to create another image with the same path
 }
 
-void Task_SaveImage::execute()
+auto Task_SaveImage::execute() -> TaskCoroutine
 {
-    TaskWithProgressBar::change_notification_when_execution_starts();
-
+    // TODO(Task) pause the coroutine regularly
     _result = ImageU::save(
         _file_path, _image,
         {
-            .cancel_requested = [&]() { return cancel_requested(); },
+            .cancel_requested = [&]() { return has_been_canceled(); },
             .set_progress     = [&](float progress) { set_progress(progress); },
         }
     );
+    co_return;
 }
 
 auto Task_SaveImage::notification_after_execution_completes() const -> ImGuiNotify::Notification
@@ -32,7 +33,7 @@ auto Task_SaveImage::notification_after_execution_completes() const -> ImGuiNoti
     if (_result.has_value())
     {
         auto success_notification                 = TaskWithProgressBar::notification_after_execution_completes();
-        success_notification.custom_imgui_content = [path = _file_path]() {
+        success_notification.custom_imgui_content = [path = _file_path](auto&&) {
             if (ImGui::Button(fmt::format("Open in file explorer").c_str()))
                 open_focused_in_explorer(path);
         };

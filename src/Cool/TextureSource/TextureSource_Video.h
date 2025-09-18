@@ -1,6 +1,7 @@
 #pragma once
 #include "Cool/Gpu/Texture.h"
 #include "Cool/Video/VideoDescriptor.h"
+#include "ImGuiNotify/ImGuiNotify.hpp"
 
 namespace Cool {
 
@@ -8,13 +9,13 @@ class TextureSource_Video {
 public:
     auto               imgui_widget() -> bool;
     [[nodiscard]] auto get_texture() const -> Texture const*;
-    [[nodiscard]] auto get_error() const -> std::optional<std::string>;
+    [[nodiscard]] auto get_error_notification() const -> std::optional<ImGuiNotify::Notification>;
 
     friend auto operator==(TextureSource_Video const&, TextureSource_Video const&) -> bool = default;
 
 private:
     static uint32_t next_id;
-    VideoDescriptor _video_descriptor{}; // TODO(Video) Ship a default video with Coollab? A short and lightweight one
+    VideoDescriptor _video_descriptor{};
     uint32_t        _id{next_id++};
 
 private:
