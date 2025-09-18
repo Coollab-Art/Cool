@@ -375,15 +375,20 @@ auto transactional_save(std::filesystem::path const& file_path, std::function<vo
     if (!File::create_folders_for_file_if_they_dont_exist(file_path))
         return false;
 
+    bool const is_overwriting = File::exists(file_path);
+
     // First save to a temporary file
     auto temp_path = file_path;
-    temp_path += ".tempsave";
+    if (is_overwriting)
+        temp_path += ".tempsave";
     {
         auto ofs = std::ofstream{temp_path};
         if (!ofs.is_open())
             return false;
         write(ofs);
     }
+    if (!is_overwriting)
+        return true;
 
     // If this succeeds then replace the previous file with the temporary
     auto old_path = file_path;
