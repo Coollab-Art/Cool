@@ -314,7 +314,7 @@ void AudioManager::imgui_window()
                 }
                 _audio_data_has_been_invalidated |= imgui_spectrum_display_as_bars(&_spectrum_display_as_bars);
                 _audio_data_has_been_invalidated |= ImGui::SliderFloat("Window size##Spectrum", &_window_size_in_seconds_for_spectrum, 0.f, 0.5f, "%.3f seconds");
-                _audio_data_has_been_invalidated |= ImGui::SliderFloat("Max pitch displayed", &_spectrum_max_frequency_in_hz, 0.f, 22000.f, "%.0f Hertz");
+                _audio_data_has_been_invalidated |= ImGui::SliderFloat("Max pitch computed", &_spectrum_max_frequency_in_hz, 0.f, 22000.f, "%.0f Hertz");
                 _audio_data_has_been_invalidated |= ImGui::DragFloat("Height stretch", &_spectrum_height_scale, 0.01f, 0.0001f, FLT_MAX);
                 ImGui::EndTabItem();
             }
