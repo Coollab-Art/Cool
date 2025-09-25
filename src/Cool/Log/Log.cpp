@@ -1,4 +1,4 @@
-
+#include "Log.hpp"
 #include "Cool/DebugOptions/DebugOptions.h"
 #include "Cool/Log/file_logger.hpp"
 #include "message_console.hpp"
@@ -41,8 +41,9 @@ void internal_info(std::string title, std::string content, std::vector<Clipboard
         Log::info(std::move(title), std::move(content), std::move(clipboard_contents));
     else
     {
-        file_logger().info(fmt::format("[{}] {}", std::move(title), std::move(content)));
-        file_logger().flush(); // We flush as soon as we log a message, to make sure that if the app crashes we won't lose any logs that haven't been flushed yet
+        with_file_logger([&](spdlog::logger& logger) {
+            logger.info(fmt::format("[{}] {}", std::move(title), std::move(content)));
+        });
     }
 }
 
@@ -52,8 +53,9 @@ void internal_warning(std::string title, std::string content, std::vector<Clipbo
         Log::warning(std::move(title), std::move(content), std::move(clipboard_contents));
     else
     {
-        file_logger().warn(fmt::format("[{}] {}", std::move(title), std::move(content)));
-        file_logger().flush(); // We flush as soon as we log a message, to make sure that if the app crashes we won't lose any logs that haven't been flushed yet
+        with_file_logger([&](spdlog::logger& logger) {
+            logger.warn(fmt::format("[{}] {}", std::move(title), std::move(content)));
+        });
     }
 }
 
@@ -63,8 +65,9 @@ void internal_error(std::string title, std::string content, std::vector<Clipboar
         Log::error(std::move(title), std::move(content), std::move(clipboard_contents));
     else
     {
-        file_logger().error(fmt::format("[{}] {}", std::move(title), std::move(content)));
-        file_logger().flush(); // We flush as soon as we log a message, to make sure that if the app crashes we won't lose any logs that haven't been flushed yet
+        with_file_logger([&](spdlog::logger& logger) {
+            logger.error(fmt::format("[{}] {}", std::move(title), std::move(content)));
+        });
     }
 }
 

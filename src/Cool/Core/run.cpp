@@ -18,7 +18,6 @@
 #include "Cool/Log/file_logger.hpp"
 #include "Cool/Log/redirect_cout_cerr_to_log_file.hpp"
 #include "Cool/Log/redirect_notifications_to_log_file.hpp"
-#include "Cool/Log/reset_log_file_if_not_already_reset.hpp"
 #include "Cool/Path/Path.h"
 #include "Cool/Serialization/JsonSerializer.hpp"
 #include "Cool/TextureSource/TextureLibrary_Spout.hpp"
@@ -97,9 +96,9 @@ void run_impl(
         set_utf8_locale();
         command_line_args().init(argc, argv);
         initialize_paths_config();
-        start_redirecting_cout_cerr_to_log_file(); // Can only be done once the paths config is initialized, otherwise we won't know where to create the log file
+        init_log_file(); // Can only be done once the paths config is initialized, otherwise we won't know where to create the log file
+        start_redirecting_cout_cerr_to_log_file();
         redirect_notifications_to_log_file();
-        reset_log_file_if_not_already_reset();
         copy_initial_user_data_ifn();
         // Create window.s
         // TODO(WebGPU) check that if an exception is thrown during window creation, ImGui shuts down properly and doesn't prevent us from logging the error to the log file

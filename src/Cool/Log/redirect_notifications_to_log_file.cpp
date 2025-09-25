@@ -23,8 +23,9 @@ static auto to_spdlog_level(ImGuiNotify::Type type)
 void redirect_notifications_to_log_file()
 {
     ImGuiNotify::add_notification_callback([](ImGuiNotify::Notification const& notification) {
-        file_logger().log(to_spdlog_level(notification.type), fmt::format("[{}] {}", notification.title, notification.content));
-        file_logger().flush(); // We flush as soon as we log a message, to make sure that if the app crashes we won't lose any logs that haven't been flushed yet
+        with_file_logger([&](spdlog::logger& logger) {
+            logger.log(to_spdlog_level(notification.type), fmt::format("[{}] {}", notification.title, notification.content));
+        });
     });
 }
 

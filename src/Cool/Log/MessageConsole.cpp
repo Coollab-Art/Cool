@@ -68,8 +68,9 @@ void MessageConsole::on_message_sent(internal::RawMessageId const& id, Message c
     _is_open           = true;
     _message_just_sent = id;
 
-    file_logger().log(to_spdlog_level(message.type), fmt::format("[{}] {}", message.title, message.content));
-    file_logger().flush(); // We flush as soon as we log a message, to make sure that if the app crashes we won't lose any logs that haven't been flushed yet
+    with_file_logger([&](spdlog::logger& logger) {
+        logger.log(to_spdlog_level(message.type), fmt::format("[{}] {}", message.title, message.content));
+    });
 }
 
 void MessageConsole::remove(MessageId const& id)

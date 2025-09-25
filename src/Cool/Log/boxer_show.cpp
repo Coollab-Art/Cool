@@ -22,8 +22,9 @@ static auto to_spdlog_level(boxer::Style style) -> spdlog::level::level_enum
 
 auto boxer_show(const char* message, const char* title, boxer::Style style, boxer::Buttons buttons) -> boxer::Selection
 {
-    file_logger().log(to_spdlog_level(style), fmt::format("[{}] {}", title, message));
-    file_logger().flush(); // We flush as soon as we log a message, to make sure that if the app crashes we won't lose any logs that haven't been flushed yet
+    with_file_logger([&](spdlog::logger& logger) {
+        logger.log(to_spdlog_level(style), fmt::format("[{}] {}", title, message));
+    });
     return boxer::show(message, title, style, buttons);
 }
 
