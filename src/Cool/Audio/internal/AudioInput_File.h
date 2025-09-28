@@ -1,6 +1,7 @@
 #pragma once
 #include "Audio/Audio.hpp"
 #include "IAudioInput.h"
+#include "ImGuiNotify/ImGuiNotify.hpp"
 
 namespace Cool::internal {
 
@@ -23,10 +24,10 @@ private:
     void try_load_current_file();
 
 private:
-    std::filesystem::path   _path{};
-    std::filesystem::path   _currently_loaded_path{};
-    Audio::PlayerProperties _properties{};
-    MessageId               _error_id{};
+    std::filesystem::path       _path{};
+    std::filesystem::path       _currently_loaded_path{};
+    Audio::PlayerProperties     _properties{};
+    ImGuiNotify::NotificationId _notification_id{};
 
     bool _force_mute{false};
 

@@ -1,10 +1,6 @@
 #include "AudioInput_Device.h"
-#include <Cool/ImGui/IcoMoonCodepoints.h>
-#include <Audio/src/InputStream.hpp>
-#include <variant>
-#include "Audio/Audio.hpp"
 #include "Cool/ImGui/ImGuiExtras.h"
-#include "Cool/Log/ToUser.h"
+#include "ImGuiNotify/ImGuiNotify.hpp"
 
 namespace Cool::internal {
 
@@ -43,7 +39,8 @@ auto AudioInput_Device::is_playing() const -> bool
 
 static auto get_device_name_impl(Audio::UseDefaultDevice) -> std::string
 {
-    return fmt::format("Use default device: {}", input_stream().device_info(input_stream().default_device_id()).name);
+    auto const name = input_stream().device_info(input_stream().default_device_id()).name;
+    return fmt::format("Default device: {}", name.empty() ? "NO DEFAULT DEVICE AVAILABLE" : name);
 }
 static auto get_device_name_impl(Audio::UseGivenDevice const& device) -> std::string
 {
@@ -62,18 +59,26 @@ void AudioInput_Device::update()
     input_stream().update();
     if (!input_stream().current_device_is_valid())
     {
-        Cool::Log::ToUser::console().send(
-            _error_id_device_invalid,
-            Message{
-                .category = "Audio",
-                .message  = fmt::format("Invalid device \"{}\"", get_device_name(input_stream().current_device())),
-                .severity = MessageSeverity::Error,
-            }
-        );
+        auto const device_name = get_device_name(input_stream().current_device());
+        if (_last_logged_device_name != device_name) // Avoid spamming the log file every frame
+        {
+            _last_logged_device_name = device_name;
+            ImGuiNotify::send_or_change(
+                _notification_id,
+                {
+                    .type     = ImGuiNotify::Type::Error,
+                    .title    = "Audio Device",
+                    .content  = fmt::format("Invalid device \"{}\"", device_name),
+                    .duration = std::nullopt,
+                    .closable = false,
+                }
+            );
+        }
     }
     else
     {
-        Cool::Log::ToUser::console().remove(_error_id_device_invalid);
+        ImGuiNotify::close_immediately(_notification_id);
+        _last_logged_device_name = "";
     }
 }
 
@@ -86,11 +91,13 @@ void AudioInput_Device::stop()
 {
     input_stream().close();
     _has_started = false;
+    ImGuiNotify::close_immediately(_notification_id);
+    _last_logged_device_name = "";
 }
 
 auto AudioInput_Device::does_need_to_highlight_error() const -> bool
 {
-    return Cool::Log::ToUser::console().should_highlight(_error_id_device_invalid);
+    return ImGuiNotify::is_notification_hovered(_notification_id);
 }
 
 auto AudioInput_Device::imgui(bool needs_to_highlight_error) -> bool

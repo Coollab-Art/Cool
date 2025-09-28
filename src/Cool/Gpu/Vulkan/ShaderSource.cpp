@@ -14,10 +14,9 @@ static shaderc_shader_kind shader_kind_cool2shaderc(Cool::ShaderKind shader_kind
         return shaderc_shader_kind::shaderc_geometry_shader;
     case Cool::ShaderKind::Compute:
         return shaderc_shader_kind::shaderc_compute_shader;
-    default:
-        Cool::Log::Debug::error("[ShaderSource::shader_kind_cool2shaderc] Unkown enum value \"{}\"", static_cast<int>(shader_kind));
-        return shaderc_shader_kind::shaderc_vertex_shader;
     }
+    assert(false);
+    return shaderc_shader_kind::shaderc_vertex_shader;
 }
 
 namespace Cool::Vulkan::ShaderSource {
@@ -31,9 +30,7 @@ shaderc::SpvCompilationResult to_spirv(const ShaderDescription& shader_descripti
     auto res = compiler.CompileGlslToSpv(shader_description.source_code, shader_kind_cool2shaderc(shader_description.kind), "Unknown", options);
 
     if (!res.GetErrorMessage().empty())
-    {
-        Log::Debug::warn(res.GetErrorMessage());
-    }
+        Log::internal_warning(res.GetErrorMessage());
 
     return res;
 }

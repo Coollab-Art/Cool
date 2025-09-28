@@ -49,7 +49,10 @@ void Window::escape_fullscreen()
     if (!_is_fullscreen)
         return;
 
-    glfwSetWindowMonitor(_glfw_window, nullptr, _pos_x_before_fullscreen, _pos_y_before_fullscreen, _width_before_fullscreen, _height_before_fullscreen, 0);
+    glfwSetWindowAttrib(*_glfw_window, GLFW_DECORATED, GLFW_TRUE);
+    glfwSetWindowSize(*_glfw_window, _width_before_fullscreen, _height_before_fullscreen);
+    glfwSetWindowPos(*_glfw_window, _pos_x_before_fullscreen, _pos_y_before_fullscreen);
+
     _is_fullscreen = false;
 }
 
@@ -58,17 +61,30 @@ void Window::turn_on_fullscreen()
     if (_is_fullscreen)
         return;
 
+    // Get monitor containing the window
     GLFWmonitor* monitor = current_monitor();
     if (!monitor) // This can happen
         return;
     GLFWvidmode const* mode = glfwGetVideoMode(monitor);
-    glfwGetWindowPos(_glfw_window, &_pos_x_before_fullscreen, &_pos_y_before_fullscreen);
-    glfwGetWindowSize(_glfw_window, &_width_before_fullscreen, &_height_before_fullscreen);
-    glfwSetWindowMonitor(_glfw_window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
-#if defined(COOL_OPENGL)
-    cap_framerate_if(framerate_is_capped()); // Turning fullscreen disables VSync so we have to reenable it
-#endif
+    int                monitor_pos_x{};
+    int                monitor_pos_y{};
+    glfwGetMonitorPos(monitor, &monitor_pos_x, &monitor_pos_y);
+
+    // Store current pos / size to restore it later
+    glfwGetWindowPos(*_glfw_window, &_pos_x_before_fullscreen, &_pos_y_before_fullscreen);
+    glfwGetWindowSize(*_glfw_window, &_width_before_fullscreen, &_height_before_fullscreen);
+
+    // Set fullscreen
+    glfwSetWindowAttrib(*_glfw_window, GLFW_DECORATED, GLFW_FALSE);
+    glfwSetWindowSize(*_glfw_window, mode->width, mode->height + 1); // HACK: Add +1 to height to prevent window to going into some kind of "exclusive fullscreen" mode, which is slower and causes a black frame each time we click on another monitor or ALT+TAB to another window
+    glfwSetWindowPos(*_glfw_window, monitor_pos_x, monitor_pos_y);
+
     _is_fullscreen = true;
+}
+
+void Window::close()
+{
+    glfwSetWindowShouldClose(glfw(), true);
 }
 
 void Window::set_visibility(bool is_visible)

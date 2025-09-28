@@ -15,10 +15,9 @@ static GLenum opengl_shader_kind(ShaderKind kind)
         return GL_GEOMETRY_SHADER;
     case ShaderKind::Compute:
         return GL_COMPUTE_SHADER;
-    default:
-        Log::Debug::error("opengl_shader_kind", "Unknown enum value");
-        return 0;
     }
+    assert(false);
+    return 0;
 }
 
 UniqueShaderModule::UniqueShaderModule(ShaderKind shader_kind)

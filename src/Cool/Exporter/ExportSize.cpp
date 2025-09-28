@@ -7,13 +7,6 @@
 
 namespace Cool {
 
-void ExportSize::set_aspect_ratio(AspectRatio const& aspect_ratio)
-{
-    _aspect_ratio_is_locked = true;
-    _aspect_ratio           = aspect_ratio;
-    apply_aspect_ratio();
-}
-
 void ExportSize::apply_aspect_ratio()
 {
     // Fun fact : our algorithm doesn't match https://www.adobe.com/uk/creativecloud/design/discover/a4-format.html
@@ -24,49 +17,47 @@ void ExportSize::apply_aspect_ratio()
     if (_last_changed_side == ImageSizeU::WH::Width)
     {
         _size.set_height(static_cast<decltype(_size)::DataType>(
-            std::round(static_cast<float>(_size.width()) / _aspect_ratio.get())
+            std::round(static_cast<float>(_size.width()) / _shared_aspect_ratio->aspect_ratio.get())
         ));
     }
     else
     {
         _size.set_width(static_cast<decltype(_size)::DataType>(
-            std::round(static_cast<float>(_size.height()) * _aspect_ratio.get())
+            std::round(static_cast<float>(_size.height()) * _shared_aspect_ratio->aspect_ratio.get())
         ));
     }
 }
 
 auto ExportSize::imgui() -> bool
 {
+    if (ImGui::IsWindowAppearing() || _aspect_ratio_is_locked)
+        apply_aspect_ratio();
+    _shared_aspect_ratio->fill_the_view = false; // Fixed aspect ratio as soon as we open the export window. This avoids the case where we open the export window, then resize the main window which makes the View change aspect ratio. In that case we don't want the current aspect ratio and size that we see in the export window to change. And to preserve the consistency between the aspect ratio in the exporter window and in the View, we have to keep the aspect ratio fixed.
+
     bool b = false;
 
-    const ImageSizeU::WH changed_side = ImageSizeU::imgui(_size);
+    auto const changed_side = ImageSizeU::imgui(_size);
     if (changed_side != ImageSizeU::WH::None)
     {
         _last_changed_side = changed_side; // Only update if changed_side != ImageSizeU::WH::None because we want to remember the last side that actually changed.
-        b                  = true;
-    }
+        if (!_aspect_ratio_is_locked)
+            _shared_aspect_ratio->aspect_ratio.set(img::aspect_ratio(_size));
 
-    if (b && !_aspect_ratio_is_locked)
-    {
-        _aspect_ratio.set(img::aspect_ratio(_size));
+        b = true;
     }
 
     ImGui::SameLine();
     ImGuiExtras::disabled_if(!_aspect_ratio_is_locked, "Ratio is not locked, you cannot edit it directly. Lock it with the button on the right.", [&]() {
-        b |= _aspect_ratio.imgui(150.f);
+        b |= _shared_aspect_ratio->aspect_ratio.imgui(150.f);
     });
     ImGui::SameLine();
     b |= ImGuiExtras::checkbox_button(ICOMOON_LINK, &_aspect_ratio_is_locked);
-    ImGuiExtras::help_marker(
+    ImGui::SetItemTooltip(
+        "%s",
         _aspect_ratio_is_locked
-            ? "Unlock the ratio to edit the width and the height independently."
-            : "Lock the ratio to tie the width and the height together and always keep the given ratio."
+            ? "The aspect ratio is locked. Changing the width will automatically change the height (and vice versa) to keep the same ratio."
+            : "The aspect ratio is unlocked. The width and the height can be changed independently."
     );
-
-    if (b && _aspect_ratio_is_locked)
-    {
-        apply_aspect_ratio();
-    }
 
     return b;
 }

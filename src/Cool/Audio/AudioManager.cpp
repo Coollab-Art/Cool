@@ -4,8 +4,6 @@
 #include <optional>
 #include "Cool/Audio/AudioManager.h"
 #include "Cool/DebugOptions/DebugOptions.h"
-#include "Cool/Log/ToUser.h"
-#include "Cool/WebGPU/Texture.h"
 
 namespace Cool {
 
@@ -33,7 +31,7 @@ auto AudioManager::volume() const -> float
 {
     return _current_volume.get_value([&]() {
         if (Cool::DebugOptions::log_when_computing_audio_features())
-            Cool::Log::ToUser::info("Audio", "Computing volume");
+            Log::info("Audio", "Computing volume");
 
         auto frames = std::vector<float>{};
         current_input().for_each_audio_frame(nb_frames_for_feature_computation(_window_size_in_seconds_for_volume), [&](float frame) {
@@ -47,7 +45,7 @@ auto AudioManager::waveform() const -> std::vector<float> const&
 {
     return _current_waveform.get_value([&]() {
         if (Cool::DebugOptions::log_when_computing_audio_features())
-            Cool::Log::ToUser::info("Audio", "Computing waveform");
+            Log::info("Audio", "Computing waveform");
 
         auto waveform = std::vector<float>{};
         current_input().for_each_audio_frame(nb_frames_for_feature_computation(_window_size_in_seconds_for_waveform), [&](float sample) {
@@ -61,7 +59,7 @@ auto AudioManager::spectrum() const -> Audio::Spectrum const&
 {
     return _current_spectrum.get_value([&]() {
         if (Cool::DebugOptions::log_when_computing_audio_features())
-            Cool::Log::ToUser::info("Audio", "Computing spectrum");
+            Log::info("Audio", "Computing spectrum");
 
         auto const N = nb_frames_for_feature_computation(_window_size_in_seconds_for_spectrum);
         return Audio::fourier_transform(
@@ -220,7 +218,7 @@ void AudioManager::imgui_window()
     if (needs_to_highlight_error)
         _window.open();
 
-    _window.show([&]() {
+    _window.show([&](bool /*is_opening*/) {
         ImGui::SeparatorText("Input Selection");
         // Select the input mode
         if (ImGui::BeginCombo("Input Mode", to_string(_current_input_mode)))
@@ -245,7 +243,7 @@ void AudioManager::imgui_window()
         {
             if (ImGui::BeginTabItem("Volume"))
             {
-                ImGui::ProgressBar(volume(), {0.f, 0.f});
+                ImGuiExtras::progress_bar(volume(), {0.f, 0.f});
                 _audio_data_has_been_invalidated |= ImGui::SliderFloat("Window size##Volume", &_window_size_in_seconds_for_volume, 0.f, 1.f, "%.3f seconds");
                 ImGui::EndTabItem();
             }

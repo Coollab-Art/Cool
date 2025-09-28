@@ -60,8 +60,6 @@ public:
     void set_force_mute(bool mute) { _file_input.set_force_mute(mute); }
 
 private:
-    void open_current_input_mode();
-
     [[nodiscard]] auto nb_frames_for_feature_computation(float window_size_in_seconds) const -> int64_t;
 
     void invalidate_caches();

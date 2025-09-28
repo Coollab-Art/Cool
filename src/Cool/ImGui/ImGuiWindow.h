@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Cool/EventDispatcher/EventDispatcher.h>
-
 namespace Cool {
 
 struct ImGuiWindowConfig {
@@ -23,23 +21,17 @@ public:
      *
      * @param widgets A function that renders all the desired widgets
      */
-    void show(std::function<void()> widgets);
+    void show(std::function<void(bool is_opening)> const& widgets);
     void open();
     void close();
 
     void open_close_toggle();
 
-    struct OpenEvent {
-    };
-
-    auto on_open() -> EventDispatcher<OpenEvent>& { return _open_event_dispatcher; }
-
 private:
-    std::string                _title;
-    bool                       _is_modal;
-    EventDispatcher<OpenEvent> _open_event_dispatcher;
-
-    bool _is_open;
+    std::string _title;
+    bool        _is_modal;
+    bool        _is_open;
+    bool        _just_opened{true};
 
 private:
     // Serialization

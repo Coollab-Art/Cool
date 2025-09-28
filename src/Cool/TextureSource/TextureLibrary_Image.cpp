@@ -3,8 +3,10 @@
 #include <filesystem>
 #include <optional>
 #include "Cool/DebugOptions/DebugOptions.h"
+#include "Cool/File/File.h"
 #include "Cool/FileWatcher/FileWatcher.h"
 #include "Cool/ImGui/ImGuiExtras.h"
+#include "Cool/TextureSource/default_textures.h"
 #include "Cool/Time/time_formatted_hms.h"
 #include "Cool/WebGPU/Texture.h"
 #include "fmt/chrono.h"
@@ -12,14 +14,7 @@
 
 namespace Cool {
 
-static constexpr auto time_to_live = 5min;
-
-static auto time_to_live_has_expired(std::chrono::steady_clock::time_point date_of_last_request) -> bool
-{
-    return std::chrono::steady_clock::now() - date_of_last_request > time_to_live;
-}
-
-auto TextureLibrary_Image::get(std::filesystem::path const& path) -> Texture const*
+auto TextureLibrary_Image::get(std::filesystem::path const& path, std::chrono::milliseconds time_to_live) -> Texture const*
 {
     auto const it = _textures.find(path);
     // If this path is not known to the library, add it and try again.
@@ -28,13 +23,15 @@ auto TextureLibrary_Image::get(std::filesystem::path const& path) -> Texture con
         _textures[path] = {
             .file_watcher         = FileWatcher{path, FileWatcher_NoCallbacks()},
             .date_of_last_request = clock::now(),
+            .time_to_live         = time_to_live,
         };
         reload_texture(path);
-        return get(path);
+        return get(path, time_to_live);
     }
 
     // We have a new request
     it->second.date_of_last_request = clock::now();
+    it->second.time_to_live         = std::max(it->second.time_to_live, time_to_live);
 
     auto const& maybe_tex = it->second.texture;
     if (!maybe_tex && !it->second.error_message) // Texture is nullopt simply because it hasn't been used in a while. Reload the texture.
@@ -50,16 +47,17 @@ void TextureLibrary_Image::reload_texture(std::filesystem::path const& path)
     auto& tex         = _textures[path];
     tex.error_message = std::nullopt;
     tex.texture       = std::nullopt;
-    try
+
+    auto texture = load_texture(path, wgpu::TextureFormat::RGBA8Unorm);
+    if (texture.has_value())
     {
-        tex.texture = load_texture(path, wgpu::TextureFormat::RGBA8Unorm);
-        ;
+        tex.texture = std::move(*texture);
         if (DebugOptions::log_when_creating_textures())
-            Log::ToUser::info("TextureLibrary_Image", fmt::format("Generated texture from {}", path));
+            Log::info("TextureLibrary_Image", fmt::format("Generated texture from \"{}\"", Cool::File::weakly_canonical(path)));
     }
-    catch (std::exception const& e)
+    else
     {
-        tex.error_message = e.what();
+        tex.error_message = std::move(texture.error());
     }
 }
 
@@ -73,7 +71,7 @@ auto TextureLibrary_Image::update() -> bool
     for (auto& kv : _textures)
     {
         kv.second.file_watcher.update({.on_file_changed = reload_tex, .on_path_invalid = reload_tex});
-        if (time_to_live_has_expired(kv.second.date_of_last_request))
+        if (std::chrono::steady_clock::now() - kv.second.date_of_last_request > kv.second.time_to_live)
             kv.second.texture = std::nullopt;
     }
 
@@ -87,44 +85,29 @@ auto TextureLibrary_Image::error_from(std::filesystem::path const& path) -> std:
 
 void TextureLibrary_Image::imgui_debug_view() const
 {
-    static constexpr ImGuiTableFlags flags = ImGuiTableFlags_SizingStretchSame
-                                             | ImGuiTableFlags_Resizable
-                                             | ImGuiTableFlags_BordersOuter
-                                             | ImGuiTableFlags_BordersV
-                                             | ImGuiTableFlags_BordersH
-                                             | ImGuiTableFlags_ContextMenuInBody;
-
-    if (ImGui::BeginTable("tex_library", 3, flags))
+    for (auto const& kv : _textures)
     {
-        for (auto const& kv : _textures)
+        ImGuiExtras::image_framed(
+            kv.second.texture ? kv.second.texture->imgui_texture_id() : dummy_texture().imgui_texture_id(),
+            {100.f * (kv.second.texture ? kv.second.texture->aspect_ratio() : 1.f), 100.f},
+            {.frame_thickness = 2.f}
+        );
+
+        ImGui::SameLine();
+        ImGui::BeginGroup();
+
+        ImGui::TextUnformatted(kv.first.string().c_str());
+
         {
-            ImGui::TableNextRow();
-            {
-                ImGui::TableSetColumnIndex(0);
-                if (kv.second.texture)
-                    ImGuiExtras::image_framed(kv.second.texture->imgui_texture_id(), {100.f * kv.second.texture->aspect_ratio(), 100.f}, {.frame_thickness = 2.f});
-                else
-                    ImGui::TextUnformatted("INVALID");
-            }
-            {
-                ImGui::TableSetColumnIndex(1);
-                ImGui::TextUnformatted(kv.first.string().c_str());
-            }
-            {
-                ImGui::TableSetColumnIndex(2);
-                auto const time_since_last_use = std::chrono::steady_clock::now() - kv.second.date_of_last_request;
-                if (time_since_last_use < time_to_live)
-                {
-                    auto const duration = time_to_live - time_since_last_use;
-                    ImGui::TextUnformatted(time_formatted_hms(duration).c_str());
-                }
-                else
-                {
-                    ImGui::TextUnformatted(fmt::format("Expired (Not used for {})", time_to_live).c_str());
-                }
-            }
+            auto const time_since_last_use = std::chrono::steady_clock::now() - kv.second.date_of_last_request;
+            auto const time_to_live        = kv.second.time_to_live;
+            if (time_since_last_use < time_to_live)
+                ImGui::TextUnformatted(time_formatted_hms(time_to_live - time_since_last_use).c_str());
+            else
+                ImGui::TextUnformatted(fmt::format("Expired (Not used for {})", time_to_live).c_str());
         }
-        ImGui::EndTable();
+
+        ImGui::EndGroup();
     }
 }
 

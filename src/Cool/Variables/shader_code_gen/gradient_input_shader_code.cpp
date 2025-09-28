@@ -18,12 +18,9 @@ static auto gen_code_wrap_mode(ImGG::WrapMode wrap_mode) -> std::string
     {
         return "1. - abs(mod(x, 2.) -1.);";
     }
-    default:
-    {
-        Cool::Log::Debug::error("InputParser::gen_code_wrap_mode", "Invalid WrapMode enum value");
-        return "";
     }
-    }
+    assert(false);
+    return "";
 }
 
 static auto gen_code_interpolation(std::string_view name, ImGG::Interpolation interpolation_mode) -> std::string
@@ -70,12 +67,9 @@ static auto gen_code_interpolation(std::string_view name, ImGG::Interpolation in
             "gradient_marks"_a = fmt::format("{}_", name)
         );
     }
-    default:
-    {
-        Cool::Log::Debug::error("InputParser::gen_code_interpolation", "Invalid Interpolation enum value");
-        return "";
     }
-    }
+    assert(false);
+    return "";
 }
 
 static auto gen_code_number_of_marks_variable_name(std::string_view name)
@@ -88,16 +82,16 @@ auto gradient_input_shader_code(Cool::Gradient const& value, std::string_view na
     using fmt::literals::operator""_a;
     return value.value.gradient().is_empty()
                ? fmt::format(
-                   R"STR(
+                     R"STR(
 vec4 {}(float x)   
 {{
     return vec4(0.);
 }}
          )STR",
-                   name
-               )
+                     name
+                 )
                : fmt::format(
-                   FMT_COMPILE(R"STR( 
+                     FMT_COMPILE(R"STR( 
 #include "_COOL_RES_/shaders/GradientMark.glsl"
 const int {number_of_marks} = {gradient_size};
 uniform GradientMark {gradient_marks}[{number_of_marks}];
@@ -122,13 +116,13 @@ vec4 {gradient_function}(float x) // we benchmarked and linear scan is faster th
     }}
 }}
     )STR"),
-                   "gradient_size"_a     = value.value.gradient().get_marks().size(),
-                   "number_of_marks"_a   = gen_code_number_of_marks_variable_name(name),
-                   "gradient_function"_a = name,
-                   "wrap"_a              = gen_code_wrap_mode(value.wrap_mode),
-                   "interpolation"_a     = gen_code_interpolation(name, value.value.gradient().interpolation_mode()),
-                   "gradient_marks"_a    = internal::gradient_marks_array_name(name)
-               );
+                     "gradient_size"_a     = value.value.gradient().get_marks().size(),
+                     "number_of_marks"_a   = gen_code_number_of_marks_variable_name(name),
+                     "gradient_function"_a = name,
+                     "wrap"_a              = gen_code_wrap_mode(value.wrap_mode),
+                     "interpolation"_a     = gen_code_interpolation(name, value.value.gradient().interpolation_mode()),
+                     "gradient_marks"_a    = internal::gradient_marks_array_name(name)
+                 );
 }
 
 } // namespace Cool

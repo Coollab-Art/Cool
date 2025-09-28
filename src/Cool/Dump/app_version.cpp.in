@@ -1,0 +1,10 @@
+#include "Cool/Dump/app_version.hpp"
+
+namespace Cool {
+
+auto app_version() -> std::string
+{
+    return @COOL_APP_VERSION_STRING@; // Variable configured by CMake
+}
+
+} // namespace Cool

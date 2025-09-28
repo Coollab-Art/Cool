@@ -29,12 +29,9 @@ enum class BuildMode {
         return true;
     case BuildMode::None:
         return false;
-    default:
-    {
-        Log::Debug::error("is_building_as", "Unknown enum value");
-        return false;
     }
-    }
+    assert(false);
+    return false;
 }
 
 } // namespace Cool

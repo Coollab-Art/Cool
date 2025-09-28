@@ -60,9 +60,9 @@ void View::check_for_fullscreen_toggle() const
     if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
         return;
 
-    if (ImGui::IsKeyPressed(ImGuiKey_F10))
+    if (ImGui::IsKeyChordPressed(ImGuiKey_F10))
         ImGui::ToggleWindowFullscreen();
-    if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+    if (ImGui::IsKeyChordPressed(ImGuiKey_Escape))
         ImGui::ExitWindowFullscreen();
 }
 
@@ -206,12 +206,12 @@ void View::dispatch_mouse_move_event(MouseMoveEvent<ImGuiCoordinates> const& eve
 
     if (DebugOptions::log_mouse_position_in_view())
     {
-        Log::ToUser::console().send(
+        message_console().send(
             _log_position_message_id,
             Message{
-                .category = _name,
-                .message  = fmt::format("Mouse at ({:.2f}, {:.2f})", pos.x, pos.y),
-                .severity = MessageSeverity::Info,
+                .type    = MessageType::Info,
+                .title   = _name,
+                .content = fmt::format("Mouse at ({:.2f}, {:.2f})", pos.x, pos.y),
             }
         );
     }
@@ -282,14 +282,21 @@ void View::display_image(ImTextureID image_texture_id, img::Size image_size)
         return;
 
     auto const size       = img::fit_into(*_window_size, image_size);
-    _has_vertical_margins = img::aspect_ratio(size) < img::aspect_ratio(*_window_size);
+    _has_vertical_margins = img::aspect_ratio(size) <= img::aspect_ratio(*_window_size); // TODO(WebGPU) Check if it should be < or <= (was <= on main branch). Probably makes a diference when fitting aspect ratio
 
     rerender_alpha_checkerboard_ifn(img::Size{size}, _render_target);
 
     // Alpha checkerboard background
-    ImGuiExtras::image_centered(_render_target.imgui_texture_id(), as_imvec2(size));
+    ImGuiExtras::image_centered(_checkerboard_texture.get(img::Size{size}).imgui_texture_id(), as_imvec2(size));
     // Actual image. It needs to use straight alpha as this is what ImGui expects.
     ImGuiExtras::image_centered(image_texture_id, as_imvec2(size));
+}
+
+auto View::aspect_ratio() const -> float
+{
+    if (!_window_size.has_value())
+        return 1.f;
+    return img::aspect_ratio(*_window_size);
 }
 
 } // namespace Cool

@@ -39,7 +39,7 @@
 //         }
 //     );
 // #else
-//     Cool::Log::ToUser::error("Particles", "Particles are not supported on MacOS for now.");
+//     Cool::Log::error("Particles", "Particles are not supported on MacOS for now.");
 //     std::ignore = shader_code;
 // #endif
 // }

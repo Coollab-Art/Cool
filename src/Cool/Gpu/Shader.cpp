@@ -193,6 +193,7 @@
 //     // GLDebug(glBindSampler(slot, TextureSamplerLibrary::instance().get(sampler).id()));
 //     // set_uniform(fmt::format("{}.tex", uniform_name), static_cast<int>(slot));
 //     // set_uniform(fmt::format("{}.aspect_ratio", uniform_name), texture.aspect_ratio());
+//     // set_uniform(fmt::format("{}.flip_y", uniform_name), texture.need_to_flip_y());
 //     // GLDebug(glActiveTexture(GL_TEXTURE0)); // HACK Slot 0 is used for texture operations like resizing and setting the image, anyone might override the texture set here at any time. So we use all slots but the 0th one for rendering.
 // }
 

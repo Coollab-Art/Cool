@@ -13,6 +13,7 @@ concept Node_Concept = requires(T mut_node, T const const_node) { // clang-forma
     { const_node.output_pins() } -> std::convertible_to<std::vector<Cool::OutputPin> const&>;
     { const_node.definition_name() } -> std::convertible_to<std::string>;
     { const_node.category_name() } -> std::convertible_to<std::string>;
+    { mut_node.name_ref() } -> std::convertible_to<std::string&>;
 }; // clang-format on
 
 class Node {
@@ -23,6 +24,7 @@ public:
     [[nodiscard]] auto output_pins() const -> std::vector<Cool::OutputPin> const& { return _pimpl->get_output_pins(); }
     [[nodiscard]] auto definition_name() const -> std::string { return _pimpl->get_definition_name(); }
     [[nodiscard]] auto category_name() const -> std::string { return _pimpl->get_category_name(); }
+    [[nodiscard]] auto name_ref() -> std::string& { return _pimpl->name_ref(); }
 
     template<Node_Concept NodeT>
     [[nodiscard]] auto downcast() -> NodeT&
@@ -66,6 +68,7 @@ public:              // Must be public in order for ser20 to register the polymo
         [[nodiscard]] virtual auto get_output_pins() const -> std::vector<Cool::OutputPin> const& = 0;
         [[nodiscard]] virtual auto get_definition_name() const -> std::string                     = 0;
         [[nodiscard]] virtual auto get_category_name() const -> std::string                       = 0;
+        [[nodiscard]] virtual auto name_ref() -> std::string&                                     = 0;
 
         [[nodiscard]] virtual auto clone() const -> std::unique_ptr<Concept> = 0;
     };
@@ -100,6 +103,10 @@ public:              // Must be public in order for ser20 to register the polymo
         [[nodiscard]] auto get_category_name() const -> std::string override
         {
             return _node.category_name();
+        }
+        [[nodiscard]] auto name_ref() -> std::string& override
+        {
+            return _node.name_ref();
         }
 
         [[nodiscard]] auto clone() const -> std::unique_ptr<Concept> override

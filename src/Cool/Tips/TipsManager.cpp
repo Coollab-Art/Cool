@@ -83,7 +83,7 @@ void TipsManager::imgui_show_one_tip(Tips all_tips)
 
 void TipsManager::imgui_windows(Tips all_tips)
 {
-    _window.show([&]() {
+    _window.show([&](bool /*is_opening*/) {
         imgui_show_one_tip(all_tips);
     });
 

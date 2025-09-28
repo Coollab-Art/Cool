@@ -30,14 +30,10 @@ private:
 };
 
 struct ImGuiVariableCallbacks {
-    std::function<void()> on_value_changed = []() {
-    };
-    std::function<void()> on_metadata_changed = []() {
-    };
-    std::function<void()> on_value_editing_finished = []() {
-    };
-    std::function<void()> on_metadata_editing_finished = []() {
-    };
+    std::function<void()> on_value_changed             = []() {};
+    std::function<void()> on_metadata_changed          = []() {};
+    std::function<void()> on_value_editing_finished    = []() {};
+    std::function<void()> on_metadata_editing_finished = []() {};
 };
 
 /// A simple object that wraps a value with some metadata,

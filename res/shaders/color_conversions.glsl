@@ -1,4 +1,4 @@
-
+#include "_COOL_RES_/shaders/GLSL-Color-Functions/color-functions.glsl"
 
 // Start of [Block1]
 // From https://entropymine.com/imageworsener/srgbformula/
@@ -83,36 +83,12 @@ vec3 Cool_sRGB_from_XYZ(vec3 c)
 
 vec3 Cool_Oklab_from_XYZ(vec3 xyz)
 {
-    vec3 lms = mat3(
-                   +0.8189330101, +0.0329845436, +0.0482003018,
-                   +0.3618667424, +0.9293118715, +0.2643662691,
-                   -0.1288597137, +0.0361456387, +0.6338517070
-               )
-               * xyz;
-    lms = pow(lms, vec3(1. / 3.));
-    return mat3(
-               +0.2104542553, +1.9779984951, +0.0259040371,
-               +0.7936177850, -2.4285922050, +0.7827717662,
-               +0.0040720468, +0.4505937099, -0.8086757660
-           )
-           * lms;
+    return XYZ_TO_OKLAB(xyz);
 }
 
 vec3 Cool_XYZ_from_Oklab(vec3 lab)
 {
-    vec3 lms = mat3(
-                   +0.99192169488, +0.99192170523, +0.99192175065,
-                   +0.39706067252, -0.10483846197, -0.08876130171,
-                   +0.22623676972, -0.05342116300, -1.28105252562
-               )
-               * lab;
-    lms = pow(lms, vec3(3.));
-    return mat3(
-               +1.22701385110, -0.04058017842, -0.07638128451,
-               -0.55779998065, +1.11225686962, -0.42148197842,
-               +0.28125614897, -0.07167667867, +1.58616322044
-           )
-           * lms;
+    return OKLAB_TO_XYZ(lab);
 }
 // End of [Block3]
 
@@ -593,13 +569,13 @@ vec2 Cool_apply_premultiplied_alpha_to_greyscale_and_alpha(vec2 greyscale, float
 #include "_COOL_RES_/shaders/generated/conversions_glsl.inl"
 
 // Start of [Block N]
-vec3 Cool_Oklab_from_Float(float x)
+vec3 Cool_Okhsl_from_Float(float x)
 {
-    return vec3(saturate(x), 0., 0.);
+    return vec3(0., 0., saturate(x));
 }
-float Cool_Float_from_Oklab(vec3 lab)
+float Cool_Float_from_Okhsl(vec3 hsl)
 {
-    return lab.x;
+    return hsl.z;
 }
 #include "_COOL_RES_/shaders/generated/conversions_glsl_with_float.inl"
 

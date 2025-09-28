@@ -13,9 +13,12 @@ namespace Cool {
 class RenderTarget {
 public:
     /// With `alpha_space` you must indicate the space that your render function will output
-    void        render(AlphaSpace alpha_space, std::function<void(wgpu::RenderPassEncoder render_pass)> const& render_fn);
-    img::Image  download_pixels() const { return img::load(Cool::Path::root() / "res/images/logo.png"); /*texture_straight_alpha().download_pixels();*/ } // Saved images are expected to be straight alpha
-    ImTextureID imgui_texture_id() const { return texture_straight_alpha().imgui_texture_id(); }                                                          // ImGui expects straight alpha
+    void render(AlphaSpace alpha_space, std::function<void(wgpu::RenderPassEncoder render_pass)> const& render_fn);
+    // img::Image  download_pixels() const { return img::load(Cool::Path::root() / "res/images/logo.png"); /*texture_straight_alpha().download_pixels();*/ } // Saved images are expected to be straight alpha
+
+    img::Image  download_pixels() const { return _texture.download_pixels(); }
+    auto        texture_ref() const -> TextureRef { return _texture.ref(); }
+    ImTextureID imgui_texture_id() const { return texture_straight_alpha().imgui_texture_id(); } // ImGui expects straight alpha
     img::Size   current_size() const { return _texture.size(); }
     img::Size   desired_size() const { return _desired_size; }
     void        set_size(img::Size size);

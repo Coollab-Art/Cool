@@ -9,7 +9,7 @@ namespace Cool {
 auto TextureSource_Image::imgui_widget() -> bool
 {
     bool b = false;
-    b |= ImGuiExtras::file_and_folder("Image Path", &absolute_path, NfdFileFilter::Image);
+    b |= ImGuiExtras::file_and_folder_opening("Image Path", &absolute_path, NfdFileFilter::ImageLoad);
     return b;
 }
 

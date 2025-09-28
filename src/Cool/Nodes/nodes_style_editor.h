@@ -2,6 +2,6 @@
 
 namespace Cool {
 
-void nodes_style_editor();
+auto nodes_style_editor() -> bool;
 
 }

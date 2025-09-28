@@ -1,7 +1,7 @@
 #pragma once
-#include <Cool/Gpu/RenderTarget.h>
-#include <Cool/Input/MouseEventDispatcher.h>
+#include "Cool/CheckerboardTexture/CheckerboardTexture.hpp"
 #include "Cool/Input/MouseCoordinates.h"
+#include "Cool/Input/MouseEventDispatcher.h"
 #include "Cool/Log/MessageId.h"
 #include "Cool/View/GizmoManager.h"
 #include "GizmoManager.h"
@@ -76,9 +76,10 @@ public:
 
     auto has_vertical_margins() const -> bool { return _window_size ? _has_vertical_margins : false; }
     auto is_open() const -> bool { return _is_open; }
+    auto aspect_ratio() const -> float;
 
 private: /// Child classes need to implement these functions in order for us to display their image in the View.
-    friend class ForwardingOrRenderView;
+    friend class ForwardingOrTextureView;
     virtual auto get_image_texture_id() const -> ImTextureID = 0;
     virtual auto get_image_size() const -> img::Size         = 0;
 
@@ -106,7 +107,7 @@ private:
     std::optional<img::Size>              _window_size{std::nullopt}; // Can be nullopt when the window is closed
     ImGuiCoordinates                      _window_position{};
     MouseEventDispatcher<ViewCoordinates> _mouse_event_dispatcher;
-    RenderTarget                          _render_target;
+    CheckerboardTexture                   _checkerboard_texture{};
     bool                                  _accepts_mouse_events{true};
     GizmoManager                          _gizmos{};
 

@@ -26,9 +26,10 @@ public:
 
 private:
     std::array<std::unordered_map<int, float>, static_cast<size_t>(MidiChannelKind::COUNT)> _maps{};
-    int                                                                                     _last_button_pressed{-1};
-    int                                                                                     _last_last_button_pressed{-1};
-    std::chrono::steady_clock::time_point                                                   _time_of_last_button_pressed{};
+
+    int                                   _last_button_pressed{-1};
+    int                                   _last_last_button_pressed{-1};
+    std::chrono::steady_clock::time_point _time_of_last_button_pressed{std::chrono::steady_clock::now()};
 
 private:
     // Serialization
@@ -104,7 +105,8 @@ private:
     void serialize(Archive& archive)
     {
         archive(
-            ser20::make_nvp("Window", _config_window)
+            ser20::make_nvp("Window", _config_window),
+            ser20::make_nvp("All Values", _all_values)
         );
     }
 };

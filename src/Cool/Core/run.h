@@ -1,121 +1,36 @@
 #pragma once
-#include <Cool/AppManager/AppManager.h>
-#include <Cool/Icons/Icons.h>
-#include <Cool/Serialization/AutoSerializer.h>
-#include <Cool/UserSettings/UserSettings.h>
-#include "Audio/Audio.hpp"
-#include "Cool/Backend/BackendContext.h"
-#include "Cool/ImGui/StyleEditor.h"
+#include "Cool/AppManager/AppManagerConfig.h"
+#include "Cool/AppManager/IApp.h"
+#include "Cool/Path/Path.h"
+#include "Cool/Path/PathsConfig.h"
+#include "Cool/View/ViewsManager.h"
+#include "Cool/Window/WindowManager.h"
+#include "Cool/Window/internal/WindowConfig.h"
 #include "hide_console_in_release.h"
-//
-#include <ser20/archives/json.hpp> // Must be included last because the more files it sees, the more it slows down compilation (by A LOT)
 
 namespace Cool {
-
-namespace internal {
-class PreviousSessionLoadingFailed_Exception : public std::exception {};
-void shut_down();
-auto create_autosaver(Cool::AutoSerializer const& auto_serializer) -> std::function<void()>;
-void copy_default_user_data_ifn(int imgui_ini_version);
-} // namespace internal
 
 struct RunConfig {
     WindowConfig     window_config{};
     AppManagerConfig app_manager_config{};
-    int              imgui_ini_version{};
 };
 
-template<typename App>
-void run(RunConfig const& config)
+namespace internal {
+void run_impl(
+    int argc, char** argv, RunConfig const& config,
+    std::function<void()> const&                                           initialize_paths_config,
+    std::function<std::unique_ptr<IApp>(Cool::ViewsManager& views)> const& make_unique_app
+);
+}
+
+template<typename App, typename PathsConfigT = PathsConfig>
+void run(int argc, char** argv, RunConfig const& config)
 {
-    bool const ignore_invalid_user_data_file = !std::filesystem::exists(Cool::Path::user_data()); // If user_data() does not exist, it means this is the first time you open Coollab, so it is expected that the files will be invalid. Any other time than that, we want to warn because this means that serialization has been broken, which we want to avoid on the dev's side.
-    // Make sure user_data() folder is populated with all the default_user_data() files.
-    internal::copy_default_user_data_ifn(config.imgui_ini_version);
-    // Create window
-    init_backend_context(config.window_config);
-
-    {
-        Cool::StyleEditor style_autoserializer{};
-
-        // Auto serialize the UserSettings // Done after the creation of the windows because we need an ImGui context to set the color theme
-        auto auto_serializer_user_settings = Cool::AutoSerializer{};
-        auto_serializer_user_settings.init<UserSettings, ser20::JSONInputArchive>(
-            Cool::Path::user_data() / "user-settings.json",
-            user_settings(),
-            [&](OptionalErrorMessage const& error) {
-                if (ignore_invalid_user_data_file)
-                    return;
-                error.send_error_if_any(
-                    [&](std::string const& message) {
-                        return Cool::Message{
-                            .category = "Loading User Settings",
-                            .message  = message,
-                            .severity = Cool::MessageSeverity::Warning,
-                        };
-                    },
-                    Cool::Log::ToUser::console()
-                );
-            },
-            [&](std::filesystem::path const& path) {
-                Serialization::save<UserSettings, ser20::JSONOutputArchive>(user_settings(), path, "User Settings");
-            }
-        );
-        user_settings().apply_multi_viewport_setting();
-
-        // Make sure the MessageConsole won't deadlock at startup when the "Log when creating textures" option is enabled (because displaying the console requires the close_button, which will generate a log when its texture gets created).
-        Icons::close_button();
-
-        // Init error callbacks
-        Audio::set_error_callback([](RtAudioErrorType /* type */, std::string const& error_message) {
-            Cool::Log::ToUser::warning("Audio", error_message);
-        });
-
-        // Create and run the App
-        const auto run_loop = [&](bool load_from_file) {
-            auto views = ViewsManager{};
-            auto app   = App{views};
-            // Auto serialize the App
-            Cool::AutoSerializer auto_serializer;
-            auto_serializer.init<App, ser20::JSONInputArchive>(
-                Cool::Path::user_data() / "last-session.json", app,
-                [&](OptionalErrorMessage const& error) {
-                    if (ignore_invalid_user_data_file)
-                        return;
-                    error.send_error_if_any(
-                        [&](std::string const& message) {
-                            return Cool::Message{
-                                .category = "Loading App",
-                                .message  = message,
-                                .severity = Cool::MessageSeverity::Warning,
-                            };
-                        },
-                        Cool::Log::ToUser::console()
-                    );
-                    throw internal::PreviousSessionLoadingFailed_Exception{}; // Make sure to start with a clean default App if deserialization fails
-                },
-                [&](std::filesystem::path const& path) {
-                    Serialization::save<App, ser20::JSONOutputArchive>(app, path, "App");
-                },
-                load_from_file
-            );
-            // Run the app
-            auto app_manager = Cool::AppManager{views, app, config.app_manager_config};
-            app_manager.run(internal::create_autosaver(auto_serializer));
-            app.on_shutdown();
-#if defined(COOL_VULKAN)
-            vkDeviceWaitIdle(Vulkan::context().g_Device);
-#endif
-        };
-        try
-        {
-            run_loop(true);
-        }
-        catch (const internal::PreviousSessionLoadingFailed_Exception&) // Make sure to start with a clean default App if deserialization fails
-        {
-            run_loop(false);
-        }
-    }
-    Cool::internal::shut_down();
+    internal::run_impl(
+        argc, argv, config,
+        []() { Path::initialize<PathsConfigT>(); },
+        [](Cool::ViewsManager& views) { return std::make_unique<App>(views); }
+    );
 }
 
 } // namespace Cool

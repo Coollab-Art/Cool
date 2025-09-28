@@ -3,7 +3,7 @@
 
 namespace Cool {
 
-void ImGuiWindow::show(std::function<void()> widgets)
+void ImGuiWindow::show(std::function<void(bool is_opening)> const& widgets)
 {
     if (_is_modal)
     {
@@ -15,8 +15,8 @@ void ImGuiWindow::show(std::function<void()> widgets)
 
         if (ImGui::BeginPopupModal(_title.c_str(), &_is_open))
         {
-            widgets();
-            if (ImGui::IsKeyReleased(ImGuiKey_Escape))
+            widgets(_just_opened);
+            if (ImGui::IsKeyChordPressed(ImGuiKey_Escape))
                 _is_open = false;
             if (!_is_open)
                 ImGui::CloseCurrentPopup();
@@ -28,16 +28,18 @@ void ImGuiWindow::show(std::function<void()> widgets)
         if (_is_open)
         {
             if (ImGui::Begin(_title.c_str(), &_is_open))
-                widgets();
+                widgets(_just_opened);
             ImGui::End();
         }
     }
+    _just_opened = false;
 }
 
 void ImGuiWindow::open()
 {
+    if (!_is_open)
+        _just_opened = true;
     _is_open = true;
-    on_open().dispatch({});
 }
 void ImGuiWindow::close()
 {

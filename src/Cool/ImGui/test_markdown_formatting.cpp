@@ -35,7 +35,7 @@ Normal text
   * Unordered List level 1
 Normal text
 
-[Link](https://coollibs.github.io/)
+[Link](https://coollab-art.com)
 
 ![image](image identifier e.g. filename)
 

@@ -33,6 +33,66 @@ void serialize(Archive& archive, glm::vec4& v)
 }
 
 template<class Archive>
+void serialize(Archive& archive, glm::uvec2& v)
+{
+    archive(
+        ser20::make_nvp("x", v.x),
+        ser20::make_nvp("y", v.y)
+    );
+}
+
+template<class Archive>
+void serialize(Archive& archive, glm::uvec3& v)
+{
+    archive(
+        ser20::make_nvp("x", v.x),
+        ser20::make_nvp("y", v.y),
+        ser20::make_nvp("z", v.z)
+    );
+}
+
+template<class Archive>
+void serialize(Archive& archive, glm::uvec4& v)
+{
+    archive(
+        ser20::make_nvp("x", v.x),
+        ser20::make_nvp("y", v.y),
+        ser20::make_nvp("z", v.z),
+        ser20::make_nvp("w", v.w)
+    );
+}
+
+template<class Archive>
+void serialize(Archive& archive, glm::ivec2& v)
+{
+    archive(
+        ser20::make_nvp("x", v.x),
+        ser20::make_nvp("y", v.y)
+    );
+}
+
+template<class Archive>
+void serialize(Archive& archive, glm::ivec3& v)
+{
+    archive(
+        ser20::make_nvp("x", v.x),
+        ser20::make_nvp("y", v.y),
+        ser20::make_nvp("z", v.z)
+    );
+}
+
+template<class Archive>
+void serialize(Archive& archive, glm::ivec4& v)
+{
+    archive(
+        ser20::make_nvp("x", v.x),
+        ser20::make_nvp("y", v.y),
+        ser20::make_nvp("z", v.z),
+        ser20::make_nvp("w", v.w)
+    );
+}
+
+template<class Archive>
 void serialize(Archive& archive, glm::mat2& m)
 {
     archive(

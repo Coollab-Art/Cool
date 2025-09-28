@@ -1,10 +1,15 @@
 #pragma once
 
+namespace ImStyleEd {
+struct Color;
+}
+
 namespace Cool {
 
 class Color {
 public:
     Color() = default;
+    Color(ImStyleEd::Color const&); // NOLINT(*explicit*)
     [[nodiscard]] static auto from_srgb(glm::vec3 const& srgb) -> Color;
 
     /// Returns a brighter version of this color.

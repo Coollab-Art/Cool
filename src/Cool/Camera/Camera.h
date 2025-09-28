@@ -28,11 +28,7 @@ public:
     inline void set_transform_matrix(const glm::mat4& transform_matrix) { _transform_matrix = transform_matrix; }
     inline void set_view_matrix(const glm::mat4& view_matrix) { _transform_matrix = glm::inverse(view_matrix); }
 
-    /**
-     * @brief Translation expressed in world space
-     *
-     * @param delta_position
-     */
+    /// Translation expressed in world space
     void translate(glm::vec3 const& delta_position);
 
     /**

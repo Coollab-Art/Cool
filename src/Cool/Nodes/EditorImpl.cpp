@@ -1,42 +1,31 @@
 #include "EditorImpl.h"
-#include <imgui.h>
-#include <imgui/imgui_internal.h>
-#include <reg/src/internal/generate_uuid.hpp>
-#include "Cool/DebugOptions/DebugOptions.h"
 #include "Cool/ImGui/Fonts.h"
 #include "Cool/ImGui/IcoMoonCodepoints.h"
 #include "Cool/ImGui/ImGuiExtras.h"
 #include "Cool/ImGui/ImGuiExtrasStyle.h"
 #include "Cool/ImGui/icon_fmt.h"
-#include "Cool/Nodes/EditorImpl.h"
-#include "Cool/Nodes/as_ed_id.h"
-#include "Cool/Nodes/utilities/drawing.h"
 #include "Cool/StrongTypes/Color.h"
-#include "EditorImpl.h"
 #include "NodesConfig.h"
 #include "NodesGraph.h"
 #include "NodesLibrary.h"
 #include "as_ed_id.h"
 #include "as_reg_id.h"
 #include "imgui-node-editor/imgui_node_editor.h"
+#include "imgui.h"
+#include "imgui/imgui_internal.h"
 #include "reg/src/AnyId.hpp"
+#include "utilities/drawing.h"
 
 namespace Cool {
 
 namespace internal {
 
-void SearchBarState::on_nodes_menu_open()
-{
-    _nodes_filter.clear();
-    _should_be_focused = true;
-}
-
 auto SearchBarState::imgui_widget() -> bool
 {
-    if (_should_be_focused)
+    if (ImGui::IsWindowAppearing())
     {
+        _nodes_filter.clear();
         ImGui::SetKeyboardFocusHere();
-        _should_be_focused = false;
     }
     ImGui::PushID(868686);
     bool const b = ImGui::InputTextWithHint("##Filter", icon_fmt("Search for a node or category", ICOMOON_SEARCH).c_str(), &_nodes_filter, ImGuiInputTextFlags_EnterReturnsTrue);
@@ -45,7 +34,7 @@ auto SearchBarState::imgui_widget() -> bool
 }
 
 FrameNode::FrameNode()
-    : id{reg::internal::generate_uuid()}
+    : id{reg::generate_uuid()}
     , name{"Frame"}
 {
 }
@@ -74,22 +63,22 @@ static auto imgui_all_definitions_selectables(NodeId const& node_id, Node& node,
     return graph_has_changed;
 }
 
-static auto dropdown_to_switch_between_nodes_of_the_same_category(NodeId const& node_id, Cool::Node& node, NodesConfig& nodes_cfg, NodesLibrary const& library) -> bool
-{
-    auto const* category = library.get_category(node.category_name());
-    if (!category)
-        return false;
+// static auto dropdown_to_switch_between_nodes_of_the_same_category(NodeId const& node_id, Cool::Node& node, NodesConfig& nodes_cfg, NodesLibrary const& library) -> bool
+// {
+//     auto const* category = library.get_category(node.category_name());
+//     if (!category)
+//         return false;
 
-    bool graph_has_changed = false;
+//     bool graph_has_changed = false;
 
-    if (ImGui::BeginCombo(category->name().c_str(), node.definition_name().c_str()))
-    {
-        graph_has_changed |= imgui_all_definitions_selectables(node_id, node, *category, nodes_cfg);
-        ImGui::EndCombo();
-    }
+//     if (ImGui::BeginCombo(category->name().c_str(), node.definition_name().c_str()))
+//     {
+//         graph_has_changed |= imgui_all_definitions_selectables(node_id, node, *category, nodes_cfg);
+//         ImGui::EndCombo();
+//     }
 
-    return graph_has_changed;
-}
+//     return graph_has_changed;
+// }
 
 [[nodiscard]] static auto is_listening_to_keyboard_shortcuts() -> bool
 {
@@ -99,32 +88,32 @@ static auto dropdown_to_switch_between_nodes_of_the_same_category(NodeId const& 
 [[nodiscard]] static auto wants_to_copy() -> bool
 {
     return is_listening_to_keyboard_shortcuts()
-           && ImGui::GetIO().KeyCtrl
-           && ImGui::IsKeyReleased(ImGuiKey_C);
+           && (ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiKey_C)
+               || ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiMod_Shift | ImGuiKey_C)); // Allow both CTRL+C and CTRL+SHIFT+C because they do two different things in the nodes config (CTRL+SHIFT+C copies links coming from nodes not copied, whereas CTRL+C does not)
 }
 [[nodiscard]] static auto wants_to_cut() -> bool
 {
     return is_listening_to_keyboard_shortcuts()
-           && ImGui::GetIO().KeyCtrl
-           && ImGui::IsKeyReleased(ImGuiKey_X);
-}
-[[nodiscard]] static auto wants_to_paste() -> bool
-{
-    return is_listening_to_keyboard_shortcuts()
-           && ImGui::GetIO().KeyCtrl
-           && ImGui::IsKeyReleased(ImGuiKey_V);
+           && (ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiKey_X)
+               || ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiMod_Shift | ImGuiKey_X)); // Allow both CTRL+X and CTRL+SHIFT+X because they do two different things in the nodes config (CTRL+SHIFT+X copies links coming from nodes not copied, whereas CTRL+X does not)
 }
 [[nodiscard]] static auto wants_to_duplicate() -> bool
 {
     return is_listening_to_keyboard_shortcuts()
-           && ImGui::GetIO().KeyCtrl
-           && ImGui::IsKeyReleased(ImGuiKey_D);
+           && (ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiKey_D)
+               || ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiMod_Shift | ImGuiKey_D)); // Allow both CTRL+D and CTRL+SHIFT+D because they do two different things in the nodes config (CTRL+SHIFT+D copies links coming from nodes not copied, whereas CTRL+D does not)
+}
+[[nodiscard]] static auto wants_to_paste() -> bool
+{
+    return is_listening_to_keyboard_shortcuts()
+           && (ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiKey_V)
+               || ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiMod_Shift | ImGuiKey_V)); // Allow CTRL+SHIFT+V just in case people expect it to work, just like it works for CTRL+C and CTRL+V and CTRL+D
 }
 [[nodiscard]] static auto wants_to_delete_selection() -> bool
 {
     return (is_listening_to_keyboard_shortcuts()
-            && (ImGui::IsKeyReleased(ImGuiKey_Delete)
-                || ImGui::IsKeyReleased(ImGuiKey_Backspace)
+            && (ImGui::IsKeyChordPressed(ImGuiKey_Delete)
+                || ImGui::IsKeyChordPressed(ImGuiKey_Backspace)
             ))
            || wants_to_cut();
 }
@@ -133,7 +122,7 @@ auto NodesEditorImpl::wants_to_open_nodes_menu() const -> bool
 {
     return _workspace_is_hovered
            && (ed::ShowBackgroundContextMenu()
-               || (ImGui::IsKeyReleased(ImGuiKey_A) && !ImGui::GetIO().WantTextInput)
+               || (ImGui::IsKeyChordPressed(ImGuiKey_A) && !ImGui::GetIO().WantTextInput)
            );
 }
 
@@ -141,7 +130,6 @@ void NodesEditorImpl::open_nodes_menu()
 {
     _menu_just_opened   = true;
     _next_node_position = ImGui::GetMousePos();
-    _search_bar.on_nodes_menu_open();
     ed::Suspend();
     ImGui::OpenPopup("Nodes Library Menu");
     ed::Resume();
@@ -152,8 +140,8 @@ auto NodesEditorImpl::imgui_window_workspace(
     NodesLibrary const& library
 ) -> bool
 {
-    ed::PushStyleColor(ed::StyleColor_SelLinkBorder, ImGuiExtras::GetStyle().link_hovered);
-    ed::PushStyleColor(ed::StyleColor_HovLinkBorder, ImGuiExtras::GetStyle().link_hovered);
+    ed::PushStyleColor(ed::StyleColor_SelLinkBorder, ImGuiExtras::GetStyle().node_link_hovered);
+    ed::PushStyleColor(ed::StyleColor_HovLinkBorder, ImGuiExtras::GetStyle().node_link_hovered);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0.f, 0.f});
     ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.f);
     bool const should_render_window = ImGui::Begin(icon_fmt("Nodes", ICOMOON_TREE).c_str(), nullptr, ImGuiWindowFlags_NoScrollbar);
@@ -191,21 +179,24 @@ static auto get_selected_links_ids() -> std::vector<ed::LinkId>
     return links;
 }
 
-static auto imgui_node_in_inspector(Node& node, NodeId const& id, NodesConfig& nodes_cfg, NodesLibrary const& library)
+static auto imgui_node_in_inspector(Node& node, NodeId const& id, NodesConfig& nodes_cfg, NodesLibrary const& /* library */)
     -> bool
 {
-    ImGuiExtras::separator_text(node.definition_name());
     ImGui::PushID(&node);
-
+    ImGuiExtras::separator_text(node.definition_name());
     nodes_cfg.imgui_in_inspector_above_node_info(node, id);
-
-    nodes_cfg.widget_to_rename_node(node);
-    bool const graph_has_changed = dropdown_to_switch_between_nodes_of_the_same_category(id, node, nodes_cfg, library);
-
+    // bool const graph_has_changed = dropdown_to_switch_between_nodes_of_the_same_category(id, node, nodes_cfg, library);
     nodes_cfg.imgui_in_inspector_below_node_info(node, id);
-
     ImGui::PopID();
-    return graph_has_changed;
+    return false /* graph_has_changed */;
+}
+
+static void imgui_rename_node(std::string& node_name)
+{
+    if (ImGui::IsWindowAppearing())
+        ImGui::SetKeyboardFocusHere();
+    if (ImGui::InputText("Title", &node_name, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll))
+        ImGui::CloseCurrentPopup();
 }
 
 auto NodesEditorImpl::imgui_window_inspector(NodesConfig& nodes_cfg, NodesLibrary const& library) -> bool
@@ -215,13 +206,9 @@ auto NodesEditorImpl::imgui_window_inspector(NodesConfig& nodes_cfg, NodesLibrar
     {
         auto const selected_nodes_ids = get_selected_nodes_ids();
 
-        // Message when no node is selected
+        // Content when no node is selected
         if (selected_nodes_ids.empty())
-        {
-            ImGui::PushFont(Font::italic());
-            ImGui::TextUnformatted("Select a node to edit its parameters.");
-            ImGui::PopFont();
-        }
+            nodes_cfg.imgui_inspector_content_when_no_node_is_selected();
 
         // Show all selected nodes
         for (auto const& ed_node_id : selected_nodes_ids)
@@ -239,7 +226,7 @@ auto NodesEditorImpl::imgui_window_inspector(NodesConfig& nodes_cfg, NodesLibrar
                 {
                     if (ed::NodeId{as_ed_id(frame_node.id)} != ed_node_id)
                         continue;
-                    ImGui::InputText("Title", &frame_node.name);
+                    imgui_rename_node(frame_node.name);
                 }
             }
         }
@@ -315,7 +302,7 @@ static auto is_allowed_connection(Pin const& a, Pin const& b, NodesGraph const& 
 static void render_pin_icon(ax::Drawing::IconType icon, float alpha, Cool::Color color)
 {
     auto const col = color.as_sRGB();
-    ax::Widgets::Icon(ImVec2(24.f, 24.f), icon, true, {col.x, col.y, col.z, alpha}, ImColor(0.125f, 0.125f, 0.125f, alpha));
+    ax::Widgets::Icon(ImVec2(1.2f, 1.2f) * ImGui::GetFontSize(), icon, true, {col.x, col.y, col.z, alpha}, ImColor(0.125f, 0.125f, 0.125f, alpha));
 };
 
 static auto input_pin_icon(size_t pin_index, Cool::NodesCategory const* category) -> ax::Drawing::IconType
@@ -358,14 +345,14 @@ void NodesEditorImpl::render_node(Node& node, NodeId const& id, NodesConfig& nod
     ImGui::PopStyleColor();
     ImGui::PopFont();
     ImGui::Spring(1);
-    ImGui::Dummy(ImVec2(0, 28));
+    ImGui::Dummy(ImVec2(0.f, 1.4f) * ImGui::GetFontSize());
     ImGui::Spring(0);
     builder.EndHeader();
 
     nodes_cfg.imgui_above_node_pins(node, id);
 
     // Begin pins
-    ImGui::BeginHorizontal("pins");
+    ImGui::BeginHorizontal("##pins");
     ImGui::Spring(0, 0);
 
     auto const pin_alpha = [&](Pin const& pin) {
@@ -465,7 +452,7 @@ static void render_frame_node(internal::FrameNode const& node)
     ImGui::TextUnformatted(node.name.c_str());
     ImGui::Spring(1);
     ImGui::EndHorizontal();
-    ed::Group({300.f, 200.f});
+    ed::Group(ImVec2{15.f, 10.f} * ImGui::GetFontSize());
     ImGui::EndVertical();
     ImGui::PopID();
     ed::EndNode();
@@ -481,7 +468,7 @@ static void render_frame_node(internal::FrameNode const& node)
         auto min = ed::GetGroupMin();
         // auto max = ed::GetGroupMax();
 
-        ImGui::SetCursorScreenPos(min - ImVec2(-8, ImGui::GetTextLineHeightWithSpacing() + 4));
+        ImGui::SetCursorScreenPos(min - ImVec2(-0.4f * ImGui::GetFontSize(), ImGui::GetTextLineHeightWithSpacing() + 0.2f * ImGui::GetFontSize()));
         ImGui::BeginGroup();
         ImGui::TextUnformatted(node.name.c_str());
         ImGui::EndGroup();
@@ -489,7 +476,7 @@ static void render_frame_node(internal::FrameNode const& node)
         auto drawList = ed::GetHintBackgroundDrawList();
 
         auto hintBounds      = ImGui_GetItemRect();
-        auto hintFrameBounds = ImRect_Expanded(hintBounds, 8, 4);
+        auto hintFrameBounds = ImRect_Expanded(hintBounds, 0.4f * ImGui::GetFontSize(), 0.2f * ImGui::GetFontSize());
 
         auto       frame_color = ImGuiExtras::GetStyle().frame_node_color;
         auto const bg_alpha    = ImGui::GetStyle().Alpha;
@@ -498,14 +485,14 @@ static void render_frame_node(internal::FrameNode const& node)
         drawList->AddRectFilled(
             hintFrameBounds.GetTL(),
             hintFrameBounds.GetBR(),
-            ImColor{frame_color}, 4.0f
+            ImColor{frame_color}, 0.2f * ImGui::GetFontSize()
         );
 
         frame_color.w = 128.f * bg_alpha / 255.f;
         drawList->AddRect(
             hintFrameBounds.GetTL(),
             hintFrameBounds.GetBR(),
-            ImColor{frame_color}, 4.0f
+            ImColor{frame_color}, 0.2f * ImGui::GetFontSize()
         );
 
         // ImGui::PopStyleVar();
@@ -543,26 +530,26 @@ auto NodesEditorImpl::process_link_creation(NodesConfig& nodes_cfg) -> bool
 
     if (end_pin == begin_pin)
     {
-        ed::RejectNewItem(ImColor(255, 0, 0), 2.0f);
+        ed::RejectNewItem(ImColor(255, 0, 0), 0.1f * ImGui::GetFontSize());
         return false;
     }
     if (end_pin->kind() == begin_pin->kind())
     {
-        ed::RejectNewItem(ImColor(255, 0, 0), 2.0f);
+        ed::RejectNewItem(ImColor(255, 0, 0), 0.1f * ImGui::GetFontSize());
         return false;
     }
     // else if (end_pin->Node == startPin->Node)
     // {
-    //     ed::RejectNewItem(ImColor(255, 0, 0), 1.0f);
+    //     ed::RejectNewItem(ImColor(255, 0, 0), 0.05f* ImGui::GetFontSize());
     // return false;
     // }
     // else if (end_pin->Type != startPin->Type)
     // {
-    //     ed::RejectNewItem(ImColor(255, 128, 128), 1.0f);
+    //     ed::RejectNewItem(ImColor(255, 128, 128), 0.05f* ImGui::GetFontSize());
     // return false;
     // }
 
-    if (!ed::AcceptNewItem(ImColor(128, 255, 128), 4.0f))
+    if (!ed::AcceptNewItem(ImColor(128, 255, 128), 0.2f * ImGui::GetFontSize()))
         return false;
 
     auto const link = Link{
@@ -595,7 +582,7 @@ auto NodesEditorImpl::process_creations(NodesConfig& nodes_cfg) -> bool
 {
     bool graph_has_changed = false;
 
-    if (ed::BeginCreate(ImColor(255, 255, 255), 2.0f))
+    if (ed::BeginCreate(ImColor(255, 255, 255), 0.1f * ImGui::GetFontSize()))
     {
         graph_has_changed |= process_link_creation(nodes_cfg);
         process_link_released();
@@ -720,7 +707,7 @@ void NodesEditorImpl::render_editor(NodesConfig& nodes_cfg, NodesLibrary const& 
         render_frame_node(frame_node);
 
     for (auto const& [id, link] : _graph.links())
-        ed::Link(as_ed_id(id), as_ed_id(link.from_pin_id), as_ed_id(link.to_pin_id), ImGuiExtras::GetStyle().link, 2.0f);
+        ed::Link(as_ed_id(id), as_ed_id(link.from_pin_id), as_ed_id(link.to_pin_id), ImGuiExtras::GetStyle().node_link, 0.1f * ImGui::GetFontSize());
 }
 
 auto NodesEditorImpl::imgui_workspace(NodesConfig& nodes_cfg, NodesLibrary const& library) -> bool
@@ -755,7 +742,11 @@ auto NodesEditorImpl::imgui_workspace(NodesConfig& nodes_cfg, NodesLibrary const
         _link_has_just_been_released = false;
     }
 
-    if (ed::ShowNodeContextMenu(&_id_of_node_whose_context_menu_is_open))
+    bool const has_pressed_F2_on_node = ImGui::IsKeyChordPressed(ImGuiKey_F2) && ed::GetSelectedObjectCount() > 0;
+    if (has_pressed_F2_on_node)
+        ed::GetSelectedNodes(&_id_of_node_whose_context_menu_is_open, 1); // Need to set the selected node as the one whose context menu should be open
+
+    if (ed::ShowNodeContextMenu(&_id_of_node_whose_context_menu_is_open) || has_pressed_F2_on_node)
     {
         ed::Suspend();
         ImGui::OpenPopup("Node Context Menu");
@@ -816,6 +807,7 @@ auto NodesEditorImpl::imgui_workspace(NodesConfig& nodes_cfg, NodesLibrary const
         auto*      node = _graph.nodes().get_mutable_ref(id);
         if (node)
         {
+            imgui_rename_node(node->name_ref());
             nodes_cfg.node_context_menu(*node, id);
             auto const* category = library.get_category(node->category_name());
             if (category)
@@ -827,8 +819,7 @@ auto NodesEditorImpl::imgui_workspace(NodesConfig& nodes_cfg, NodesLibrary const
             {
                 if (ed::NodeId{as_ed_id(frame_node.id)} != _id_of_node_whose_context_menu_is_open)
                     continue;
-                if (ImGui::InputText("##frame_title", &frame_node.name, ImGuiInputTextFlags_EnterReturnsTrue))
-                    ImGui::CloseCurrentPopup();
+                imgui_rename_node(frame_node.name);
             }
         }
 

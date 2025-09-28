@@ -12,9 +12,9 @@ namespace Cool {
 template<typename... Ts>
 class DebugOptionsManager {
 public:
-    static void imgui_ui_for_all_options(bool was_just_open = false)
+    static void imgui_ui_for_all_options()
     {
-        if (was_just_open)
+        if (ImGui::IsWindowAppearing())
         {
             reset_filter();
             ImGui::SetKeyboardFocusHere();
@@ -35,13 +35,6 @@ public:
         COOL_DEBUG_OPTIONS_MANAGER_FOR_ALL_T(imgui_ui_for_all_options_impl);
     }
 
-    struct AutoSerializer {
-        ~AutoSerializer()
-        {
-            COOL_DEBUG_OPTIONS_MANAGER_FOR_ALL_T(save_to_file_impl);
-        }
-    };
-
     static void reset_filter()
     {
         instance().filter = "";
@@ -51,6 +44,11 @@ public:
     {
         reset_filter();
         COOL_DEBUG_OPTIONS_MANAGER_FOR_ALL_T(reset_all_impl);
+    }
+
+    static void update()
+    {
+        COOL_DEBUG_OPTIONS_MANAGER_FOR_ALL_T(update_impl);
     }
 
 private:
@@ -95,9 +93,9 @@ private:
     }
 
     template<typename T>
-    static void save_to_file_impl(T&&)
+    static void update_impl(T&&)
     {
-        T::save_to_file();
+        T::update();
     }
 };
 

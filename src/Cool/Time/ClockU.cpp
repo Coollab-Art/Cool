@@ -14,14 +14,14 @@ void imgui_timeline(Cool::Clock& clock, std::function<void()> const& extra_widge
     {
         auto const button_size = ImVec2{1.1f * ImGui::GetFrameHeight(), ImGui::GetFrameHeight()};
         // Reset time
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {12.f, ImGui::GetStyle().FramePadding.y}); // HACK to force the icon to be centered.
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0.6f * ImGui::GetFontSize(), ImGui::GetStyle().FramePadding.y}); // HACK to force the icon to be centered.
         if (ImGui::Button(ICOMOON_PREVIOUS2, button_size, ImDrawFlags_RoundCornersLeft))
         {
             clock.set_time(0s, /*force_delta_time_to_ignore_the_change=*/true);
             on_time_reset();
         }
         ImGui::PopStyleVar();
-        ImGui::SetItemTooltip("%s", "Reset time to 0.");
+        ImGui::SetItemTooltip("%s", "Reset time to 0");
 
         ImGuiExtras::join_buttons();
 

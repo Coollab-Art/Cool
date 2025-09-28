@@ -19,14 +19,12 @@ namespace internal {
 
 struct SearchBarState {
 public:
-    void               on_nodes_menu_open();
     [[nodiscard]] auto get_nodes_filter() const -> std::string const& { return _nodes_filter; }
 
     /// Returns true iff we should select the first node.
     auto imgui_widget() -> bool;
 
 private:
-    bool        _should_be_focused{};
     std::string _nodes_filter{""};
 };
 

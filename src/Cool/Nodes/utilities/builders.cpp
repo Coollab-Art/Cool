@@ -25,7 +25,7 @@ void util::BlueprintNodeBuilder::Begin(ed::NodeId id)
     HasHeader = false;
     HeaderMin = HeaderMax = ImVec2();
 
-    ed::PushStyleVar(StyleVar_NodePadding, ImVec4(8, 4, 8, 8));
+    ed::PushStyleVar(StyleVar_NodePadding, ImVec4(0.4f, 0.2f, 0.4f, 0.4f) * ImGui::GetFontSize());
 
     ed::BeginNode(id);
 
@@ -58,8 +58,8 @@ void util::BlueprintNodeBuilder::End()
             // );
 
             drawList->AddRectFilled(
-                HeaderMin - ImVec2(8 - halfBorderWidth, 4 - halfBorderWidth),
-                HeaderMax + ImVec2(8 - halfBorderWidth, 0),
+                HeaderMin - ImVec2(0.4f * ImGui::GetFontSize() - halfBorderWidth, 0.2f * ImGui::GetFontSize() - halfBorderWidth),
+                HeaderMax + ImVec2(0.4f * ImGui::GetFontSize() - halfBorderWidth, 0),
 #if IMGUI_VERSION_NUM > 18101
                 headerColor, GetStyle().NodeRounding, ImDrawFlags_RoundCornersTop
             );
@@ -74,9 +74,9 @@ void util::BlueprintNodeBuilder::End()
             if ((headerSeparatorMax.x > headerSeparatorMin.x) && (headerSeparatorMax.y > headerSeparatorMin.y))
             {
                 drawList->AddLine(
-                    headerSeparatorMin + ImVec2(-(8 - halfBorderWidth), -0.5f),
-                    headerSeparatorMax + ImVec2((8 - halfBorderWidth), -0.5f),
-                    ImColor(255, 255, 255, 96 * alpha / (3 * 255)), 1.0f
+                    headerSeparatorMin + ImVec2(-(0.4f * ImGui::GetFontSize() - halfBorderWidth), -0.025f * ImGui::GetFontSize()),
+                    headerSeparatorMax + ImVec2((0.4f * ImGui::GetFontSize() - halfBorderWidth), -0.025f * ImGui::GetFontSize()),
+                    ImColor(255, 255, 255, 96 * alpha / (3 * 255)), 0.05f * ImGui::GetFontSize()
                 );
             }
         }

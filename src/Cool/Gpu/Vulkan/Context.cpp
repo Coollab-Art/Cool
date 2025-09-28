@@ -9,7 +9,7 @@ namespace Cool::Vulkan {
 #if DEBUG
 static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(VkDebugReportFlagsEXT /*flags*/, VkDebugReportObjectTypeEXT /*objectType*/, uint64_t /*object*/, size_t /*location*/, int32_t /*messageCode*/, const char* /*pLayerPrefix*/, const char* pMessage, void* /*pUserData*/)
 {
-    Log::Debug::warn("[vulkan] {}\n", pMessage);
+    Log::internal_warning("Vulkan", pMessage);
     return VK_FALSE;
 }
 #endif
@@ -147,7 +147,8 @@ Context::Context()
             {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
             {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
             {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
-            {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000}};
+            {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000}
+        };
         VkDescriptorPoolCreateInfo pool_info = {};
         pool_info.sType                      = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         pool_info.flags                      = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;

@@ -33,12 +33,30 @@ auto Path::user_data() -> std::filesystem::path const&
     return path;
 }
 
+auto Path::user_data_shared() -> std::filesystem::path const&
+{
+#if DEBUG // On some compilers asserts are compiled even when not in DEBUG
+    assert(_paths_config != nullptr && "Path::initialize() has not been called yet!");
+#endif
+    static auto const path = _paths_config->user_data_shared();
+    return path;
+}
+
 auto Path::default_user_data() -> std::filesystem::path const&
 {
 #if DEBUG // On some compilers asserts are compiled even when not in DEBUG
     assert(_paths_config != nullptr && "Path::initialize() has not been called yet!");
 #endif
     static auto const path = _paths_config->default_user_data();
+    return path;
+}
+
+auto Path::initial_user_data() -> std::filesystem::path const&
+{
+#if DEBUG // On some compilers asserts are compiled even when not in DEBUG
+    assert(_paths_config != nullptr && "Path::initialize() has not been called yet!");
+#endif
+    static auto const path = _paths_config->initial_user_data();
     return path;
 }
 

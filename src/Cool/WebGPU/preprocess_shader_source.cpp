@@ -23,7 +23,7 @@ static auto line_or_include(std::string const& line, std::vector<std::filesystem
     // Early return if path has already been included
     try
     {
-        auto const canonical_path = std::filesystem::canonical(*path);
+        auto const canonical_path = Cool::File::weakly_canonical(*path);
 
         if (std::find(included_paths.begin(), included_paths.end(), canonical_path) != included_paths.end())
             return fmt::format("// Path {} has already been included.", *path);
@@ -33,7 +33,7 @@ static auto line_or_include(std::string const& line, std::vector<std::filesystem
     catch (std::exception& e)
     {
         return tl::make_unexpected(fmt::format(
-            "Failed to #include file \"{}\".\n{}",
+            "Failed to #include file \"{}\":\n{}",
             *path, e.what()
         ));
     }
@@ -42,7 +42,7 @@ static auto line_or_include(std::string const& line, std::vector<std::filesystem
     if (!file_content)
     {
         return tl::make_unexpected(fmt::format(
-            "Failed to #include file \"{}\".\n{}",
+            "Failed to #include file \"{}\":\n{}",
             *path, file_content.error()
         ));
     }

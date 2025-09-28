@@ -14,7 +14,7 @@ namespace Cool {
 /// re-loads it if the source file changes.
 class TextureLibrary_Image {
 public:
-    [[nodiscard]] auto get(std::filesystem::path const&) -> Texture const*;
+    [[nodiscard]] auto get(std::filesystem::path const&, std::chrono::milliseconds time_to_live = 5min) -> Texture const*;
 
     /// Returns true iff at least one of the textures in the library has changed.
     auto update() -> bool;
@@ -31,6 +31,7 @@ private:
         std::optional<Texture>     texture{};
         FileWatcher                file_watcher{};
         clock::time_point          date_of_last_request{};
+        std::chrono::milliseconds  time_to_live{};
         std::optional<std::string> error_message{};
     };
     std::map<std::filesystem::path, Data> _textures;

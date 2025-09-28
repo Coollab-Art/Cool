@@ -5,6 +5,7 @@
 
 namespace Cool {
 
+// TODO(WebGPU) Use the new formatting / alignement system for dumps
 auto full_gpu_info() -> std::string
 {
     wgpu::AdapterProperties props;

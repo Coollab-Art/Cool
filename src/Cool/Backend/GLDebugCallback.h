@@ -1,9 +1,7 @@
 #pragma once
 
 #if defined(COOL_OPENGL) && defined(DEBUG)
-
 #include <Cool/DebugOptions/DebugOptions.h>
-#include <Cool/Log/ToUser.h>
 
 namespace Cool {
 
@@ -61,20 +59,11 @@ void APIENTRY GLDebugCallback(
 
     // Log
     if (type == GL_DEBUG_TYPE_ERROR || type == GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR || severity == GL_DEBUG_SEVERITY_HIGH)
-    {
-        Log::Debug::error_without_breakpoint("OpenGL", message);
-    }
+        Log::internal_error("OpenGL", message);
     else if (type == GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR || type == GL_DEBUG_TYPE_PORTABILITY)
-    {
-        Log::Debug::warning("OpenGL", message);
-    }
-    else
-    {
-        if (DebugOptions::log_opengl_info())
-        {
-            Log::Debug::info("OpenGL", message);
-        }
-    }
+        Log::internal_warning("OpenGL", message);
+    else if (DebugOptions::log_opengl_info())
+        Log::internal_info("OpenGL", message);
 }
 
 } // namespace Cool

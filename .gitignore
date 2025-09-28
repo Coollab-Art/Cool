@@ -1,2 +1,9 @@
-﻿__pycache__
-src/Cool/DebugOptions/__pycache__
+﻿bin/
+build/
+.vscode/
+.DS_Store
+.cache
+website/.docusaurus
+website/node_modules
+.venv
+**/__pycache__/

@@ -1,7 +1,6 @@
 #pragma once
 #include <concepts>
 #include <utility>
-#include "Cool/Log/OptionalErrorMessage.h"
 #include "Cool/Serialization/Serialization.h"
 
 namespace Cool {
@@ -17,7 +16,7 @@ public:
     {}
 
     template<typename T, typename InputArchive>
-    auto load(T& object) const -> OptionalErrorMessage
+    auto load(T& object) const -> tl::expected<void, ErrorMessage>
     {
         return Serialization::load<T, InputArchive>(object, _path);
     }

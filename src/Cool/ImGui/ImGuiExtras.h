@@ -1,9 +1,8 @@
 #pragma once
-
 #include <filesystem>
 #include "Cool/File/File.h"
+#include "Cool/File/PathChecks.hpp"
 #include "Cool/StrongTypes/Color.h"
-#include "Cool/Time/Time.hpp"
 
 namespace Cool::ImGuiExtras {
 
@@ -34,6 +33,7 @@ void button_disabled(const char* label, const char* reason_for_disabling = "Curr
 
 /// A button colored with the given `hue` (a number between 0 and 1).
 auto colored_button(const char* label, float hue, const ImVec2& size = ImVec2(0, 0)) -> bool;
+auto colored_button(const char* label, Color color, const ImVec2& size = ImVec2(0, 0)) -> bool;
 
 /**
  * @brief A button that uses an image instead of text
@@ -69,11 +69,12 @@ auto checkbox_button(const char* icon, bool* v) -> bool;
 auto close_button() -> bool;
 
 struct image_framed_options {
-    std::optional<float> frame_thickness  = std::nullopt;
-    ImVec4               frame_color      = ImVec4(0, 0, 0, 0);
-    ImVec4               background_color = ImVec4(0, 0, 0, 1);
-    ImVec4               tint_color       = ImVec4(1, 1, 1, 1);
-    bool                 flip_y           = false;
+    std::optional<float> frame_thickness       = std::nullopt;
+    ImVec4               frame_color           = ImVec4(0, 0, 0, 0);
+    ImVec4               background_color      = ImVec4(0, 0, 0, 1);
+    ImVec4               tint_color            = ImVec4(1, 1, 1, 1);
+    bool                 flip_y                = false;
+    ImTextureID          background_texture_id = nullptr;
 };
 /**
  * @brief Displays an image with a frame around it
@@ -132,9 +133,16 @@ auto folder_dialog_button(
     File::folder_dialog_args const& = {}
 ) -> bool;
 
-/// Adds a button that opens a file dialog.
+/// Adds a button that opens a file opening dialog.
 /// Returns true iff out_path was modified.
-auto file_dialog_button(
+auto file_opening_dialog_button(
+    std::filesystem::path* out_path,
+    File::file_dialog_args const& = {}
+) -> bool;
+
+/// Adds a button that opens a file saving dialog.
+/// Returns true iff out_path was modified.
+auto file_saving_dialog_button(
     std::filesystem::path* out_path,
     File::file_dialog_args const& = {}
 ) -> bool;
@@ -149,7 +157,14 @@ auto folder(
 /// UI for a file path. Creates a text input and a button to open a file explorer.
 /// `file_filters` is a set of filters for the file types that should be selectable. Something like { { "Source code", "c,cpp,cc" }, { "Headers", "h,hpp" } }. You can find predefined filters in <Cool/NfdFileFilter/NfdFileFilter.h>.
 /// `initial_folder` is the folder that the dialog window should open at. Leave empty to use `file_path` as the initial folder.
-auto file(
+auto file_opening(
+    const char*                         label,
+    std::filesystem::path*              file_path,
+    std::vector<nfdfilteritem_t> const& file_filters       = {},
+    std::filesystem::path               initial_folder     = {},
+    bool                                show_dialog_button = true
+) -> bool;
+auto file_saving(
     const char*                         label,
     std::filesystem::path*              file_path,
     std::vector<nfdfilteritem_t> const& file_filters       = {},
@@ -159,35 +174,49 @@ auto file(
 
 /// UI for a file path that shows the file and its folder on two separate lines.
 /// `file_filters` is a set of filters for the file types that should be selectable. Something like { { "Source code", "c,cpp,cc" }, { "Headers", "h,hpp" } }. You can find predefined filters in <Cool/NfdFileFilter/NfdFileFilter.h>.
-auto file_and_folder(
+auto file_and_folder_opening(
     const char*                         label,
     std::filesystem::path*              path,
     std::vector<nfdfilteritem_t> const& file_filters = {}
 ) -> bool;
 
+auto file_and_folder_saving(
+    std::filesystem::path&              path,
+    std::span<const char* const>        extensions,
+    PathChecks const&                   path_checks,
+    std::vector<nfdfilteritem_t> const& file_filters = {}
+) -> bool;
+
+void before_export_button();
+void before_export_button(std::filesystem::path const& file_to_be_exported, PathChecks const& path_checks);
+
 /// Equivalent to ImGui::Image except the image will be centered in the window
 void image_centered(ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 1), const ImVec2& uv1 = ImVec2(1, 0), const ImVec4& tint_col = ImVec4(1, 1, 1, 1), const ImVec4& border_col = ImVec4(0, 0, 0, 0));
 
-/// A checkbox that, when ticked, displays a menu on the side.
+/// A toggle that, when set to on, displays a menu on the side.
 /// `submenu` is a function that calls the imgui widgets that should appear in the submenu, and returns true iff one of these widgets returned true.
-/// returns true iff the checkbox or a widget in the submenu was used this frame.
-bool checkbox_with_submenu(const char* label, bool* bool_p, std::function<bool()> const& submenu);
+/// returns true iff the toggle or a widget in the submenu was used this frame.
+bool toggle_with_submenu(const char* label, bool* bool_p, std::function<bool()> const& submenu);
 
 /// Like ImGui::BeginDisabled() + ImGui::EndDisabled(), but adds a message on hover
 void disabled_if(bool condition_to_disable, const char* reason_to_disable, std::function<void()> const& widgets);
 /// Like ImGui::BeginDisabled() + ImGui::EndDisabled(), but adds a message on hover
 void disabled_if(std::optional<const char*> reason_to_disable, std::function<void()> const& widgets);
+/// Like ImGui::BeginDisabled() + ImGui::EndDisabled(), but adds a message on hover
+void disabled_if(std::optional<std::string> const& reason_to_disable, std::function<void()> const& widgets);
 
 /// Hues are numbers from 0 to 1. 0 and 1 correspond to red.
-auto hue_wheel(const char* label, float* hue, float radius = 25.f) -> bool;
+auto hue_wheel(const char* label, float* hue) -> bool;
 
 /// Renders `widget` with a colored background.
 /// `widget` must be a function that draws some ImGui widgets.
-void background(std::function<void()> widget, ImVec4 color);
+void background(ImVec4 color, std::function<void()> const& widget);
 
 /// Renders `widget` with a highlighted background.
 /// `widget` must be a function that draws some ImGui widgets.
-void highlight(std::function<void()> widget, float opacity = 1.f);
+void highlight(std::function<void()> const& widget, float opacity = 1.f);
+
+auto big_selectable(std::function<void()> const& widgets) -> bool;
 
 /// Creates a clickable link that opens the given url in the user's default web browser.
 void link(std::string_view url);
@@ -199,7 +228,7 @@ void link(std::string_view url, std::string_view label);
 /// Brings attention to the given widget (highlight, bring window to front, scroll to right position, etc.).
 /// `widget` must be a function that draws some ImGui widgets.
 /// If `should_bring_attention` is false, just renders the widget as usual. This is a convenience that makes calling code nicer.
-void bring_attention_if(bool should_bring_attention, std::function<void()> widget);
+void bring_attention_if(bool should_bring_attention, std::function<void()> const& widget);
 
 ///
 auto colored_collapsing_header(std::string_view name, Cool::Color const& color) -> bool;
@@ -229,5 +258,11 @@ auto input_text_with_dropdown(const char* label, std::string* value, std::functi
 auto dropdown(const char* label, std::string* value, std::function<void(std::function<void(std::string const&)>)> const& for_each_dropdown_entry) -> bool;
 
 auto calc_custom_dropdown_input_width() -> float;
+
+auto input_port(const char* label, int* port, ImGuiInputTextFlags = 0) -> bool;
+
+void fill_layout(const char* str_id, float item_width, std::function<void(std::function<void()> const&)> const& callback);
+
+void progress_bar(float fraction, const ImVec2& size_arg = ImVec2{-FLT_MIN, 0}, const char* overlay = nullptr);
 
 } // namespace Cool::ImGuiExtras

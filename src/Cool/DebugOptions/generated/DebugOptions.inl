@@ -5,8 +5,11 @@
  * -----------------------------------------------------------------------------
  */
 
-#include <Cool/ImGui/ImGuiExtras.h>
-#include <wafl/wafl.hpp>
+#include "Cool/ImGui/ImGuiExtras.h"
+#include "Cool/Path/Path.h"
+#include "Cool/Serialization/Json.hpp"
+#include "Cool/Serialization/JsonAutoSerializer.hpp"
+#include "wafl/wafl.hpp"
 
 namespace Cool {
 template<typename... Ts>
@@ -17,6 +20,40 @@ namespace Cool {
 
 class DebugOptions {
 public:
+    static void show_framerate_window(std::function<void()> callback)
+    {
+        if (instance().show_framerate_window)
+        {
+            ImGui::Begin(Cool::icon_fmt("Framerate", ICOMOON_WRENCH).c_str(), &instance().show_framerate_window, ImGuiWindowFlags_NoFocusOnAppearing);
+            callback();
+            ImGui::End();
+            if (!instance().show_framerate_window) // Window has just been closed manually by the user
+                save();
+        }
+    }
+    [[nodiscard]] static auto show_imgui_demo_window() -> bool& { return instance().show_imgui_demo_window; }
+    static void               test_all_variable_widgets__window(std::function<void()> callback)
+    {
+        if (instance().test_all_variable_widgets__window)
+        {
+            ImGui::Begin(Cool::icon_fmt("Test all Variable Widgets", ICOMOON_WRENCH).c_str(), &instance().test_all_variable_widgets__window, ImGuiWindowFlags_NoFocusOnAppearing);
+            callback();
+            ImGui::End();
+            if (!instance().test_all_variable_widgets__window) // Window has just been closed manually by the user
+                save();
+        }
+    }
+    static void empty_window(std::function<void()> callback)
+    {
+        if (instance().empty_window)
+        {
+            ImGui::Begin(Cool::icon_fmt("Open Empty Window", ICOMOON_WRENCH).c_str(), &instance().empty_window, ImGuiWindowFlags_NoFocusOnAppearing);
+            callback();
+            ImGui::End();
+            if (!instance().empty_window) // Window has just been closed manually by the user
+                save();
+        }
+    }
     static void test_message_console__window(std::function<void()> callback)
     {
         if (instance().test_message_console__window)
@@ -24,12 +61,37 @@ public:
             ImGui::Begin(Cool::icon_fmt("Test Message Console", ICOMOON_WRENCH).c_str(), &instance().test_message_console__window, ImGuiWindowFlags_NoFocusOnAppearing);
             callback();
             ImGui::End();
+            if (!instance().test_message_console__window) // Window has just been closed manually by the user
+                save();
+        }
+    }
+    static void test_notifications__window(std::function<void()> callback)
+    {
+        if (instance().test_notifications__window)
+        {
+            ImGui::Begin(Cool::icon_fmt("Test Notifications", ICOMOON_WRENCH).c_str(), &instance().test_notifications__window, ImGuiWindowFlags_NoFocusOnAppearing);
+            callback();
+            ImGui::End();
+            if (!instance().test_notifications__window) // Window has just been closed manually by the user
+                save();
+        }
+    }
+    static void test_tasks__window(std::function<void()> callback)
+    {
+        if (instance().test_tasks__window)
+        {
+            ImGui::Begin(Cool::icon_fmt("Test Tasks", ICOMOON_WRENCH).c_str(), &instance().test_tasks__window, ImGuiWindowFlags_NoFocusOnAppearing);
+            callback();
+            ImGui::End();
+            if (!instance().test_tasks__window) // Window has just been closed manually by the user
+                save();
         }
     }
     [[nodiscard]] static auto log_when_autosaving() -> bool& { return instance().log_when_autosaving; }
     [[nodiscard]] static auto log_when_rendering_alpha_checkerboard_background() -> bool& { return instance().log_when_rendering_alpha_checkerboard_background; }
     [[nodiscard]] static auto log_when_creating_textures() -> bool& { return instance().log_when_creating_textures; }
     [[nodiscard]] static auto log_when_computing_audio_features() -> bool& { return instance().log_when_computing_audio_features; }
+    [[nodiscard]] static auto log_tasks() -> bool& { return instance().log_tasks; }
     static void               texture_library_debug_view(std::function<void()> callback)
     {
         if (instance().texture_library_debug_view)
@@ -37,26 +99,26 @@ public:
             ImGui::Begin(Cool::icon_fmt("Texture Library", ICOMOON_WRENCH).c_str(), &instance().texture_library_debug_view, ImGuiWindowFlags_NoFocusOnAppearing);
             callback();
             ImGui::End();
+            if (!instance().texture_library_debug_view) // Window has just been closed manually by the user
+                save();
         }
     }
-    [[nodiscard]] static auto log_number_of_threads_in_the_thread_pool() -> bool& { return instance().log_number_of_threads_in_the_thread_pool; }
 #if DEBUG
-    [[nodiscard]] static auto log_opengl_info() -> bool&
-    {
-        return instance().log_opengl_info;
-    }
+    [[nodiscard]] static auto log_opengl_info() -> bool& { return instance().log_opengl_info; }
 #endif
-    [[nodiscard]] static auto log_mouse_position_in_view() -> bool&
-    {
-        return instance().log_mouse_position_in_view;
-    }
-    static void test_presets__window(std::function<void()> callback)
+    [[nodiscard]] static auto log_internal_warnings() -> bool& { return instance().log_internal_warnings; }
+    [[nodiscard]] static auto log_mouse_position_in_view() -> bool& { return instance().log_mouse_position_in_view; }
+    [[nodiscard]] static auto log_ui_scale_changes() -> bool& { return instance().log_ui_scale_changes; }
+    [[nodiscard]] static auto show_command_line_arguments() -> bool& { return instance().show_command_line_arguments; }
+    static void               test_presets__window(std::function<void()> callback)
     {
         if (instance().test_presets__window)
         {
             ImGui::Begin(Cool::icon_fmt("Test Presets", ICOMOON_WRENCH).c_str(), &instance().test_presets__window, ImGuiWindowFlags_NoFocusOnAppearing);
             callback();
             ImGui::End();
+            if (!instance().test_presets__window) // Window has just been closed manually by the user
+                save();
         }
     }
     static void test_markdown_formatting_window(std::function<void()> callback)
@@ -66,6 +128,8 @@ public:
             ImGui::Begin(Cool::icon_fmt("Test Markdown Formatting", ICOMOON_WRENCH).c_str(), &instance().test_markdown_formatting_window, ImGuiWindowFlags_NoFocusOnAppearing);
             callback();
             ImGui::End();
+            if (!instance().test_markdown_formatting_window) // Window has just been closed manually by the user
+                save();
         }
     }
     static void emulate_midi_keyboard(std::function<void()> callback)
@@ -75,6 +139,8 @@ public:
             ImGui::Begin(Cool::icon_fmt("Emulate midi keyboard", ICOMOON_WRENCH).c_str(), &instance().emulate_midi_keyboard, ImGuiWindowFlags_NoFocusOnAppearing);
             callback();
             ImGui::End();
+            if (!instance().emulate_midi_keyboard) // Window has just been closed manually by the user
+                save();
         }
     }
     static void test_tips(std::function<void()> callback)
@@ -84,6 +150,8 @@ public:
             ImGui::Begin(Cool::icon_fmt("Test tips", ICOMOON_WRENCH).c_str(), &instance().test_tips, ImGuiWindowFlags_NoFocusOnAppearing);
             callback();
             ImGui::End();
+            if (!instance().test_tips) // Window has just been closed manually by the user
+                save();
         }
     }
     [[nodiscard]] static auto public_exhibition_mode() -> bool& { return instance().public_exhibition_mode; }
@@ -94,6 +162,8 @@ public:
             ImGui::Begin(Cool::icon_fmt("Style Editor", ICOMOON_WRENCH).c_str(), &instance().style_editor, ImGuiWindowFlags_NoFocusOnAppearing);
             callback();
             ImGui::End();
+            if (!instance().style_editor) // Window has just been closed manually by the user
+                save();
         }
     }
     static void color_themes_editor(std::function<void()> callback)
@@ -103,6 +173,8 @@ public:
             ImGui::Begin(Cool::icon_fmt("Color Themes: Editor", ICOMOON_WRENCH).c_str(), &instance().color_themes_editor, ImGuiWindowFlags_NoFocusOnAppearing);
             callback();
             ImGui::End();
+            if (!instance().color_themes_editor) // Window has just been closed manually by the user
+                save();
         }
     }
     static void color_themes_advanced_config_window(std::function<void()> callback)
@@ -112,28 +184,58 @@ public:
             ImGui::Begin(Cool::icon_fmt("Color Themes: Advanced Config", ICOMOON_WRENCH).c_str(), &instance().color_themes_advanced_config_window, ImGuiWindowFlags_NoFocusOnAppearing);
             callback();
             ImGui::End();
+            if (!instance().color_themes_advanced_config_window) // Window has just been closed manually by the user
+                save();
         }
     }
 #if DEBUG
-    [[nodiscard]] static auto imgui_item_picker() -> bool&
+    static void show_all_icons(std::function<void()> callback)
     {
-        return instance().imgui_item_picker;
+        if (instance().show_all_icons)
+        {
+            ImGui::Begin(Cool::icon_fmt("Show all icons", ICOMOON_WRENCH).c_str(), &instance().show_all_icons, ImGuiWindowFlags_NoFocusOnAppearing);
+            callback();
+            ImGui::End();
+            if (!instance().show_all_icons) // Window has just been closed manually by the user
+                save();
+        }
     }
 #endif
+#if DEBUG
+    [[nodiscard]] static auto imgui_item_picker() -> bool& { return instance().imgui_item_picker; }
+#endif
+
+    static void save() { instance()._serializer.save(); }
 
 private:
     struct Instance {
+        bool show_framerate_window{false};
+        bool show_imgui_demo_window{false};
+        bool test_all_variable_widgets__window{false};
+        bool empty_window{false};
         bool test_message_console__window{false};
+        bool test_notifications__window{false};
+        bool test_tasks__window{false};
         bool log_when_autosaving{false};
         bool log_when_rendering_alpha_checkerboard_background{false};
         bool log_when_creating_textures{false};
         bool log_when_computing_audio_features{false};
+        bool log_tasks{false};
         bool texture_library_debug_view{false};
-        bool log_number_of_threads_in_the_thread_pool{false};
 #if DEBUG
         bool log_opengl_info{false};
 #endif
+        bool log_internal_warnings
+        {
+#if defined(DEBUG)
+            true
+#else
+            false
+#endif
+        };
         bool log_mouse_position_in_view{false};
+        bool log_ui_scale_changes{false};
+        bool show_command_line_arguments{false};
         bool test_presets__window{false};
         bool test_markdown_formatting_window{false};
         bool emulate_midi_keyboard{false};
@@ -143,70 +245,176 @@ private:
         bool color_themes_editor{false};
         bool color_themes_advanced_config_window{false};
 #if DEBUG
+        bool show_all_icons{false};
+#endif
+#if DEBUG
         bool imgui_item_picker{false};
 #endif
 
-    private:
-        // Serialization
-        friend class ser20::access;
-        template<class Archive>
-        void serialize(Archive& archive)
+        // Must be declared last, after all the variables it serializes, so that the values it loads overwrite the default values, and not the other way around
+        Cool::JsonAutoSerializer _serializer
         {
-            archive(
-#if DEBUG
-                ser20::make_nvp("Test Message Console", test_message_console__window),
-                ser20::make_nvp("Log when autosaving", log_when_autosaving),
-                ser20::make_nvp("Log when rendering alpha checkerboard background", log_when_rendering_alpha_checkerboard_background),
-                ser20::make_nvp("Log when creating textures", log_when_creating_textures),
-                ser20::make_nvp("Log when computing audio features", log_when_computing_audio_features),
-                ser20::make_nvp("View Texture Library", texture_library_debug_view),
-                ser20::make_nvp("Log the number of threads in the thread pool", log_number_of_threads_in_the_thread_pool),
-                ser20::make_nvp("Log OpenGL info", log_opengl_info),
-                ser20::make_nvp("Log mouse position in View", log_mouse_position_in_view),
-                ser20::make_nvp("Test Presets", test_presets__window),
-                ser20::make_nvp("Test Markdown Formatting", test_markdown_formatting_window),
-                ser20::make_nvp("Emulate midi keyboard", emulate_midi_keyboard),
-                ser20::make_nvp("Test tips", test_tips),
-                ser20::make_nvp("Public exhibition mode", public_exhibition_mode),
-                ser20::make_nvp("Style Editor", style_editor),
-                ser20::make_nvp("Color Themes: Editor", color_themes_editor),
-                ser20::make_nvp("Color Themes: Advanced Config", color_themes_advanced_config_window)
-#else
-                ser20::make_nvp("Test Message Console", test_message_console__window),
-                ser20::make_nvp("Log when autosaving", log_when_autosaving),
-                ser20::make_nvp("Log when rendering alpha checkerboard background", log_when_rendering_alpha_checkerboard_background),
-                ser20::make_nvp("Log when creating textures", log_when_creating_textures),
-                ser20::make_nvp("Log when computing audio features", log_when_computing_audio_features),
-                ser20::make_nvp("View Texture Library", texture_library_debug_view),
-                ser20::make_nvp("Log the number of threads in the thread pool", log_number_of_threads_in_the_thread_pool),
-                ser20::make_nvp("Log mouse position in View", log_mouse_position_in_view),
-                ser20::make_nvp("Test Presets", test_presets__window),
-                ser20::make_nvp("Test Markdown Formatting", test_markdown_formatting_window),
-                ser20::make_nvp("Emulate midi keyboard", emulate_midi_keyboard),
-                ser20::make_nvp("Test tips", test_tips),
-                ser20::make_nvp("Public exhibition mode", public_exhibition_mode),
-                ser20::make_nvp("Style Editor", style_editor),
-                ser20::make_nvp("Color Themes: Editor", color_themes_editor),
-                ser20::make_nvp("Color Themes: Advanced Config", color_themes_advanced_config_window)
-#endif
+            "debug_options_cool.json",
+                false /*autosave_when_destroyed*/, // This is a static instance, so saving it in the destructor is dangerous because we don't know when it will happen exactly. Instead, we call save manually at the end of the run()
+                [&](nlohmann::json const& json) {
 
-            );
-        }
+#if DEBUG
+                    Cool::json_get(json, "Framerate window", show_framerate_window);
+                    Cool::json_get(json, "ImGui Demo window", show_imgui_demo_window);
+                    Cool::json_get(json, "Test all Variable Widgets", test_all_variable_widgets__window);
+                    Cool::json_get(json, "Open Empty Window", empty_window);
+                    Cool::json_get(json, "Test Message Console", test_message_console__window);
+                    Cool::json_get(json, "Test Notifications", test_notifications__window);
+                    Cool::json_get(json, "Test Tasks", test_tasks__window);
+                    Cool::json_get(json, "Log when autosaving", log_when_autosaving);
+                    Cool::json_get(json, "Log when rendering alpha checkerboard background", log_when_rendering_alpha_checkerboard_background);
+                    Cool::json_get(json, "Log when creating textures", log_when_creating_textures);
+                    Cool::json_get(json, "Log when computing audio features", log_when_computing_audio_features);
+                    Cool::json_get(json, "Log tasks", log_tasks);
+                    Cool::json_get(json, "View Texture Library", texture_library_debug_view);
+                    Cool::json_get(json, "Log OpenGL info", log_opengl_info);
+                    Cool::json_get(json, "Log internal warnings", log_internal_warnings);
+                    Cool::json_get(json, "Log mouse position in View", log_mouse_position_in_view);
+                    Cool::json_get(json, "Log UI scale changes", log_ui_scale_changes);
+                    Cool::json_get(json, "Test Presets", test_presets__window);
+                    Cool::json_get(json, "Test Markdown Formatting", test_markdown_formatting_window);
+                    Cool::json_get(json, "Emulate midi keyboard", emulate_midi_keyboard);
+                    Cool::json_get(json, "Test tips", test_tips);
+                    Cool::json_get(json, "Public exhibition mode", public_exhibition_mode);
+                    Cool::json_get(json, "Style Editor", style_editor);
+                    Cool::json_get(json, "Color Themes: Editor", color_themes_editor);
+                    Cool::json_get(json, "Color Themes: Advanced Config", color_themes_advanced_config_window);
+                    Cool::json_get(json, "Show all icons", show_all_icons);
+#else
+                    Cool::json_get(json, "Framerate window", show_framerate_window);
+                    Cool::json_get(json, "ImGui Demo window", show_imgui_demo_window);
+                    Cool::json_get(json, "Test all Variable Widgets", test_all_variable_widgets__window);
+                    Cool::json_get(json, "Open Empty Window", empty_window);
+                    Cool::json_get(json, "Test Message Console", test_message_console__window);
+                    Cool::json_get(json, "Test Notifications", test_notifications__window);
+                    Cool::json_get(json, "Test Tasks", test_tasks__window);
+                    Cool::json_get(json, "Log when autosaving", log_when_autosaving);
+                    Cool::json_get(json, "Log when rendering alpha checkerboard background", log_when_rendering_alpha_checkerboard_background);
+                    Cool::json_get(json, "Log when creating textures", log_when_creating_textures);
+                    Cool::json_get(json, "Log when computing audio features", log_when_computing_audio_features);
+                    Cool::json_get(json, "Log tasks", log_tasks);
+                    Cool::json_get(json, "View Texture Library", texture_library_debug_view);
+                    Cool::json_get(json, "Log internal warnings", log_internal_warnings);
+                    Cool::json_get(json, "Log mouse position in View", log_mouse_position_in_view);
+                    Cool::json_get(json, "Log UI scale changes", log_ui_scale_changes);
+                    Cool::json_get(json, "Test Presets", test_presets__window);
+                    Cool::json_get(json, "Test Markdown Formatting", test_markdown_formatting_window);
+                    Cool::json_get(json, "Emulate midi keyboard", emulate_midi_keyboard);
+                    Cool::json_get(json, "Test tips", test_tips);
+                    Cool::json_get(json, "Public exhibition mode", public_exhibition_mode);
+                    Cool::json_get(json, "Style Editor", style_editor);
+                    Cool::json_get(json, "Color Themes: Editor", color_themes_editor);
+                    Cool::json_get(json, "Color Themes: Advanced Config", color_themes_advanced_config_window);
+#endif
+                },
+                [&](nlohmann::json& json) {
+
+#if DEBUG
+                    Cool::json_set(json, "Framerate window", show_framerate_window);
+                    Cool::json_set(json, "ImGui Demo window", show_imgui_demo_window);
+                    Cool::json_set(json, "Test all Variable Widgets", test_all_variable_widgets__window);
+                    Cool::json_set(json, "Open Empty Window", empty_window);
+                    Cool::json_set(json, "Test Message Console", test_message_console__window);
+                    Cool::json_set(json, "Test Notifications", test_notifications__window);
+                    Cool::json_set(json, "Test Tasks", test_tasks__window);
+                    Cool::json_set(json, "Log when autosaving", log_when_autosaving);
+                    Cool::json_set(json, "Log when rendering alpha checkerboard background", log_when_rendering_alpha_checkerboard_background);
+                    Cool::json_set(json, "Log when creating textures", log_when_creating_textures);
+                    Cool::json_set(json, "Log when computing audio features", log_when_computing_audio_features);
+                    Cool::json_set(json, "Log tasks", log_tasks);
+                    Cool::json_set(json, "View Texture Library", texture_library_debug_view);
+                    Cool::json_set(json, "Log OpenGL info", log_opengl_info);
+                    Cool::json_set(json, "Log internal warnings", log_internal_warnings);
+                    Cool::json_set(json, "Log mouse position in View", log_mouse_position_in_view);
+                    Cool::json_set(json, "Log UI scale changes", log_ui_scale_changes);
+                    Cool::json_set(json, "Test Presets", test_presets__window);
+                    Cool::json_set(json, "Test Markdown Formatting", test_markdown_formatting_window);
+                    Cool::json_set(json, "Emulate midi keyboard", emulate_midi_keyboard);
+                    Cool::json_set(json, "Test tips", test_tips);
+                    Cool::json_set(json, "Public exhibition mode", public_exhibition_mode);
+                    Cool::json_set(json, "Style Editor", style_editor);
+                    Cool::json_set(json, "Color Themes: Editor", color_themes_editor);
+                    Cool::json_set(json, "Color Themes: Advanced Config", color_themes_advanced_config_window);
+                    Cool::json_set(json, "Show all icons", show_all_icons);
+#else
+                    Cool::json_set(json, "Framerate window", show_framerate_window);
+                    Cool::json_set(json, "ImGui Demo window", show_imgui_demo_window);
+                    Cool::json_set(json, "Test all Variable Widgets", test_all_variable_widgets__window);
+                    Cool::json_set(json, "Open Empty Window", empty_window);
+                    Cool::json_set(json, "Test Message Console", test_message_console__window);
+                    Cool::json_set(json, "Test Notifications", test_notifications__window);
+                    Cool::json_set(json, "Test Tasks", test_tasks__window);
+                    Cool::json_set(json, "Log when autosaving", log_when_autosaving);
+                    Cool::json_set(json, "Log when rendering alpha checkerboard background", log_when_rendering_alpha_checkerboard_background);
+                    Cool::json_set(json, "Log when creating textures", log_when_creating_textures);
+                    Cool::json_set(json, "Log when computing audio features", log_when_computing_audio_features);
+                    Cool::json_set(json, "Log tasks", log_tasks);
+                    Cool::json_set(json, "View Texture Library", texture_library_debug_view);
+                    Cool::json_set(json, "Log internal warnings", log_internal_warnings);
+                    Cool::json_set(json, "Log mouse position in View", log_mouse_position_in_view);
+                    Cool::json_set(json, "Log UI scale changes", log_ui_scale_changes);
+                    Cool::json_set(json, "Test Presets", test_presets__window);
+                    Cool::json_set(json, "Test Markdown Formatting", test_markdown_formatting_window);
+                    Cool::json_set(json, "Emulate midi keyboard", emulate_midi_keyboard);
+                    Cool::json_set(json, "Test tips", test_tips);
+                    Cool::json_set(json, "Public exhibition mode", public_exhibition_mode);
+                    Cool::json_set(json, "Style Editor", style_editor);
+                    Cool::json_set(json, "Color Themes: Editor", color_themes_editor);
+                    Cool::json_set(json, "Color Themes: Advanced Config", color_themes_advanced_config_window);
+#endif
+                },
+                false /*use_shared_user_data*/,
+
+// Makes sure the JSON will skip checking for Cool::DebugOptions to know if it needs to log warnings or not. Otherwise this creates a deadlock in the deserialization of DebugOption's json when it tries to log a warning (when the file is corrupted)
+#if DEBUG
+                Cool::WantsToLogWarnings::Always
+#else
+                Cool::WantsToLogWarnings::Never
+#endif
+        };
     };
+
+    static auto instance() -> Instance&
+    {
+        static auto the_instance = Instance{};
+        return the_instance;
+    }
+
+    static void load() { instance()._serializer.load(); }
+    static void update() { instance()._serializer.update(); }
 
     static void reset_all()
     {
+        instance().show_framerate_window                            = false;
+        instance().show_imgui_demo_window                           = false;
+        instance().test_all_variable_widgets__window                = false;
+        instance().empty_window                                     = false;
         instance().test_message_console__window                     = false;
+        instance().test_notifications__window                       = false;
+        instance().test_tasks__window                               = false;
         instance().log_when_autosaving                              = false;
         instance().log_when_rendering_alpha_checkerboard_background = false;
         instance().log_when_creating_textures                       = false;
         instance().log_when_computing_audio_features                = false;
+        instance().log_tasks                                        = false;
         instance().texture_library_debug_view                       = false;
-        instance().log_number_of_threads_in_the_thread_pool         = false;
 #if DEBUG
         instance().log_opengl_info = false;
 #endif
+        instance().log_internal_warnings =
+#if defined(DEBUG)
+            true
+#else
+            false
+#endif
+            ;
         instance().log_mouse_position_in_view          = false;
+        instance().log_ui_scale_changes                = false;
         instance().test_presets__window                = false;
         instance().test_markdown_formatting_window     = false;
         instance().emulate_midi_keyboard               = false;
@@ -215,15 +423,10 @@ private:
         instance().style_editor                        = false;
         instance().color_themes_editor                 = false;
         instance().color_themes_advanced_config_window = false;
-    }
-
-    static void save_to_file();
-    static auto load_debug_options() -> Instance;
-
-    static auto instance() -> Instance&
-    {
-        static auto the_instance = Instance{load_debug_options()};
-        return the_instance;
+#if DEBUG
+        instance().show_all_icons = false;
+#endif
+        save();
     }
 
     template<typename... Ts>
@@ -231,96 +434,182 @@ private:
 
     static void imgui_ui_for_all_options(std::string_view filter)
     {
+        if (wafl::similarity_match({filter, "Framerate window"}) >= wafl::Matches::Strongly)
+        {
+            if (Cool::ImGuiExtras::toggle("Framerate window", &instance().show_framerate_window))
+                save();
+        }
+
+        if (wafl::similarity_match({filter, "ImGui Demo window"}) >= wafl::Matches::Strongly)
+        {
+            if (Cool::ImGuiExtras::toggle("ImGui Demo window", &instance().show_imgui_demo_window))
+                save();
+        }
+
+        if (wafl::similarity_match({filter, "Test all Variable Widgets"}) >= wafl::Matches::Strongly)
+        {
+            if (Cool::ImGuiExtras::toggle("Test all Variable Widgets", &instance().test_all_variable_widgets__window))
+                save();
+        }
+
+        if (wafl::similarity_match({filter, "Open Empty Window"}) >= wafl::Matches::Strongly)
+        {
+            if (Cool::ImGuiExtras::toggle("Open Empty Window", &instance().empty_window))
+                save();
+
+            Cool::ImGuiExtras::help_marker("Useful when you want some blank space in your windows layout.");
+        }
+
         if (wafl::similarity_match({filter, "Test Message Console"}) >= wafl::Matches::Strongly)
         {
-            Cool::ImGuiExtras::toggle("Test Message Console", &instance().test_message_console__window);
+            if (Cool::ImGuiExtras::toggle("Test Message Console", &instance().test_message_console__window))
+                save();
+        }
+
+        if (wafl::similarity_match({filter, "Test Notifications"}) >= wafl::Matches::Strongly)
+        {
+            if (Cool::ImGuiExtras::toggle("Test Notifications", &instance().test_notifications__window))
+                save();
+        }
+
+        if (wafl::similarity_match({filter, "Test Tasks"}) >= wafl::Matches::Strongly)
+        {
+            if (Cool::ImGuiExtras::toggle("Test Tasks", &instance().test_tasks__window))
+                save();
         }
 
         if (wafl::similarity_match({filter, "Log when autosaving"}) >= wafl::Matches::Strongly)
         {
-            Cool::ImGuiExtras::toggle("Log when autosaving", &instance().log_when_autosaving);
+            if (Cool::ImGuiExtras::toggle("Log when autosaving", &instance().log_when_autosaving))
+                save();
         }
 
         if (wafl::similarity_match({filter, "Log when rendering alpha checkerboard background"}) >= wafl::Matches::Strongly)
         {
-            Cool::ImGuiExtras::toggle("Log when rendering alpha checkerboard background", &instance().log_when_rendering_alpha_checkerboard_background);
+            if (Cool::ImGuiExtras::toggle("Log when rendering alpha checkerboard background", &instance().log_when_rendering_alpha_checkerboard_background))
+                save();
         }
 
         if (wafl::similarity_match({filter, "Log when creating textures"}) >= wafl::Matches::Strongly)
         {
-            Cool::ImGuiExtras::toggle("Log when creating textures", &instance().log_when_creating_textures);
+            if (Cool::ImGuiExtras::toggle("Log when creating textures", &instance().log_when_creating_textures))
+                save();
         }
 
         if (wafl::similarity_match({filter, "Log when computing audio features"}) >= wafl::Matches::Strongly)
         {
-            Cool::ImGuiExtras::toggle("Log when computing audio features", &instance().log_when_computing_audio_features);
+            if (Cool::ImGuiExtras::toggle("Log when computing audio features", &instance().log_when_computing_audio_features))
+                save();
+        }
+
+        if (wafl::similarity_match({filter, "Log tasks"}) >= wafl::Matches::Strongly)
+        {
+            if (Cool::ImGuiExtras::toggle("Log tasks", &instance().log_tasks))
+                save();
         }
 
         if (wafl::similarity_match({filter, "View Texture Library"}) >= wafl::Matches::Strongly)
         {
-            Cool::ImGuiExtras::toggle("View Texture Library", &instance().texture_library_debug_view);
-        }
-
-        if (wafl::similarity_match({filter, "Log the number of threads in the thread pool"}) >= wafl::Matches::Strongly)
-        {
-            Cool::ImGuiExtras::toggle("Log the number of threads in the thread pool", &instance().log_number_of_threads_in_the_thread_pool);
+            if (Cool::ImGuiExtras::toggle("View Texture Library", &instance().texture_library_debug_view))
+                save();
         }
 
 #if DEBUG
 
         if (wafl::similarity_match({filter, "Log OpenGL info"}) >= wafl::Matches::Strongly)
         {
-            Cool::ImGuiExtras::toggle("Log OpenGL info", &instance().log_opengl_info);
+            if (Cool::ImGuiExtras::toggle("Log OpenGL info", &instance().log_opengl_info))
+                save();
         }
 
 #endif
 
+        if (wafl::similarity_match({filter, "Log internal warnings"}) >= wafl::Matches::Strongly)
+        {
+            if (Cool::ImGuiExtras::toggle("Log internal warnings", &instance().log_internal_warnings))
+                save();
+        }
+
         if (wafl::similarity_match({filter, "Log mouse position in View"}) >= wafl::Matches::Strongly)
         {
-            Cool::ImGuiExtras::toggle("Log mouse position in View", &instance().log_mouse_position_in_view);
+            if (Cool::ImGuiExtras::toggle("Log mouse position in View", &instance().log_mouse_position_in_view))
+                save();
+        }
+
+        if (wafl::similarity_match({filter, "Log UI scale changes"}) >= wafl::Matches::Strongly)
+        {
+            if (Cool::ImGuiExtras::toggle("Log UI scale changes", &instance().log_ui_scale_changes))
+                save();
+        }
+
+        if (wafl::similarity_match({filter, "Show command-line arguments"}) >= wafl::Matches::Strongly)
+        {
+            instance().show_command_line_arguments = ImGui::Button("##Show command-line arguments", {ImGui::GetFrameHeight(), ImGui::GetFrameHeight()});
+            ImGui::SameLine(0.f, ImGui::GetStyle().ItemInnerSpacing.x);
+            ImGui::Text("Show command-line arguments");
+            if (ImGui::IsItemClicked())
+                instance().show_command_line_arguments = true;
         }
 
         if (wafl::similarity_match({filter, "Test Presets"}) >= wafl::Matches::Strongly)
         {
-            Cool::ImGuiExtras::toggle("Test Presets", &instance().test_presets__window);
+            if (Cool::ImGuiExtras::toggle("Test Presets", &instance().test_presets__window))
+                save();
         }
 
         if (wafl::similarity_match({filter, "Test Markdown Formatting"}) >= wafl::Matches::Strongly)
         {
-            Cool::ImGuiExtras::toggle("Test Markdown Formatting", &instance().test_markdown_formatting_window);
+            if (Cool::ImGuiExtras::toggle("Test Markdown Formatting", &instance().test_markdown_formatting_window))
+                save();
         }
 
         if (wafl::similarity_match({filter, "Emulate midi keyboard"}) >= wafl::Matches::Strongly)
         {
-            Cool::ImGuiExtras::toggle("Emulate midi keyboard", &instance().emulate_midi_keyboard);
+            if (Cool::ImGuiExtras::toggle("Emulate midi keyboard", &instance().emulate_midi_keyboard))
+                save();
         }
 
         if (wafl::similarity_match({filter, "Test tips"}) >= wafl::Matches::Strongly)
         {
-            Cool::ImGuiExtras::toggle("Test tips", &instance().test_tips);
+            if (Cool::ImGuiExtras::toggle("Test tips", &instance().test_tips))
+                save();
         }
 
         if (wafl::similarity_match({filter, "Public exhibition mode"}) >= wafl::Matches::Strongly)
         {
-            Cool::ImGuiExtras::toggle("Public exhibition mode", &instance().public_exhibition_mode);
+            if (Cool::ImGuiExtras::toggle("Public exhibition mode", &instance().public_exhibition_mode))
+                save();
+
             Cool::ImGuiExtras::help_marker("Currently, simply resets the author info after sharing an image online.");
         }
 
         if (wafl::similarity_match({filter, "Style Editor"}) >= wafl::Matches::Strongly)
         {
-            Cool::ImGuiExtras::toggle("Style Editor", &instance().style_editor);
+            if (Cool::ImGuiExtras::toggle("Style Editor", &instance().style_editor))
+                save();
         }
 
         if (wafl::similarity_match({filter, "Color Themes: Editor"}) >= wafl::Matches::Strongly)
         {
-            Cool::ImGuiExtras::toggle("Color Themes: Editor", &instance().color_themes_editor);
+            if (Cool::ImGuiExtras::toggle("Color Themes: Editor", &instance().color_themes_editor))
+                save();
         }
 
         if (wafl::similarity_match({filter, "Color Themes: Advanced Config"}) >= wafl::Matches::Strongly)
         {
-            Cool::ImGuiExtras::toggle("Color Themes: Advanced Config", &instance().color_themes_advanced_config_window);
+            if (Cool::ImGuiExtras::toggle("Color Themes: Advanced Config", &instance().color_themes_advanced_config_window))
+                save();
         }
 
+#if DEBUG
+
+        if (wafl::similarity_match({filter, "Show all icons"}) >= wafl::Matches::Strongly)
+        {
+            if (Cool::ImGuiExtras::toggle("Show all icons", &instance().show_all_icons))
+                save();
+        }
+
+#endif
 #if DEBUG
 
         if (wafl::similarity_match({filter, "ImGui Item Picker"}) >= wafl::Matches::Strongly)
@@ -331,7 +620,7 @@ private:
             if (ImGui::IsItemClicked())
                 instance().imgui_item_picker = true;
 
-            Cool::ImGuiExtras::help_marker("Allows you to click on any ImGui widget and have your IDE break on it, allowing you to find the source code that generated it.\nShortcut: CTRL + SHIFT + I");
+            Cool::ImGuiExtras::help_marker("Allows you to click on any ImGui widget and have your IDE break on it, allowing you to find the source code that generated it.\nShortcut: " CTRL_OR_CMD " + SHIFT + I");
         }
 
 #endif
@@ -339,45 +628,94 @@ private:
 
     static void toggle_first_option(std::string_view filter)
     {
+        if (wafl::similarity_match({filter, "Framerate window"}) >= wafl::Matches::Strongly)
+        {
+            instance().show_framerate_window = !instance().show_framerate_window;
+            save();
+            throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
+        }
+
+        if (wafl::similarity_match({filter, "ImGui Demo window"}) >= wafl::Matches::Strongly)
+        {
+            instance().show_imgui_demo_window = !instance().show_imgui_demo_window;
+            save();
+            throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
+        }
+
+        if (wafl::similarity_match({filter, "Test all Variable Widgets"}) >= wafl::Matches::Strongly)
+        {
+            instance().test_all_variable_widgets__window = !instance().test_all_variable_widgets__window;
+            save();
+            throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
+        }
+
+        if (wafl::similarity_match({filter, "Open Empty Window"}) >= wafl::Matches::Strongly)
+        {
+            instance().empty_window = !instance().empty_window;
+            save();
+            throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
+        }
+
         if (wafl::similarity_match({filter, "Test Message Console"}) >= wafl::Matches::Strongly)
         {
             instance().test_message_console__window = !instance().test_message_console__window;
+            save();
+            throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
+        }
+
+        if (wafl::similarity_match({filter, "Test Notifications"}) >= wafl::Matches::Strongly)
+        {
+            instance().test_notifications__window = !instance().test_notifications__window;
+            save();
+            throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
+        }
+
+        if (wafl::similarity_match({filter, "Test Tasks"}) >= wafl::Matches::Strongly)
+        {
+            instance().test_tasks__window = !instance().test_tasks__window;
+            save();
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
         if (wafl::similarity_match({filter, "Log when autosaving"}) >= wafl::Matches::Strongly)
         {
             instance().log_when_autosaving = !instance().log_when_autosaving;
+            save();
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
         if (wafl::similarity_match({filter, "Log when rendering alpha checkerboard background"}) >= wafl::Matches::Strongly)
         {
             instance().log_when_rendering_alpha_checkerboard_background = !instance().log_when_rendering_alpha_checkerboard_background;
+            save();
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
         if (wafl::similarity_match({filter, "Log when creating textures"}) >= wafl::Matches::Strongly)
         {
             instance().log_when_creating_textures = !instance().log_when_creating_textures;
+            save();
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
         if (wafl::similarity_match({filter, "Log when computing audio features"}) >= wafl::Matches::Strongly)
         {
             instance().log_when_computing_audio_features = !instance().log_when_computing_audio_features;
+            save();
+            throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
+        }
+
+        if (wafl::similarity_match({filter, "Log tasks"}) >= wafl::Matches::Strongly)
+        {
+            instance().log_tasks = !instance().log_tasks;
+            save();
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
         if (wafl::similarity_match({filter, "View Texture Library"}) >= wafl::Matches::Strongly)
         {
             instance().texture_library_debug_view = !instance().texture_library_debug_view;
-            throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
-        }
-
-        if (wafl::similarity_match({filter, "Log the number of threads in the thread pool"}) >= wafl::Matches::Strongly)
-        {
-            instance().log_number_of_threads_in_the_thread_pool = !instance().log_number_of_threads_in_the_thread_pool;
+            save();
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
@@ -386,70 +724,112 @@ private:
         if (wafl::similarity_match({filter, "Log OpenGL info"}) >= wafl::Matches::Strongly)
         {
             instance().log_opengl_info = !instance().log_opengl_info;
+            save();
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
 #endif
 
+        if (wafl::similarity_match({filter, "Log internal warnings"}) >= wafl::Matches::Strongly)
+        {
+            instance().log_internal_warnings = !instance().log_internal_warnings;
+            save();
+            throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
+        }
+
         if (wafl::similarity_match({filter, "Log mouse position in View"}) >= wafl::Matches::Strongly)
         {
             instance().log_mouse_position_in_view = !instance().log_mouse_position_in_view;
+            save();
+            throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
+        }
+
+        if (wafl::similarity_match({filter, "Log UI scale changes"}) >= wafl::Matches::Strongly)
+        {
+            instance().log_ui_scale_changes = !instance().log_ui_scale_changes;
+            save();
+            throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
+        }
+
+        if (wafl::similarity_match({filter, "Show command-line arguments"}) >= wafl::Matches::Strongly)
+        {
+            instance().show_command_line_arguments = !instance().show_command_line_arguments;
+            save();
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
         if (wafl::similarity_match({filter, "Test Presets"}) >= wafl::Matches::Strongly)
         {
             instance().test_presets__window = !instance().test_presets__window;
+            save();
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
         if (wafl::similarity_match({filter, "Test Markdown Formatting"}) >= wafl::Matches::Strongly)
         {
             instance().test_markdown_formatting_window = !instance().test_markdown_formatting_window;
+            save();
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
         if (wafl::similarity_match({filter, "Emulate midi keyboard"}) >= wafl::Matches::Strongly)
         {
             instance().emulate_midi_keyboard = !instance().emulate_midi_keyboard;
+            save();
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
         if (wafl::similarity_match({filter, "Test tips"}) >= wafl::Matches::Strongly)
         {
             instance().test_tips = !instance().test_tips;
+            save();
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
         if (wafl::similarity_match({filter, "Public exhibition mode"}) >= wafl::Matches::Strongly)
         {
             instance().public_exhibition_mode = !instance().public_exhibition_mode;
+            save();
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
         if (wafl::similarity_match({filter, "Style Editor"}) >= wafl::Matches::Strongly)
         {
             instance().style_editor = !instance().style_editor;
+            save();
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
         if (wafl::similarity_match({filter, "Color Themes: Editor"}) >= wafl::Matches::Strongly)
         {
             instance().color_themes_editor = !instance().color_themes_editor;
+            save();
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
         if (wafl::similarity_match({filter, "Color Themes: Advanced Config"}) >= wafl::Matches::Strongly)
         {
             instance().color_themes_advanced_config_window = !instance().color_themes_advanced_config_window;
+            save();
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 
 #if DEBUG
 
+        if (wafl::similarity_match({filter, "Show all icons"}) >= wafl::Matches::Strongly)
+        {
+            instance().show_all_icons = !instance().show_all_icons;
+            save();
+            throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
+        }
+
+#endif
+#if DEBUG
+
         if (wafl::similarity_match({filter, "ImGui Item Picker"}) >= wafl::Matches::Strongly)
         {
             instance().imgui_item_picker = !instance().imgui_item_picker;
+            save();
             throw 0.f; // To understand why we need to throw, see `toggle_first_option()` in <Cool/DebugOptions/DebugOptionsManager.h>
         }
 

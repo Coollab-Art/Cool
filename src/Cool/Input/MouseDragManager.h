@@ -1,10 +1,10 @@
 #pragma once
-#include <Cool/EventDispatcher/EventDispatcher.h>
-#include <imgui.h>
 #include <optional>
 #include "Cool/Input/MouseButtonEvent.h"
 #include "MouseDragEvents.h"
 #include "MouseMoveEvent.h"
+#include "imgui.h"
+#include "reg/src/generate_uuid.hpp"
 
 namespace Cool {
 
@@ -28,9 +28,21 @@ public:
     /// Note that events will be dispatched to the listeners in the order they have been subscribed.
     /// When a listener reacts to a drag start event, this will prevent subsequent listeners from seeing the event.
     /// This ensures that there will only be one thing dragged at once.
-    void subscribe(MouseDragCallbacks<Coords> callbacks)
+    /// Returns an ID that can later be used to unsubscribe the callback
+    auto subscribe(MouseDragCallbacks<Coords> callbacks) -> reg::AnyId
     {
-        _listeners_stack.emplace_back(std::move(callbacks));
+        auto const id = reg::generate_uuid();
+        _listeners_stack.emplace_back(std::make_pair(id, std::move(callbacks)));
+        return id;
+    }
+
+    void unsubscribe(reg::AnyId const& id)
+    {
+        assert(std::find_if(_listeners_stack.cbegin(), _listeners_stack.cend(), [&](auto const& pair) { return pair.first == id; }) != _listeners_stack.end());
+
+        std::erase_if(_listeners_stack, [&](auto const& pair) {
+            return pair.first == id;
+        });
     }
 
     void dispatch_mouse_button_event(MouseButtonEvent<Coords> const& event, bool is_inside_view)
@@ -60,7 +72,7 @@ private:
     auto dragged_listener() -> MouseDragCallbacks<Coords> const&
     {
         assert(_drag_state.has_value());
-        return _listeners_stack.at(_drag_state->listener_index);
+        return _listeners_stack.at(_drag_state->listener_index).second;
     }
 
     void dispatch_drag_start(MouseButtonEvent<Coords> const& event, bool is_inside_view)
@@ -72,7 +84,7 @@ private:
 
         for (size_t i = 0; i < _listeners_stack.size(); ++i)
         {
-            if (_listeners_stack[i].on_start({event.position}))
+            if (_listeners_stack[i].second.on_start({event.position}))
             {
                 _drag_state.emplace(DragState<Coords>{
                     .listener_index = i,
@@ -95,8 +107,8 @@ private:
     }
 
 private:
-    std::optional<DragState<Coords>>        _drag_state{};
-    std::vector<MouseDragCallbacks<Coords>> _listeners_stack{};
+    std::optional<DragState<Coords>>                               _drag_state{};
+    std::vector<std::pair<reg::AnyId, MouseDragCallbacks<Coords>>> _listeners_stack{};
 };
 
 } // namespace Cool

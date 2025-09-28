@@ -1,6 +1,5 @@
 #pragma once
-#include <ImStyleEd/ImStyleEd.hpp>
-#include "Cool/Path/Path.h"
+#include "ImStyleEd/ImStyleEd.hpp"
 
 namespace Cool {
 
@@ -17,43 +16,13 @@ public:
     auto editor() const -> auto const& { return _editor; }
 
 private:
-    class OsThemeChecker {
-    public:
-        void update(ImStyleEd::Editor&);
-
-    private:
-        enum class Mode {
-            Unknown,
-            Dark,
-            Light,
-        };
-
-    private:
-        Mode _color_mode{Mode::Unknown};
-    };
-
-private:
     ImStyleEd::Editor _editor;
-
-    std::optional<OsThemeChecker> _use_os_theme{OsThemeChecker{}};
-
-private:
-    // Serialization
-    friend class ser20::access;
-    template<class Archive>
-    auto save_minimal(Archive const&) const -> bool
-    {
-        return _use_os_theme.has_value();
-    }
-
-    template<class Archive>
-    void load_minimal(Archive const&, bool const& value)
-    {
-        if (value)
-            _use_os_theme = OsThemeChecker{};
-        else
-            _use_os_theme = std::nullopt;
-    }
 };
+
+inline auto color_themes() -> std::optional<ColorThemes>& // It is optional because we want to control its lifetime (it must be destroyed before destroying the ImGui context to make sure it can still access the ImGuiStyle to serialize it)
+{
+    static auto instance = std::optional<ColorThemes>{};
+    return instance;
+}
 
 } // namespace Cool

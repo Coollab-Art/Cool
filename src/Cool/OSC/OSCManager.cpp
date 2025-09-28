@@ -10,7 +10,7 @@
 #include "Cool/ImGui/IcoMoonCodepoints.h"
 #include "Cool/ImGui/ImGuiExtras.h"
 #include "Cool/ImGui/icon_fmt.h"
-#include "Cool/Log/OptionalErrorMessage.h"
+#include "Cool/Log/ErrorMessage.hpp"
 #include "Cool/OSC/OSCChannel.h"
 #include "Cool/OSC/OSCConnectionEndpoint.h"
 #include "ip/UdpSocket.h"
@@ -33,31 +33,28 @@ OSCManager::~OSCManager()
     stop_listening();
 }
 
-static auto list_channel_names(std::vector<std::pair<std::string, float>> const& values) -> std::string
-{
-    std::stringstream ss;
-    for (auto const& [name, _] : values)
-        ss << "- \"" << name << "\"\n";
-    return ss.str();
-}
+// static auto list_channel_names(std::vector<std::pair<OSCChannel, float>> const& values) -> std::string
+// {
+//     std::stringstream ss;
+//     for (auto const& [channel, _] : values)
+//         ss << "- \"" << channel.name << "\"\n";
+//     return ss.str();
+// }
 
 auto OSCManager::get_value(OSCChannel const& channel) -> float
 {
     std::lock_guard lock{_s.values_mutex};
     for (auto const& pair : _s.values)
     {
-        if (pair.first == channel.name)
+        if (pair.first == channel)
             return pair.second;
     }
 
     _config_window.open();
-    throw Cool::Exception{OptionalErrorMessage{
+    throw Cool::Exception{ErrorMessage{
         fmt::format(
-            "\"{}\" is not a valid OSC channel.\n{}",
-            channel.name,
-            _s.values.empty()
-                ? "We haven't received any OSC messages yet. " + _error_message_for_endpoint_creation
-                : "The OSC channels that we have received are:\n" + list_channel_names(_s.values)
+            "We haven't received any OSC value named \"{}\"",
+            channel.name
         )
     }};
 }
@@ -85,7 +82,7 @@ void OSCManager::set_connection_endpoint(OSCConnectionEndpoint endpoint)
     _endpoint = std::move(endpoint);
     // Recreate a listener using the new port and address
     stop_listening();
-    reset_values();
+    // reset_values(); // Don't reset values, we want to have a continuity with the previous endpoint (and also, when starting the first endpoint, this would erase the values loaded by the serialization)
     start_listening();
 }
 
@@ -104,8 +101,8 @@ auto OSCManager::imgui_channel_widget(const char* label, OSCChannel& channel) ->
     // }
     b |= ImGuiExtras::dropdown(label, &channel.name, [&](auto&& with_dropdown_entry) {
         std::lock_guard lock{_s.values_mutex};
-        for (auto const& [name, _] : _s.values)
-            with_dropdown_entry(name);
+        for (auto const& [channel, _] : _s.values)
+            with_dropdown_entry(channel.name);
     });
 
     return b;
@@ -121,17 +118,22 @@ void OSCManager::imgui_error_message_for_invalid_endpoint(const char* extra_text
     ImGui::PopFont();
 }
 
+void OSCManager::imgui_show_all_values() // This function is also called by the ServerManager window to display the values
+{
+    imgui_values_table(); // TODO(OSC) For each channel, add a From Min / Max (and To Min / Max ?) to remap values + display a progress bar on the side to better see values changing, from 0 to 1
+    ImGui::SameLine();
+    imgui_button_to_reset_values();
+}
+
 void OSCManager::imgui_window()
 {
-    _config_window.show([&]() {
+    _config_window.show([&](bool /*is_opening*/) {
         imgui_select_connection_endpoint();
-        imgui_show_all_values(); // TODO(OSC) For each channel, add a From Min / Max (and To Min / Max ?) to remap values + display a progress bar on the side to better see values changing, from 0 to 1
-        ImGui::SameLine();
-        imgui_button_to_reset_values();
+        imgui_show_all_values();
     });
 }
 
-void OSCManager::imgui_show_all_values()
+void OSCManager::imgui_values_table()
 {
     std::lock_guard       lock{_s.values_mutex};
     static constexpr auto table_flags = ImGuiTableFlags_RowBg
@@ -141,19 +143,19 @@ void OSCManager::imgui_show_all_values()
     if (ImGui::BeginTable("OSC Values", 2, table_flags))
     {
         ImGui::PushFont(Cool::Font::monospace());
-        for (auto const& [name, value] : _s.values)
+        for (auto const& [channel, value] : _s.values)
         {
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
             ImGui::BeginGroup();
-            ImGui::TextUnformatted(name.c_str());
+            ImGui::TextUnformatted(channel.name.c_str());
             ImGui::Dummy({ImGui::GetContentRegionAvail().x, 0.f});
             ImGui::EndGroup();
-            if (ImGui::BeginPopupContextItem(&name))
+            if (ImGui::BeginPopupContextItem(&channel.name))
             {
                 if (ImGui::Button("Copy to clipboard"))
                 {
-                    ImGui::SetClipboardText(name.c_str());
+                    ImGui::SetClipboardText(channel.name.c_str());
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndPopup();
@@ -182,10 +184,8 @@ void OSCManager::imgui_select_connection_endpoint()
 {
     imgui_error_message_for_invalid_endpoint();
     // Port
-    ImGui::PushItemWidth(ImGui::CalcTextSize("00000").x + ImGui::GetStyle().FramePadding.x); // Enough width for any 5-digit number.
-    if (ImGui::InputInt("Port", &_endpoint.port, -1, -1, ImGuiInputTextFlags_AutoSelectAll))
+    if (ImGuiExtras::input_port("Port", &_endpoint.port))
         set_port(_endpoint.port);
-    ImGui::PopItemWidth();
     // Address
     if (ImGuiExtras::input_text_with_dropdown(
             "IP Address", &_endpoint.ip_address, [&](auto&& with_dropdown_entry) {
@@ -234,53 +234,59 @@ public:
 private:
     void ProcessMessage(osc::ReceivedMessage const& m, IpEndpointName const&) override
     {
-        std::lock_guard lock{_s.values_mutex};
-        size_t const    index{find_index(m.AddressPattern())};
-        bool            has_set_value{false};
-        auto const      set_value = [&](float value) {
-            _s.values[index].second = value;
-            has_set_value           = true;
-        };
         for (auto arg = m.ArgumentsBegin(); arg != m.ArgumentsEnd(); ++arg)
         {
             if (arg->IsFloat())
-                set_value(arg->AsFloatUnchecked());
+                _s.set_value(OSCChannel{m.AddressPattern()}, arg->AsFloatUnchecked());
             if (arg->IsDouble())
-                set_value(static_cast<float>(arg->AsDoubleUnchecked()));
+                _s.set_value(OSCChannel{m.AddressPattern()}, static_cast<float>(arg->AsDoubleUnchecked()));
             if (arg->IsInt32())
-                set_value(static_cast<float>(arg->AsInt32Unchecked()));
+                _s.set_value(OSCChannel{m.AddressPattern()}, static_cast<float>(arg->AsInt32Unchecked()));
             if (arg->IsInt64())
-                set_value(static_cast<float>(arg->AsInt64Unchecked()));
+                _s.set_value(OSCChannel{m.AddressPattern()}, static_cast<float>(arg->AsInt64Unchecked()));
             if (arg->IsChar())
-                set_value(static_cast<float>(arg->AsCharUnchecked()));
+                _s.set_value(OSCChannel{m.AddressPattern()}, static_cast<float>(arg->AsCharUnchecked()));
             if (arg->IsBool())
-                set_value(arg->AsBoolUnchecked() ? 1.f : 0.f);
+                _s.set_value(OSCChannel{m.AddressPattern()}, arg->AsBoolUnchecked() ? 1.f : 0.f);
         }
-        if (has_set_value)
-        {
-            std::lock_guard lock2{_s.channels_that_have_changed_mutex};
-            _s.channels_that_have_changed.insert(OSCChannel{m.AddressPattern()});
-        }
-    }
-
-    auto find_index(std::string const& name) -> size_t
-    {
-        for (size_t i = 0; i < _s.values.size(); ++i)
-        {
-            if (_s.values[i].first == name)
-                return i;
-        }
-        _s.values.emplace_back(name, 0.f);
-        std::sort(_s.values.begin(), _s.values.end(), [](auto const& a, auto const& b) {
-            return a.first < b.first;
-        });
-        return _s.values.size() - 1;
     }
 
 private:
     internal::SharedWithThread& _s; // NOLINT(*avoid-const-or-ref-data-members)
 };
 } // namespace
+
+void internal::SharedWithThread::set_value(OSCChannel const& channel, float value)
+{
+    {
+        std::lock_guard lock{values_mutex};
+        size_t const    index{find_index(channel)};
+        values[index].second = value;
+    }
+    {
+        std::lock_guard lock{channels_that_have_changed_mutex};
+        channels_that_have_changed.insert(channel);
+    }
+}
+
+auto internal::SharedWithThread::find_index(OSCChannel const& channel) -> size_t
+{
+    for (size_t i = 0; i < values.size(); ++i)
+    {
+        if (values[i].first == channel)
+            return i;
+    }
+    values.emplace_back(channel, 0.f);
+    std::sort(values.begin(), values.end(), [](auto const& a, auto const& b) {
+        return a.first < b.first;
+    });
+    return values.size() - 1;
+}
+
+void OSCManager::set_value(OSCChannel const& channel, float value)
+{
+    _s.set_value(channel, value);
+}
 
 static auto get_ip_endpoint_name(OSCConnectionEndpoint const& endpoint) -> tl::expected<IpEndpointName, std::string>
 {
@@ -344,8 +350,7 @@ void OSCManager::stop_listening()
     if (!_thread.has_value())
         return;
     _stop_thread();
-    _stop_thread = []() {
-    };
+    _stop_thread = []() {};
     if (_thread->joinable())
         _thread->join();
     _thread.reset();

@@ -1,15 +1,14 @@
 #include "MidiManager.h"
-#include <imgui.h>
 #include <chrono>
 #include "Cool/ImGui/Fonts.h"
 #include "Cool/ImGui/IcoMoonCodepoints.h"
 #include "Cool/ImGui/ImGuiExtras.h"
 #include "Cool/ImGui/icon_fmt.h"
 #include "Cool/ImGui/markdown.h"
-#include "Cool/Log/ToUser.h"
 #include "Cool/Time/time_formatted_hms.h"
-#include "Cool/Utils/app_name.h"
+#include "ImGuiNotify/ImGuiNotify.hpp"
 #include "MidiChannel.h"
+#include "imgui.h"
 
 namespace Cool {
 
@@ -71,7 +70,7 @@ MidiManager::MidiManager()
     }
     catch (std::exception const& e)
     {
-        Cool::Log::ToUser::error("MIDI Error", e.what());
+        Log::error("MIDI Error", e.what());
     }
 }
 
@@ -166,7 +165,7 @@ void MidiManager::check_for_devices()
     }
     catch (std::exception const& e)
     {
-        Cool::Log::ToUser::error("MIDI Error", e.what());
+        Log::error("MIDI Error", e.what());
     }
 }
 
@@ -229,11 +228,19 @@ void MidiManager::midi_error_callback(RtMidiError::Type type, std::string const&
 {
     if (type == RtMidiError::Type::DRIVER_ERROR)
     {
-        Cool::Log::ToUser::warning("MIDI", fmt::format("Failed to connect to the device. Maybe it is already used in another software? You will need to restart {} to try to reconnect to the MIDI device.\n\n{}", app_name(), error_text));
+        ImGuiNotify::send({
+            .type    = ImGuiNotify::Type::Warning,
+            .title   = "MIDI",
+            .content = fmt::format("Failed to connect to the device. Maybe it is already used in another software? You will need to restart {} to try to reconnect to the MIDI device.\n\n{}", COOL_APP_NAME, error_text),
+        });
     }
     else
     {
-        Cool::Log::ToUser::warning("MIDI", error_text);
+        ImGuiNotify::send({
+            .type    = ImGuiNotify::Type::Warning,
+            .title   = "MIDI",
+            .content = error_text,
+        });
     }
 }
 
@@ -251,7 +258,7 @@ void MidiManager::open_port(unsigned int index)
     }
     catch (std::exception const& e)
     {
-        Cool::Log::ToUser::error("MIDI Error", e.what());
+        Log::error("MIDI Error", e.what());
     }
 }
 
@@ -268,7 +275,7 @@ void MidiManager::close_port()
     }
     catch (std::exception const& e)
     {
-        Cool::Log::ToUser::error("MIDI Error", e.what());
+        Log::error("MIDI Error", e.what());
     }
 }
 
@@ -286,7 +293,7 @@ auto MidiManager::max_index(MidiChannelKind kind) const -> int
 
 void MidiManager::imgui_window()
 {
-    _config_window.show([&]() {
+    _config_window.show([&](bool /*is_opening*/) {
         imgui_controllers_dropdown();
         ImGui::NewLine();
         imgui_visualize_channels();
@@ -348,7 +355,7 @@ void MidiManager::imgui_controllers_dropdown()
     }
     catch (std::exception const& e)
     {
-        Cool::Log::ToUser::error("MIDI Error", e.what());
+        Log::error("MIDI Error", e.what());
     }
 }
 

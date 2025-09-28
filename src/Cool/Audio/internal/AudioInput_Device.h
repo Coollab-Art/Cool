@@ -1,6 +1,7 @@
 #pragma once
 #include "Audio/Audio.hpp"
 #include "IAudioInput.h"
+#include "ImGuiNotify/ImGuiNotify.hpp"
 
 namespace ser20 {
 
@@ -42,9 +43,10 @@ private:
     void set_selected_input_device(Audio::SelectedDevice);
 
 private:
-    float        _volume{30.f};
-    MessageId    _error_id_device_invalid{};
-    mutable bool _has_started{false};
+    float                       _volume{30.f};
+    ImGuiNotify::NotificationId _notification_id{};
+    std::string                 _last_logged_device_name{""};
+    mutable bool                _has_started{false};
 
 private:
     // Serialization

@@ -1,5 +1,4 @@
 #pragma once
-
 #include <map>
 #include "Cool/Log/MessageId.h"
 #include "INodesDefinitionUpdater.h"
@@ -20,10 +19,9 @@ public:
     auto errors_map() -> auto& { return _node_parsing_errors; }
 
 private:
-    folder_watcher::FolderWatcher                    _folder_watcher{};
-    std::string                                      _extension;
-    Cool::MessageId                                  _error_message_id{};
-    std::map<std::filesystem::path, Cool::MessageId> _node_parsing_errors{};
+    folder_watcher::FolderWatcher              _folder_watcher{};
+    std::string                                _extension;
+    std::map<std::filesystem::path, MessageId> _node_parsing_errors{};
 };
 
 } // namespace Cool

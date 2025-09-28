@@ -27,7 +27,7 @@ public:
      *
      * @param image_path The path to the image file. Make sure you use an absolute path (e.g. Cool::Path::root() / "myPath/relativeTo/theExecutablesDirectory.png") to prevent problems that would arise when changing the working directory during the app's lifetime
      */
-    static void cleanup_texture(std::filesystem::path image_path);
+    static void cleanup_texture(std::filesystem::path const& image_path);
 
 private:
     static std::map<std::filesystem::path, Texture> _map;

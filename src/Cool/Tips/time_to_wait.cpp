@@ -4,7 +4,7 @@ namespace Cool {
 
 auto time_to_wait() -> std::chrono::steady_clock::duration
 {
-    return 50min;
+    return 1h;
 }
 
 } // namespace Cool

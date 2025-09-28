@@ -26,10 +26,9 @@ auto OrbitalState_Rotation::on_drag(ViewController_Orbital& controller, Camera& 
         }
         case ViewController_Orbital::Mode::AxisFree:
             return camera.up_axis();
-        default:
-            Log::Debug::error("OrbitalState_Rotation::on_mouse_move", "Unknown ViewController_Orbital::Mode");
-            return glm::vec3{0};
         }
+        assert(false);
+        return glm::vec3{0};
     }();
     camera.translate(-orbit_center);
     camera.rotate(-controller._rotation_speed * delta.x, up_axis);

@@ -1,16 +1,17 @@
 #include "MessageConsole.h"
-#include <Cool/Constants/Constants.h>
-#include <Cool/Icons/Icons.h>
-#include <Cool/ImGui/ImGuiExtras.h>
-#include <stringify/stringify.hpp>
 #include "Cool/ImGui/Fonts.h"
+#include "Cool/ImGui/ImGuiExtras.h"
 #include "Cool/ImGui/markdown.h"
-#include "Cool/Log/Message.h"
+#include "ImGuiNotify/ImGuiNotify.hpp"
+#include "Message.h"
+#include "file_logger.hpp"
 #include "imgui.h"
+#include "spdlog/common.h"
+#include "stringify/stringify.hpp"
 
 namespace Cool {
 
-void MessageConsole::send(MessageId& id, const Message& message)
+void MessageConsole::send(MessageId& id, Message const& message)
 {
     if (!_messages.contains(id.raw()))
     {
@@ -28,37 +29,55 @@ void MessageConsole::send(MessageId& id, const Message& message)
         });
     }
 
-    on_message_sent(id.raw());
+    on_message_sent(id.raw(), message);
 }
 
-void MessageConsole::send(const Message& message)
+void MessageConsole::send(Message const& message)
 {
     auto const id = _messages.create_raw(internal::MessageWithMetadata{
         .message                = message,
         .forced_to_be_clearable = true,
     });
 
-    on_message_sent(id);
+    on_message_sent(id, message);
 }
 
-static auto is_clearable(const internal::MessageWithMetadata& msg) -> bool
+static auto is_clearable(internal::MessageWithMetadata const& msg) -> bool
 {
     return msg.forced_to_be_clearable
-           || msg.message.severity != MessageSeverity::Error;
+           || msg.message.type != MessageType::Error;
 }
 
-void MessageConsole::on_message_sent(const internal::RawMessageId& id)
+static auto to_spdlog_level(MessageType type) -> spdlog::level::level_enum
+{
+    switch (type)
+    {
+    case MessageType::Info:
+        return spdlog::level::info;
+    case MessageType::Warning:
+        return spdlog::level::warn;
+    case MessageType::Error:
+        return spdlog::level::err;
+    }
+    assert(false);
+    return spdlog::level::warn;
+}
+
+void MessageConsole::on_message_sent(internal::RawMessageId const& id, Message const& message)
 {
     _is_open           = true;
     _message_just_sent = id;
+
+    file_logger().log(to_spdlog_level(message.type), fmt::format("[{}] {}", message.title, message.content));
+    file_logger().flush(); // We flush as soon as we log a message, to make sure that if the app crashes we won't lose any logs that haven't been flushed yet
 }
 
-void MessageConsole::remove(const MessageId& id)
+void MessageConsole::remove(MessageId const& id)
 {
     remove(id.raw());
 }
 
-void MessageConsole::remove(const internal::RawMessageId& id)
+void MessageConsole::remove(internal::RawMessageId const& id)
 {
     if (!_messages.contains(id))
         return;
@@ -75,20 +94,20 @@ void MessageConsole::close_window_if_empty()
 
 void MessageConsole::clear()
 {
-    clear([](auto&&) { return true; });
+    clear_if([](auto&&) { return true; });
 }
 
-void MessageConsole::clear(MessageSeverity severity)
+void MessageConsole::clear(MessageType type)
 {
-    clear([&](auto&& message) { return message.severity == severity; });
+    clear_if([&](auto&& message) { return message.type == type; });
 }
 
-auto MessageConsole::should_show(const internal::MessageWithMetadata& msg) const -> bool
+auto MessageConsole::should_show(internal::MessageWithMetadata const& msg) const -> bool
 {
-    return !_is_severity_hidden.get(msg.message.severity);
+    return !_is_type_hidden.get(msg.message.type);
 }
 
-void MessageConsole::clear(std::function<bool(const Message&)> predicate)
+void MessageConsole::clear_if(std::function<bool(const Message&)> const& predicate)
 {
     {
         std::unique_lock lock{_messages.mutex()};
@@ -107,79 +126,77 @@ void MessageConsole::close_window()
     _selected_message = {};
 }
 
-auto MessageConsole::should_highlight(const MessageId& id) -> bool
+auto MessageConsole::should_highlight(MessageId const& id) -> bool
 {
     return !id.raw().underlying_uuid().is_nil()
            && id.raw() == _selected_message;
 }
 
-static auto color(MessageSeverity severity) -> ImVec4
+static auto color(MessageType type) -> ImVec4
 {
-    switch (severity)
+    switch (type)
     {
-    case MessageSeverity::Info:
-        return Constants::imvec4_green;
-    case MessageSeverity::Warning:
-        return Constants::imvec4_yellow;
-    case MessageSeverity::Error:
-        return Constants::imvec4_red;
-    default:
-        Log::Debug::error("MessageConsole::color", "Unknown enum value");
-        return ImVec4{0, 0, 0, 0};
+    case MessageType::Info:
+        return ImGuiNotify::get_style().color_success;
+    case MessageType::Warning:
+        return ImGuiNotify::get_style().color_warning;
+    case MessageType::Error:
+        return ImGuiNotify::get_style().color_error;
     }
+    assert(false);
+    return ImVec4{0, 0, 0, 0};
 }
 
 static auto fade_out_if(bool condition, ImVec4 color) -> ImVec4
 {
     if (condition)
-        color.w = 0.75f;
+        color = ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled);
 
     return color;
 }
 
-static auto to_string(MessageSeverity severity) -> std::string
+static auto to_string(MessageType type) -> std::string
 {
-    switch (severity)
+    switch (type)
     {
-    case MessageSeverity::Info:
+    case MessageType::Info:
         return "info";
-    case MessageSeverity::Warning:
+    case MessageType::Warning:
         return "warning";
-    case MessageSeverity::Error:
+    case MessageType::Error:
         return "error";
-    default:
-        Log::Debug::error("MessageConsole::to_string", "Unknown enum value");
-        return "";
     }
+    assert(false);
+    return "";
 }
 
 static constexpr auto reason_for_disabling_clear_button = "You can't clear these messages. You have to fix the corresponding errors."; // This is not a good reason_to_disable message when there are no messages, but the console will be hidden anyway.
 
-void MessageConsole::show_number_of_messages_of_given_severity(MessageSeverity severity)
+void MessageConsole::show_number_of_messages_of_given_type(MessageType type)
 {
-    const auto count = _counts_per_severity.get(severity);
+    const auto count = _counts_per_type.get(type);
     if (count > 0)
     {
         ImGui::SameLine();
         ImGui::TextColored(
             fade_out_if(
-                _is_severity_hidden.get(severity),
-                color(severity)
+                _is_type_hidden.get(type),
+                color(type)
             ),
             "%zu %s%s",
             count,
-            to_string(severity).c_str(),
+            to_string(type).c_str(),
             count > 1 ? "s" : ""
         );
         if (ImGui::IsItemClicked())
-            _is_severity_hidden.toggle(severity);
+            _is_type_hidden.toggle(type);
         if (ImGui::IsItemHovered())
             ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-        if (ImGui::BeginPopupContextItem(to_string(severity).c_str()))
+        if (ImGui::BeginPopupContextItem(to_string(type).c_str()))
         {
-            ImGuiExtras::disabled_if(!there_are_clearable_messages(severity), reason_for_disabling_clear_button, [&] {
+            ImGuiExtras::disabled_if(!there_are_clearable_messages(type), reason_for_disabling_clear_button, [&] {
                 if (ImGui::Button("Clear"))
-                    clear(severity);
+                    clear(type);
             });
 
             ImGui::EndPopup();
@@ -204,11 +221,11 @@ void MessageConsole::remove_messages_to_keep_size_below(size_t max_number_of_mes
 
 void MessageConsole::imgui_window()
 {
-    remove_messages_to_keep_size_below(999); // If there are too many messages the console starts to cause lag.
+    remove_messages_to_keep_size_below(99); // If there are too many messages the console starts to cause lag.
 
     if (_is_open)
     {
-        refresh_counts_per_severity();
+        refresh_counts_per_type();
 
         if (!_message_just_sent.underlying_uuid().is_nil())
         {
@@ -218,8 +235,8 @@ void MessageConsole::imgui_window()
 
         // Menu bar
         ImGuiExtras::background(
-            [&]() { imgui_menu_bar(); },
-            ImVec4{0.3f, 0.3f, 0.3f, 0.5f}
+            ImGuiNotify::get_style().color_title_background,
+            [&]() { imgui_menu_bar(); }
         );
         ImGui::Separator();
 
@@ -247,12 +264,12 @@ auto MessageConsole::there_are_clearable_messages() const -> bool
     });
 }
 
-auto MessageConsole::there_are_clearable_messages(MessageSeverity severity) const -> bool
+auto MessageConsole::there_are_clearable_messages(MessageType type) const -> bool
 {
     std::shared_lock lock{_messages.mutex()};
     return std::any_of(_messages.begin(), _messages.end(), [&](auto&& pair) {
         const auto& message = pair.second;
-        return message.message.severity == severity
+        return message.message.type == type
                && is_clearable(message);
     });
 }
@@ -264,9 +281,9 @@ void MessageConsole::imgui_menu_bar()
             clear();
     });
 
-    show_number_of_messages_of_given_severity(MessageSeverity::Error);
-    show_number_of_messages_of_given_severity(MessageSeverity::Warning);
-    show_number_of_messages_of_given_severity(MessageSeverity::Info);
+    show_number_of_messages_of_given_type(MessageType::Error);
+    show_number_of_messages_of_given_type(MessageType::Warning);
+    show_number_of_messages_of_given_type(MessageType::Info);
 }
 
 static void imgui_button_copy_to_clipboard(ClipboardContent const& clipboard)
@@ -298,14 +315,14 @@ void MessageConsole::imgui_show_all_messages()
                 ImGui::BeginGroup();
 
                 ImGui::TextColored(
-                    color(msg.message.severity),
+                    color(msg.message.type),
                     "[%s] [#%u] [%s]",
                     Cool::stringify(msg.timestamp).c_str(),
                     msg.count,
-                    msg.message.category.c_str()
+                    msg.message.title.c_str()
                 );
                 ImGui::SameLine();
-                ImGuiExtras::markdown(msg.message.message);
+                ImGuiExtras::markdown(msg.message.content);
 
                 const bool close_button_is_hovered = [&] {
                     if (!is_clearable(msg))
@@ -316,7 +333,7 @@ void MessageConsole::imgui_show_all_messages()
                     {
                         msg_to_clear = id;
                     }
-                    ImGui::SetItemTooltip("%s", ("Close this " + to_string(msg.message.severity)).c_str());
+                    ImGui::SetItemTooltip("%s", ("Close this " + to_string(msg.message.type)).c_str());
                     return ImGui::IsItemHovered();
                 }();
 
@@ -335,13 +352,13 @@ void MessageConsole::imgui_show_all_messages()
                 {
                     ImGui::BeginPopup("##ContextMenu");
 
-                    if (!msg.message.clipboard_contents)
+                    if (msg.message.clipboard_contents.empty())
                     {
-                        imgui_button_copy_to_clipboard({.title = "full message", .content = msg.message.message});
+                        imgui_button_copy_to_clipboard({.title = "full message", .content = msg.message.content});
                     }
                     else
                     {
-                        for (auto const& clipboard_content : *msg.message.clipboard_contents)
+                        for (auto const& clipboard_content : msg.message.clipboard_contents)
                             imgui_button_copy_to_clipboard(clipboard_content);
                     }
 
@@ -388,50 +405,50 @@ void MessageConsole::imgui_show_all_messages()
     remove(msg_to_clear); // Must clear after the `lock` is gone, otherwise we will deadlock.
 }
 
-void MessageConsole::refresh_counts_per_severity()
+void MessageConsole::refresh_counts_per_type()
 {
-    _counts_per_severity.reset_to_zero();
+    _counts_per_type.reset_to_zero();
     {
         std::shared_lock lock{_messages.mutex()};
         for (const auto& id_and_message : _messages)
-            _counts_per_severity.increment(id_and_message.second.message.severity);
+            _counts_per_type.increment(id_and_message.second.message.type);
     }
     close_window_if_empty();
 }
 
-MessageConsole::MessagesCountPerSeverity::MessagesCountPerSeverity()
+MessageConsole::MessagesCountPerType::MessagesCountPerType()
 {
     reset_to_zero();
 }
 
-void MessageConsole::MessagesCountPerSeverity::increment(MessageSeverity severity)
+void MessageConsole::MessagesCountPerType::increment(MessageType type)
 {
-    _counts_per_severity.at(static_cast<size_t>(severity))++;
+    _counts_per_type.at(static_cast<size_t>(type))++;
 }
 
-void MessageConsole::MessagesCountPerSeverity::reset_to_zero()
+void MessageConsole::MessagesCountPerType::reset_to_zero()
 {
-    _counts_per_severity.fill(0);
+    _counts_per_type.fill(0);
 }
 
-auto MessageConsole::MessagesCountPerSeverity::get(MessageSeverity severity) const -> size_t
+auto MessageConsole::MessagesCountPerType::get(MessageType type) const -> size_t
 {
-    return _counts_per_severity.at(static_cast<size_t>(severity));
+    return _counts_per_type.at(static_cast<size_t>(type));
 }
 
-auto MessageConsole::IsSeverityHidden::get(MessageSeverity severity) const -> bool
+auto MessageConsole::IsTypeHidden::get(MessageType type) const -> bool
 {
-    return _is_hidden.at(static_cast<size_t>(severity));
+    return _is_hidden.at(static_cast<size_t>(type));
 }
 
-void MessageConsole::IsSeverityHidden::set(MessageSeverity severity, bool new_value)
+void MessageConsole::IsTypeHidden::set(MessageType type, bool new_value)
 {
-    _is_hidden.at(static_cast<size_t>(severity)) = new_value;
+    _is_hidden.at(static_cast<size_t>(type)) = new_value;
 }
 
-void MessageConsole::IsSeverityHidden::toggle(MessageSeverity severity)
+void MessageConsole::IsTypeHidden::toggle(MessageType type)
 {
-    set(severity, !get(severity));
+    set(type, !get(type));
 }
 
 } // namespace Cool

@@ -19,7 +19,7 @@ auto VideoDescriptor::imgui_widget() -> bool
     bool b = false;
 
     ImGui::SeparatorText("Select File");
-    b |= ImGuiExtras::file_and_folder("File", &path, NfdFileFilter::Video);
+    b |= ImGuiExtras::file_and_folder_opening("File", &path, NfdFileFilter::Video);
 
     std::string const* const detailed_video_info = TextureLibrary_Video::instance().detailed_video_info(path);
     if (detailed_video_info != nullptr)

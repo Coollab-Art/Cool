@@ -7,6 +7,8 @@
 
 cmake_minimum_required(VERSION 3.20)
 
+option(COOL_USE_MACOS_BUNDLE "Turn this on if you are using an App Bundle on MacOS (this option does nothing if you are not building for MacOS)" OFF)
+
 add_library(Cool)
 add_library(Cool::Core ALIAS Cool)
 add_library(Cool-PublicProperties INTERFACE) # This is needed by both Cool and its tests
@@ -16,6 +18,11 @@ target_link_libraries(Cool PRIVATE Cool-PrivateProperties)
 
 # Choose C++ version
 target_compile_features(Cool-PublicProperties INTERFACE cxx_std_20)
+
+if(APPLE)
+    enable_language(OBJC)
+    enable_language(OBJCXX)
+endif()
 
 # Set warning level
 if(MSVC)
@@ -44,13 +51,22 @@ target_compile_definitions(Cool-PublicProperties INTERFACE
     COOL_PATH=\"${COOL_PATH}\" # This is useful to set the path to Cool's res directory
     $<$<CONFIG:Debug>:COOL_DEBUG_ONLY__CMAKE_SOURCE_DIR=\"${CMAKE_SOURCE_DIR}\"> # This is useful to set the current working directory in debug mode.
     IMGUI_DEFINE_MATH_OPERATORS
+    COOL_APP_NAME=\"${COOL_APP_NAME}\"
 )
+
+if(COOL_USE_MACOS_BUNDLE)
+    target_compile_definitions(Cool-PrivateProperties INTERFACE COOL_USE_MACOS_BUNDLE=1)
+else()
+    target_compile_definitions(Cool-PrivateProperties INTERFACE COOL_USE_MACOS_BUNDLE=0)
+endif()
 
 # ----------------------
 # ---Add Cool sources---
 # ----------------------
 file(GLOB_RECURSE COOL_SOURCES CONFIGURE_DEPENDS src/*)
-
+set(COOL_APP_VERSION_STRING "\"${COOL_APP_VERSION}\"")
+configure_file("src/Cool/Dump/app_version.cpp.in" "src/Cool/Dump/app_version.cpp")
+list(APPEND COOL_SOURCES "src/Cool/Dump/app_version.cpp")
 target_sources(Cool PRIVATE ${COOL_SOURCES})
 
 # -----------------------------
@@ -59,7 +75,7 @@ target_sources(Cool PRIVATE ${COOL_SOURCES})
 target_include_directories(Cool-PublicProperties INTERFACE src)
 target_include_directories(Cool-PublicProperties SYSTEM INTERFACE lib)
 target_precompile_headers(Cool-PublicProperties INTERFACE # More info on precompiled headers: https://julesfouchy.github.io/Learn--Cpp-And-Dev-Practices/docs/lessons/precompiled-header
-    <Cool/UDL/std.h> # Make std litterals available everywhere. E.g. "Hello"s will create a std::string, not a const char*.
+    <Cool/UDL/std.h> # Make std literals available everywhere. E.g. "Hello"s will create a std::string, not a const char*.
     <vector>
     <string>
     <memory>
@@ -91,7 +107,7 @@ target_precompile_headers(Cool-PublicProperties INTERFACE # More info on precomp
     <fmt/compile.h>
     <gsl/gsl>
     <tl/expected.hpp>
-    <Cool/Log/Debug.h>
+    <Cool/Log/Log.hpp>
     <Cool/Geometry/imvec_glm_conversions.h>
     <Cool/Serialization/filesystem.h>
     <Cool/Serialization/img.h>
@@ -176,6 +192,7 @@ target_link_libraries(Cool-PublicProperties INTERFACE Boxer)
 install(FILES "lib/Boxer/LICENSE" DESTINATION "license/Boxer")
 
 # Native File Dialog
+set(NFD_OVERRIDE_RECENT_WITH_DEFAULT ON CACHE BOOL "" FORCE)
 add_subdirectory(lib/nativefiledialog-extended EXCLUDE_FROM_ALL)
 target_link_libraries(Cool-PublicProperties INTERFACE nfd)
 install(FILES "lib/nativefiledialog-extended/LICENSE" DESTINATION "license/nativefiledialog-extended")
@@ -184,6 +201,10 @@ install(FILES "lib/nativefiledialog-extended/LICENSE" DESTINATION "license/nativ
 add_subdirectory(lib/GSL)
 target_link_libraries(Cool-PublicProperties INTERFACE Microsoft.GSL::GSL)
 install(FILES "lib/GSL/LICENSE" DESTINATION "license/GSL")
+
+# spdlog
+target_include_directories(Cool-PrivateProperties SYSTEM INTERFACE lib/spdlog/include)
+install(FILES "lib/spdlog/LICENSE" DESTINATION "license/spdlog")
 
 # img
 add_subdirectory(lib/img)
@@ -206,9 +227,8 @@ add_subdirectory(lib/fix-tdr-delay)
 target_link_libraries(Cool-PrivateProperties INTERFACE fix_tdr_delay::fix_tdr_delay)
 
 # serv
-# ## Disabled for now, we will reintroduce it when we will use it
-# add_subdirectory(lib/serv)
-# target_link_libraries(Cool-PublicProperties INTERFACE serv::serv)
+add_subdirectory(lib/serv)
+target_link_libraries(Cool-PublicProperties INTERFACE serv::serv)
 
 # stringify
 add_subdirectory(lib/stringify)
@@ -234,21 +254,26 @@ target_link_libraries(Cool-PublicProperties INTERFACE Cool::open)
 add_subdirectory(lib/os_name)
 target_link_libraries(Cool-PublicProperties INTERFACE os_name::os_name)
 
-# wants_dark_theme
-add_subdirectory(lib/wants_dark_theme)
-target_link_libraries(Cool-PublicProperties INTERFACE wants_dark_theme::wants_dark_theme)
-
 # tl::expected
 target_include_directories(Cool-PublicProperties SYSTEM INTERFACE lib/expected/include)
 
-# OpenCV
-include("lib/opencv_build_options.cmake")
-add_subdirectory(lib/easy_opencv)
-target_link_libraries(Cool-PublicProperties INTERFACE easy_opencv::easy_opencv)
+# nlohmann json
+target_include_directories(Cool-PublicProperties SYSTEM INTERFACE lib/json/single_include)
+install(FILES "lib/json/LICENSE.MIT" DESTINATION "license/nlohmann_json")
 
-# webcam_info
-add_subdirectory(lib/webcam_info)
-target_link_libraries(Cool-PublicProperties INTERFACE webcam_info::webcam_info)
+# Dear ImGui
+add_subdirectory(lib/imgui)
+target_include_directories(Cool-PublicProperties SYSTEM INTERFACE lib/imgui)
+install(FILES "lib/imgui/LICENSE.txt" DESTINATION "license/imgui")
+
+# wcam
+set(WCAM_DONT_INCLUDE_FMT ON)
+add_subdirectory(lib/wcam)
+target_link_libraries(Cool-PublicProperties INTERFACE wcam::wcam)
+
+# get_system_error
+# add_subdirectory(lib/get_system_error) # Already done by wcam
+target_link_libraries(Cool-PublicProperties INTERFACE Cool::get_system_error)
 
 # RtMidi
 add_subdirectory(lib/RtMidiWrapper)
@@ -259,19 +284,29 @@ add_subdirectory(lib/oscpack)
 target_link_libraries(Cool-PrivateProperties INTERFACE oscpack)
 
 # glm
+# TODO(WebGPU) We are including glm multiple times ?
 add_subdirectory(lib/glm)
 target_link_libraries(Cool-PublicProperties INTERFACE glm)
 target_compile_definitions(Cool-PublicProperties INTERFACE GLM_FORCE_DEPTH_ZERO_TO_ONE)
 install(FILES "lib/glm/copying.txt" DESTINATION "license/glm")
 
-# Dear ImGui
-add_subdirectory(lib/imgui)
-target_include_directories(Cool-PublicProperties SYSTEM INTERFACE lib/imgui)
-install(FILES "lib/imgui/LICENSE.txt" DESTINATION "license/imgui")
+# GLSL-Color-Functions
+install(FILES "res/shaders/GLSL-Color-Functions/LICENSE" DESTINATION "license/GLSL-Color-Functions")
+
+# Build ImGui with glfw and WebGPU
 target_link_libraries(ImGui PRIVATE glfw)
 target_sources(ImGui PRIVATE lib/imgui/backends/imgui_impl_glfw.cpp)
 target_link_libraries(ImGui PRIVATE webgpu)
 target_sources(ImGui PRIVATE lib/imgui/backends/imgui_impl_wgpu.cpp)
+
+if(WEBGPU_BACKEND STREQUAL "DAWN")
+    target_compile_definitions(ImGui PRIVATE IMGUI_IMPL_WEBGPU_BACKEND_DAWN)
+elseif(WEBGPU_BACKEND STREQUAL "WGPU")
+    target_compile_definitions(ImGui PRIVATE IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
+else()
+    message(FATAL_ERROR "Unknown WebGPU backend \"${WEBGPU_BACKEND}\"")
+endif()
+
 target_link_libraries(Cool-PublicProperties INTERFACE ImGui::ImGui)
 
 # ImGuiNodeEditor
@@ -288,14 +323,23 @@ add_subdirectory(lib/ImGui_StyleEditor)
 target_include_directories(ImStyleEd SYSTEM PRIVATE lib)
 target_link_libraries(Cool-PublicProperties INTERFACE ImStyleEd::ImStyleEd)
 
+# ImGuiNotify
+add_subdirectory(lib/ImGuiNotify)
+target_include_directories(ImGuiNotify SYSTEM PRIVATE lib/imgui)
+target_link_libraries(Cool-PublicProperties INTERFACE ImGuiNotify::ImGuiNotify)
+
+# no-sleep
+add_subdirectory(lib/no-sleep)
+target_link_libraries(Cool-PublicProperties INTERFACE no_sleep::no_sleep)
+
 # ----------------
 # ---Copy files---
 # ----------------
 include("CMakeUtils/files_and_folders.cmake")
 
 function(cool_setup TARGET_NAME)
-    Cool__target_copy_folder(${TARGET_NAME} ${COOL_PATH_INTERNAL}/res)
     ffmpeg_copy_libs(${TARGET_NAME})
+    Cool__target_copy_folder(${TARGET_NAME} ${COOL_PATH_INTERNAL}/res)
     target_copy_webgpu_binaries(${TARGET_NAME})
     install(DIRECTORY ${COOL_PATH_INTERNAL}/res DESTINATION bin/${COOL_PATH_INTERNAL})
 endfunction()
@@ -341,3 +385,5 @@ set(DOCTEST_NO_INSTALL ON CACHE BOOL "" FORCE)
 add_subdirectory(lib/doctest)
 target_link_libraries(Tests-Cool PRIVATE doctest::doctest)
 install(FILES "lib/doctest/LICENSE.txt" DESTINATION "license/doctest")
+
+set_target_properties(Tests-Cool PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})

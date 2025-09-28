@@ -22,12 +22,12 @@ bool ViewController_Orbital::ImGui(Camera& camera)
             return 1;
         case Mode::AxisFree:
             return 2;
-        default:
-            Log::Debug::error("ViewController_Orbital::ImGui", "Unknown enum value");
-            return 0;
         }
+        assert(false);
+        return 0;
     }();
-    if (ImGui::Combo("Orbit Mode", &current_combo_item, " Turntable\0 Trackball\0 AxisFree\0\0"))
+    auto const b = ImGui::Combo("Orbit Mode", &current_combo_item, " Turntable\0 Trackball\0 AxisFree\0\0");
+    if (b)
     {
         switch (current_combo_item)
         {
@@ -40,20 +40,19 @@ bool ViewController_Orbital::ImGui(Camera& camera)
         case 2:
             _mode = Mode::AxisFree;
             break;
+        default:
+            assert(false);
+            break;
         }
         if (prev_mode == Mode::AxisFree && _mode != Mode::AxisFree)
         {
             CameraU::reset_roll(camera);
         }
-        return true;
     }
-    else
-    {
-        return false;
-    }
+    return b;
 }
 
-void ViewController_Orbital::set_orbit_center(glm::vec3 const& orbit_center, Camera& camera)
+void ViewController_Orbital::set_orbit_center(glm::vec3 const& orbit_center, Camera& camera) const
 {
     camera.translate(orbit_center - get_orbit_center(camera));
 }

@@ -1,31 +1,49 @@
 #include "SaveImage.h"
-#include <Cool/File/File.h>
-#include <Cool/Log/ToUser.h>
+#include "Cool/File/File.h"
 
 namespace Cool::ImageU {
 
-void save_png(
+auto save(
     std::filesystem::path const& file_path,
     img::Image const&            image,
-    bool                         flip_vertically
-)
+    stbiw_SaveOptions const&     options
+) -> tl::expected<void, std::string>
 {
-    Cool::ImageU::save_png(file_path, image.width(), image.height(), image.data(), image.channels_count(), flip_vertically);
+    return Cool::ImageU::save(file_path, image.width(), image.height(), image.data(), image.channels_count(), image.row_order(), options);
 }
 
-void save_png(
+auto save(
     std::filesystem::path const& file_path,
     img::Size::DataType          width,
     img::Size::DataType          height,
     const void*                  data,
-    int                          channels_count,
-    bool                         flip_vertically
-)
+    size_t                       channels_count,
+    img::FirstRowIs              row_order,
+    stbiw_SaveOptions const&     options
+) -> tl::expected<void, std::string>
 {
-    if (File::create_folders_for_file_if_they_dont_exist(file_path))
-        img::save_png(file_path, width, height, data, channels_count, flip_vertically);
+    if (!File::create_folders_for_file_if_they_dont_exist(file_path))
+        return tl::make_unexpected("Maybe you are not allowed to save files in this folder?");
+
+    std::string const extension = Cool::File::extension(file_path).string();
+
+    bool success{};
+    if (extension == ".png" || extension == ".PNG")
+        success = img::save_png(file_path, width, height, data, channels_count, row_order, options);
+    else if (extension == ".jpg" || extension == ".jpeg" || extension == ".JPG" || extension == ".JPEG")
+        success = img::save_jpeg(file_path, width, height, data, channels_count, row_order, options);
     else
-        Log::ToUser::warning("ImageU::save_png", "Couldn't export because folder creation failed!");
+        return tl::make_unexpected(fmt::format("Unsupported format \"{}\"\nPlease use \".png\" or \".jpeg\"", extension));
+
+    if (!success)
+    {
+        return tl::make_unexpected(
+            (options.cancel_requested && options.cancel_requested())
+                ? "Canceled"
+                : "Maybe you are not allowed to save files in this folder?"
+        );
+    }
+    return {};
 }
 
 } // namespace Cool::ImageU

@@ -8,7 +8,6 @@
 #include "Cool/WebGPU/ComputePipeline.h"
 #include "Cool/WebGPU/WebGPUContext.hpp"
 
-
 namespace Cool {
 
 Texture::Texture(wgpu::TextureDescriptor const& desc)
@@ -16,13 +15,15 @@ Texture::Texture(wgpu::TextureDescriptor const& desc)
     , _desc{desc}
 {}
 
-auto load_texture(std::filesystem::path const& path, wgpu::TextureFormat texture_format, std::optional<AlphaSpace> alpha_space) -> Texture
+auto load_texture(std::filesystem::path const& path, wgpu::TextureFormat texture_format, std::optional<AlphaSpace> alpha_space) -> tl::expected<Texture, std::string>
 {
     if (!alpha_space.has_value())
         alpha_space = AlphaSpace::Straight; // By default most files should be in straight alpha
 
-    auto const image = img::load(path);
-    return texture_from_pixels(image.size(), texture_format, *alpha_space, image.data_span());
+    auto image = img::load(path);
+    if (!image.has_value())
+        return std::move(image.error());
+    return texture_from_pixels(image->size(), texture_format, *alpha_space, image->data_span());
 }
 
 auto texture_from_pixels(img::Size size, wgpu::TextureFormat texture_format, AlphaSpace alpha_space, void const* data, size_t data_size, size_t data_element_size) -> Texture
@@ -62,6 +63,14 @@ auto texture_1D_from_data(uint32_t width, wgpu::TextureFormat texture_format, si
     return res;
 }
 
+// TODO(WebGPU) reintroduce this check for _data_has_been_uploaded
+// void Texture::attach_to_slot(GLuint slot) const
+// {
+//     if (!_data_has_been_uploaded)
+//         Log::internal_error("Texture::attach_to_slot", "You must upload some data (at least a width and height) before using the texture.");
+//     _tex.bind_to_texture_unit(slot);
+// }
+
 void Texture::set_image(uint32_t color_components_count, AlphaSpace alpha_space, void const* data, size_t data_size, size_t data_element_size)
 {
     assert(data_size % color_components_count == 0);
@@ -80,7 +89,8 @@ void Texture::set_image(uint32_t color_components_count, AlphaSpace alpha_space,
     source.rowsPerImage = height();
 
     webgpu_context().queue.writeTexture(destination, data, data_size * data_element_size, source, _desc.size);
-    _alpha_space = alpha_space;
+    _alpha_space    = alpha_space;
+    _need_to_flip_y = need_to_flip_y;
 }
 
 auto Texture::entire_texture_view() const -> TextureView const&

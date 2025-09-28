@@ -1,12 +1,7 @@
 [submodule "lib/glfw"]
 	path = lib/glfw
 	url = https://github.com/glfw/glfw
-[submodule "lib/Boxer"]
-	path = lib/Boxer
-	url = https://github.com/aaronmjacobs/Boxer
-[submodule "lib/doctest"]
-	path = lib/doctest
-	url = https://github.com/onqtam/doctest
+
 [submodule "lib/scope_guard"]
 	path = lib/scope_guard
 	url = https://github.com/ricab/scope_guard
@@ -70,21 +65,12 @@
 [submodule "lib/ImGui_StyleEditor"]
 	path = lib/ImGui_StyleEditor
 	url = https://github.com/CoolLibs/ImGui_StyleEditor/
-[submodule "lib/wants_dark_theme"]
-	path = lib/wants_dark_theme
-	url = https://github.com/CoolLibs/wants_dark_theme
 [submodule "lib/GSL"]
 	path = lib/GSL
 	url = https://github.com/microsoft/GSL
 [submodule "lib/imgui-node-editor"]
 	path = lib/imgui-node-editor
 	url = https://github.com/CoolLibs/imgui-node-editor
-[submodule "lib/easy_opencv"]
-	path = lib/easy_opencv
-	url = https://github.com/CoolLibs/easy_opencv.git
-[submodule "lib/webcam_info"]
-	path = lib/webcam_info
-	url = https://github.com/CoolLibs/webcam_info.git
 [submodule "lib/RtMidiWrapper"]
 	path = lib/RtMidiWrapper
 	url = https://github.com/CoolLibs/RtMidiWrapper
@@ -121,3 +107,27 @@
 [submodule "lib/ser20"]
 	path = lib/ser20
 	url = https://github.com/CoolLibs/ser20
+[submodule "lib/wcam"]
+	path = lib/wcam
+	url = https://github.com/CoolLibs/wcam
+[submodule "res/shaders/GLSL-Color-Functions"]
+	path = res/shaders/GLSL-Color-Functions
+	url = https://github.com/Rachmanin0xFF/GLSL-Color-Functions
+[submodule "lib/ImGuiNotify"]
+	path = lib/ImGuiNotify
+	url = https://github.com/CoolLibs/ImGuiNotify
+[submodule "lib/no-sleep"]
+	path = lib/no-sleep
+	url = https://github.com/CoolLibs/no-sleep
+[submodule "lib/json"]
+	path = lib/json
+	url = https://github.com/nlohmann/json
+[submodule "lib/spdlog"]
+	path = lib/spdlog
+	url = https://github.com/gabime/spdlog
+[submodule "lib/doctest"]
+	path = lib/doctest
+	url = https://github.com/CoolLibs/doctest
+[submodule "lib/Boxer"]
+	path = lib/Boxer
+	url = https://github.com/CoolLibs/Boxer

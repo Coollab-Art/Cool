@@ -1,5 +1,4 @@
 #if defined(COOL_OPENGL) && defined(DEBUG)
-
 #include "GLDebug.h"
 
 static bool context_is_active = true;
@@ -27,10 +26,7 @@ bool CoolGlDebug::checkForErrors(const char* functionName, const char* filename,
     bool   bFoundErrors = false;
     while ((error = glGetError()) != GL_NO_ERROR)
     {
-        Cool::Log::Debug::error_without_breakpoint(
-            "OpenGL",
-            std::string{glErrorString(error)} + " : " + std::string{functionName} + " " + std::string{filename} + " " + std::to_string(line)
-        );
+        Cool::Log::internal_error("OpenGL", std::string{glErrorString(error)} + " : " + std::string{functionName} + " " + std::string{filename} + " " + std::to_string(line));
         bFoundErrors = true;
     }
     return bFoundErrors;

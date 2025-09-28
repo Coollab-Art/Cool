@@ -1,4 +1,5 @@
 #include "NodesDefinitionUpdater.h"
+#include "Cool/Log/message_console.hpp"
 #include "Cool/Nodes/NodesCategoryConfig.h"
 #include "Cool/String/String.h"
 
@@ -6,7 +7,7 @@ namespace Cool {
 
 static auto get_category_name(std::filesystem::path const& path, std::filesystem::path const& root) -> std::string
 {
-    std::string category_name = File::without_file_name(std::filesystem::relative(path, root)).string();
+    std::string category_name = File::without_file_name(Cool::File::relative(path, root)).string();
     auto const  pos           = category_name.find_first_not_of("0123456789");
     if (pos != std::string::npos)
     {
@@ -18,7 +19,7 @@ static auto get_category_name(std::filesystem::path const& path, std::filesystem
 
 static auto get_category_order(std::filesystem::path const& path, std::filesystem::path const& root) -> int
 {
-    std::string category_name = File::without_file_name(std::filesystem::relative(path, root)).string();
+    std::string category_name = File::without_file_name(Cool::File::relative(path, root)).string();
     auto const  pos           = category_name.find_first_not_of("0123456789");
     if (pos != std::string::npos)
         category_name = Cool::String::substring(category_name, 0, pos);
@@ -84,12 +85,12 @@ auto NodesDefinitionUpdater::library_is_empty() const -> bool
 
 void NodesDefinitionUpdater::handle_error(std::filesystem::path const& definition_path, std::string const& message)
 {
-    Cool::Log::ToUser::console().send(
+    message_console().send(
         _errors[definition_path], // This will create an error id if not already present in the map. This is what we want.
-        Message{
-            .category = "Nodes",
-            .message  = fmt::format("Failed to read node from file {}:\n{}", definition_path, message),
-            .severity = MessageSeverity::Error,
+        {
+            .type    = MessageType::Error,
+            .title   = "Nodes",
+            .content = fmt::format("Failed to read node \"{}\":\n{}", Cool::File::weakly_canonical(definition_path), message),
         }
     );
 }

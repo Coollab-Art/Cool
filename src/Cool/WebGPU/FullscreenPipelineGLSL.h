@@ -30,6 +30,6 @@ private:
     std::vector<shadert::Uniform> _uniforms_locations{};
 };
 
-auto make_fullscreen_pipeline_glsl(FullscreenPipeline_CreationArgs args) -> tl::expected<FullscreenPipelineGLSL, OptionalErrorMessage>;
+auto make_fullscreen_pipeline_glsl(FullscreenPipeline_CreationArgs args) -> tl::expected<FullscreenPipelineGLSL, ErrorMessage>;
 
 } // namespace Cool

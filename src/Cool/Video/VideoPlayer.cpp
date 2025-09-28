@@ -1,14 +1,13 @@
 #include "VideoPlayer.h"
 #include <exception>
 #include <string>
-#include <tl/expected.hpp>
 #include "Cool/DebugOptions/DebugOptions.h"
-#include "Cool/Log/ToUser.h"
 #include "Cool/TextureSource/default_textures.h"
 #include "Cool/TextureSource/set_texture_from_image.h"
 #include "Cool/Time/time_formatted_hms.h"
 #include "hack_get_global_time_in_seconds.h"
 #include "smart/smart.hpp"
+#include "tl/expected.hpp"
 
 namespace Cool {
 
@@ -123,7 +122,7 @@ auto internal::CaptureState::get_texture(Time time, VideoPlayerSettings const& s
 
     set_texture_from_ffmpeg_image(_texture, *maybe_frame);
     if (DebugOptions::log_when_creating_textures())
-        Log::ToUser::info("Video File", fmt::format("Generated texture for {} at {}", path, time_formatted_hms(Time::seconds(time_in_seconds), true /*show_milliseconds*/)));
+        Log::info("Video File", fmt::format("Generated texture for {} at {}", path, time_formatted_hms(Time::seconds(time_in_seconds), true /*show_milliseconds*/)));
 
     return &*_texture;
 }

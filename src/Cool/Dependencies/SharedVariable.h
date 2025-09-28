@@ -1,9 +1,9 @@
 #pragma once
-#include <Cool/Dependencies/DirtyFlag.h>
+#include "Cool/Dependencies/DirtyFlag.h"
 #include "Cool/Dependencies/SharedVariableDefinition.h"
-#include "Cool/Log/MessageId.h"
 #include "Cool/Variables/Variable.h"
 #include "Cool/Variables/Variables.h"
+#include "ImGuiNotify/ImGuiNotify.hpp"
 
 namespace Cool {
 
@@ -73,12 +73,12 @@ public:
     auto get_ref() -> SharedVariableStrongRef<T>& { return _ref; }
     auto description() const -> std::optional<std::string> const& { return _description; }
     auto description() -> std::optional<std::string>& { return _description; }
-    auto message_id() const -> MessageId& { return _message_id; }
+    auto notification_id() const -> ImGuiNotify::NotificationId& { return _notification_id; }
 
 private:
-    SharedVariableStrongRef<T> _ref;
-    std::optional<std::string> _description; // TODO(Variables) Move to Variable?
-    mutable MessageId          _message_id{};
+    SharedVariableStrongRef<T>          _ref;
+    std::optional<std::string>          _description; // TODO(Variables) Move to Variable?
+    mutable ImGuiNotify::NotificationId _notification_id{};
 
 private:
     friend class ser20::access;

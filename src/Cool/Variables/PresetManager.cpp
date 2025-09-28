@@ -1,7 +1,7 @@
 #include "PresetManager.h"
 #include <Cool/ImGui/ImGuiExtras.h>
-#include <boxer/boxer.h>
 #include <imgui.h>
+#include "Cool/Log/boxer_show.hpp"
 #include "Cool/Variables/PresetManager.h"
 #include "Cool/internal/Serialization/SPresetManager.h"
 
@@ -58,7 +58,7 @@ auto PresetManager::add(Preset preset, bool show_warning_messages) -> PresetId
     {
         if (show_warning_messages)
         {
-            boxer::show(
+            boxer_show(
                 "There is already a preset with the same values.",
                 "Adding failed",
                 boxer::Style::Warning,
@@ -71,7 +71,7 @@ auto PresetManager::add(Preset preset, bool show_warning_messages) -> PresetId
     {
         if (show_warning_messages)
         {
-            boxer::show(
+            boxer_show(
                 "There is already a preset with the same name.",
                 "Adding failed",
                 boxer::Style::Warning,
@@ -106,7 +106,7 @@ void PresetManager::edit(PresetId const& id, Settings const& new_values)
     }
     else
     {
-        boxer::show(
+        boxer_show(
             "There is already a preset with the same values.",
             "Editing failed",
             boxer::Style::Warning,
@@ -132,7 +132,7 @@ void PresetManager::rename(const PresetId& id, std::string_view new_name)
     }
     else if (preset_name(id) != new_name) // Don't warn if we are trying to rename a preset with its current name
     {
-        const auto choice = boxer::show(
+        const auto choice = boxer_show(
             fmt::format("There is already a preset called \"{}\", do you want to overwrite it?", new_name).c_str(),
             "Are you sure?",
             boxer::Style::Warning,
@@ -254,7 +254,7 @@ static void delete_button(const PresetId& id, std::string_view name, PresetManag
 {
     if (ImGui::Button("Delete Preset"))
     {
-        const auto choice = boxer::show(
+        const auto choice = boxer_show(
             fmt::format("You are about to delete \"{}\", are you sure?", name).c_str(),
             "Are you sure?",
             boxer::Style::Warning,
@@ -317,7 +317,7 @@ auto PresetManager::imgui_name_input() -> bool
 
 static auto make_sure_the_user_wants_to_overwrite_the_preset(std::string_view new_preset_name) -> bool
 {
-    return boxer::show(
+    return boxer_show(
                fmt::format("You are about to overwrite \"{}\", are you sure?", new_preset_name).c_str(),
                "Are you sure?",
                boxer::Style::Warning,

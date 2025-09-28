@@ -1,5 +1,6 @@
 #pragma once
 #include <chrono>
+#include "Cool/Serialization/Json.hpp"
 #include "TimeSpeed.h"
 
 namespace Cool {
@@ -47,6 +48,18 @@ private:
         );
     }
 };
+
+inline void to_json(nlohmann::json& json, Time const& time)
+{
+    json_set(json, "Nanoseconds", time.as_nanoseconds_int64_t());
+}
+
+inline void from_json(nlohmann::json const& json, Time& time)
+{
+    int64_t nanoseconds{};
+    json_get(json, "Nanoseconds", nanoseconds);
+    time = Time::nanoseconds(json.at("Nanoseconds"));
+}
 
 struct imgui_drag_time_params {
     bool   show_milliseconds = true;

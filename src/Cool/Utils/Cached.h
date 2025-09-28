@@ -9,31 +9,27 @@ public:
     /// or computes a new one using `compute_value` if `invalidate_cache()` has been called after the previous call to `get_value()`.
     auto get_value(std::function<T()> const& compute_value) -> T const&
     {
-        if (!_is_valid)
-        {
-            _value    = compute_value();
-            _is_valid = true;
-        }
-        return _value;
+        if (!_value.has_value())
+            _value = compute_value();
+        return *_value;
     }
 
     /// Returns the last computed value,
     /// or computes a new one using `compute_value` if `invalidate_cache()` has been called after the previous call to `get_value()`.
     auto get_value(std::function<void(T&)> const& compute_value) -> T const&
     {
-        if (!_is_valid)
+        if (!_value.has_value())
         {
-            compute_value(_value);
-            _is_valid = true;
+            _value.emplace();
+            compute_value(*_value);
         }
-        return _value;
+        return *_value;
     }
 
-    void invalidate_cache() { _is_valid = false; }
+    void invalidate_cache() { _value.reset(); }
 
 private:
-    T    _value{};
-    bool _is_valid{false};
+    std::optional<T> _value{};
 };
 
 } // namespace Cool

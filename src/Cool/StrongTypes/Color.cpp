@@ -1,8 +1,13 @@
 #include "Color.h"
 #include "Cool/ColorSpaces/conversions.h"
-#include "Cool/UserSettings/UserSettings.h"
+#include "Cool/ImGui/ColorThemes.h"
+#include "ImGui_StyleEditor/src/Color.hpp"
 
 namespace Cool {
+
+Color::Color(ImStyleEd::Color const& color)
+    : _srgb{color.r, color.g, color.b}
+{}
 
 auto Color::from_srgb(glm::vec3 const& srgb) -> Color
 {
@@ -47,7 +52,7 @@ auto Color::brighter() const -> Color
 auto get_text_color(Color const& background_color) -> Color
 {
     bool const color_is_bright = background_color.as_Oklab().x > 0.75f;
-    auto const color           = user_settings().color_themes.editor().get_color_from_theme_if_any(color_is_bright ? "Light" : "Dark", "Text");
+    auto const color           = color_themes()->editor().get_color_from_theme_or_default(color_is_bright ? "Light" : "Dark", "Text");
     return Color::from_srgb({color.r, color.g, color.b});
 }
 

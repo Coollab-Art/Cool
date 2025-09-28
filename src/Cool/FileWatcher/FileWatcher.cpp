@@ -18,18 +18,23 @@ static auto time_of_last_change(std::filesystem::path const& path) -> std::optio
     }
 }
 
-FileWatcher::FileWatcher(std::filesystem::path const& path, FileWatcher_Callbacks const& callbacks, FileWatcher_Config config)
+FileWatcher::FileWatcher(std::filesystem::path path, FileWatcher_Callbacks const& callbacks, FileWatcher_Config config)
     : _config{config}
 {
-    set_path(path, callbacks);
+    set_path(std::move(path), callbacks);
 }
 
-void FileWatcher::set_path(std::filesystem::path const& path, FileWatcher_Callbacks const& callbacks)
+void FileWatcher::set_path(std::filesystem::path path, FileWatcher_Callbacks const& callbacks)
 {
-    _path                = path;
-    _time_of_last_change = time_of_last_change(path);
+    _path                = std::move(path);
+    _time_of_last_change = time_of_last_change(_path);
     _time_of_last_check  = clock::now();
     call_appropriate_callback(callbacks);
+}
+
+void FileWatcher::ignore_change_that_we_just_made_to_the_file()
+{
+    _time_of_last_change = time_of_last_change(_path);
 }
 
 void FileWatcher::update(FileWatcher_Callbacks const& callbacks) const

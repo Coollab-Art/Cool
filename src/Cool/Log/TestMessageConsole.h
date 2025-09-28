@@ -1,7 +1,7 @@
 #pragma once
-
-#include <Cool/Log/MessageConsole.h>
-#include "Cool/Log/MessageId.h"
+#include "MessageConsole.h"
+#include "MessageId.h"
+#include "message_console.hpp"
 
 namespace Cool {
 
@@ -9,26 +9,29 @@ class TestMessageConsole {
 public:
     TestMessageConsole();
 
-    void imgui(Cool::MessageConsole& message_console);
+    void imgui();
 
 private:
     struct Message {
-        std::string           category{"Test"};
-        std::string           message{"Hello!"};
-        Cool::MessageSeverity severity{Cool::MessageSeverity::Error};
-        Cool::MessageId       id{};
+        Cool::MessageType type{Cool::MessageType::Error};
+        std::string       title{"Test"};
+        std::string       content{"Hello!"};
+        Cool::MessageId   id{};
 
-        void send_to(Cool::MessageConsole& message_console)
+        void send()
         {
-            message_console.send(id, {
-                                         .category = category,
-                                         .message  = message,
-                                         .severity = severity,
-                                     });
+            message_console().send(
+                id,
+                {
+                    .type    = type,
+                    .title   = title,
+                    .content = content,
+                }
+            );
         }
     };
 
-    void imgui(Message& message, Cool::MessageConsole& message_console);
+    void imgui(Message& message);
 
 private:
     std::vector<Message>     _messages{};

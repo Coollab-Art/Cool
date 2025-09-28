@@ -1,19 +1,28 @@
 #pragma once
 #include <optional>
 #include <string>
+#include <wcam/wcam.hpp>
 #include "Cool/WebGPU/Texture.h"
-#include "Cool/Webcam/WebcamsInfos.h"
+#include "Cool/Serialization/wcam_serialization.h"
 
 namespace Cool {
 
-struct TextureSource_Webcam {
-    std::string webcam_name{Cool::WebcamsInfos::instance().default_webcam_name()}; // NB: most of the time a Source is created too early for this to have any effect (the thread that finds the webcam's names hasn't had time to do its job yet). This is why we have a HACK in TextureLibrary_FromWebcam::imgui_widget_webcam_name to still init with a proper webcam name.
-
+class TextureSource_Webcam {
+public:
     auto               imgui_widget() -> bool;
     [[nodiscard]] auto get_texture() const -> Texture const*;
     [[nodiscard]] auto get_error() const -> std::optional<std::string>;
 
-    friend auto operator==(TextureSource_Webcam const&, TextureSource_Webcam const&) -> bool = default;
+    friend auto operator==(TextureSource_Webcam const& a, TextureSource_Webcam const& b) -> bool
+    {
+        return a._device_id == b._device_id;
+    }
+
+private:
+    void set_device_id(wcam::DeviceId const& id) const;
+
+private:
+    mutable wcam::DeviceId _device_id{};
 
 private:
     // Serialization
@@ -22,7 +31,7 @@ private:
     void serialize(Archive& archive)
     {
         archive(
-            ser20::make_nvp("Webcam Name", webcam_name)
+            ser20::make_nvp("Device ID", _device_id)
         );
     }
 };

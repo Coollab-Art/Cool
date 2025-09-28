@@ -1,9 +1,10 @@
 #include "AudioInput_File.h"
-#include <Cool/ImGui/IcoMoonCodepoints.h>
+#include <optional>
 #include "Audio/Audio.hpp"
+#include "Cool/ImGui/IcoMoonCodepoints.h"
 #include "Cool/ImGui/ImGuiExtras.h"
-#include "Cool/Log/ToUser.h"
 #include "Cool/NfdFileFilter/NfdFileFilter.h"
+#include "ImGuiNotify/ImGuiNotify.hpp"
 
 namespace Cool::internal {
 
@@ -38,11 +39,12 @@ void AudioInput_File::start()
 void AudioInput_File::stop()
 {
     Audio::player().pause(); // Stop the playing of the audio
+    ImGuiNotify::close_immediately(_notification_id);
 }
 
 auto AudioInput_File::does_need_to_highlight_error() const -> bool
 {
-    return Cool::Log::ToUser::console().should_highlight(_error_id);
+    return ImGuiNotify::is_notification_hovered(_notification_id);
 }
 
 static auto imgui_widgets(Audio::PlayerProperties& props) -> bool
@@ -72,7 +74,7 @@ auto AudioInput_File::imgui(bool needs_to_highlight_error) -> bool
     Cool::ImGuiExtras::bring_attention_if(
         needs_to_highlight_error,
         [&]() {
-            if (ImGuiExtras::file("Audio file", &_path, NfdFileFilter::Audio))
+            if (ImGuiExtras::file_opening("Audio file", &_path, NfdFileFilter::Audio))
             {
                 try_load_current_file();
                 b = true;
@@ -87,7 +89,7 @@ void AudioInput_File::try_load_current_file()
 {
     if (_path.empty())
     {
-        Cool::Log::ToUser::console().remove(_error_id);
+        ImGuiNotify::close_immediately(_notification_id);
         Audio::player().reset_audio_data();
         _currently_loaded_path = "";
         return;
@@ -97,16 +99,18 @@ void AudioInput_File::try_load_current_file()
     {
         load_audio_file(Audio::player(), _path);
         _currently_loaded_path = _path;
-        Cool::Log::ToUser::console().remove(_error_id);
+        ImGuiNotify::close_immediately(_notification_id);
     }
     catch (std::exception& e)
     {
-        Cool::Log::ToUser::console().send(
-            _error_id,
-            Message{
-                .category = "Audio",
-                .message  = e.what(),
-                .severity = MessageSeverity::Error,
+        ImGuiNotify::send_or_change(
+            _notification_id,
+            {
+                .type     = ImGuiNotify::Type::Error,
+                .title    = "Audio File",
+                .content  = e.what(),
+                .duration = std::nullopt,
+                .closable = false,
             }
         );
         Audio::player().reset_audio_data();

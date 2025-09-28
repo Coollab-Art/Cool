@@ -6,7 +6,7 @@
 - Go in *Cool/res/shaders/color_conversions.glsl* and add the conversions (from and to) between your new color space and XYZ. (The other conversions with all the color spaces are generated automatically using the XYZ ones. If you want to write one of those functions manually, you can tell the script to ignore it.)
 - Go to *conversions.cpp* in this folder and implement the conversion functions with XYZ. They should match the ones you just wrote in glsl and it should just be a matter of copy-pasting what you did and adjusting the syntax.
 - If you are working on Coollab: go to *src/Module_Nodes/gen_primitive_types.py* and run the script.
-- If you are working on Coollab: edit the website to explain what your color space is and when it makes sense to use it. https://coollibs.github.io/lab/Writing%20Nodes/Color%20Spaces
+- If you are working on Coollab: edit the website to explain what your color space is and when it makes sense to use it. https://coollab-art.com/Tutorials/Writing%20Nodes/Color%20Spaces
 
 ## Alpha spaces, tips ans tricks
 

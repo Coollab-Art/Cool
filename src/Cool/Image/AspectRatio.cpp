@@ -3,7 +3,7 @@
 #include <regex>
 #include <smart/smart.hpp>
 #include <stringify/stringify.hpp>
-#include "Cool/String/String.h"
+#include "Cool/ImGui/ImGuiExtras.h"
 
 namespace Cool {
 
@@ -14,10 +14,10 @@ static auto make_valid_ratio(float ratio) -> float
 
 static auto parse_ratio(std::string const& input) -> float
 {
-    if (input == "A4 Horizontal")
-        return 1.41421356f;
     if (input == "A4 Vertical")
         return 0.70710678f;
+    if (!input.empty() && (input[0] == 'A' || input[0] == 'a')) // "A4 Horizontal"
+        return 1.41421356f;
 
     float value = 1.f;
 
@@ -74,15 +74,16 @@ auto AspectRatio::imgui(float width, const char* label) -> bool
     bool b = false;
 
     static const auto ratios = std::array{
-        std::make_pair("  A4 Horizontal ", std::sqrt(2.f)),
+        // Sorted from biggest to smallest
         std::make_pair("     16 / 9     ", 16.f / 9.f),
         std::make_pair("      3 / 2     ", 3.f / 2.f),
+        std::make_pair("  A4 Horizontal ", std::sqrt(2.f)),
         std::make_pair("      4 / 3     ", 4.f / 3.f),
         std::make_pair("      1 / 1     ", 1.f),
-        std::make_pair("   A4 Vertical  ", 1.f / std::sqrt(2.f)),
-        std::make_pair("      9 / 16    ", 9.f / 16.f),
-        std::make_pair("      2 / 3     ", 2.f / 3.f),
         std::make_pair("      3 / 4     ", 3.f / 4.f),
+        std::make_pair("   A4 Vertical  ", 1.f / std::sqrt(2.f)),
+        std::make_pair("      2 / 3     ", 2.f / 3.f),
+        std::make_pair("      9 / 16    ", 9.f / 16.f),
     };
 
     ImGui::SetNextItemWidth(
@@ -91,7 +92,7 @@ auto AspectRatio::imgui(float width, const char* label) -> bool
             : ImGuiExtras::calc_custom_dropdown_input_width()
     );
 
-    if (ImGui::InputText("##aspect_ratio_input", &_input, ImGuiInputTextFlags_CharsDecimal | ImGuiInputTextFlags_AutoSelectAll, nullptr, nullptr, ImDrawFlags_RoundCornersLeft))
+    if (ImGui::InputText("##aspect_ratio_input", &_input, ImGuiInputTextFlags_AutoSelectAll, nullptr, nullptr, ImDrawFlags_RoundCornersLeft))
     {
         _ratio = parse_ratio(_input);
         b      = true;
@@ -100,6 +101,7 @@ auto AspectRatio::imgui(float width, const char* label) -> bool
     {
         _input = string_from_ratio(_ratio);
     }
+    bool const input_text_is_hovered = ImGui::IsItemHovered();
 
     ImGui::SameLine(0.f, 0.f);
 
@@ -114,6 +116,22 @@ auto AspectRatio::imgui(float width, const char* label) -> bool
             }
         }
         ImGui::EndCombo();
+    }
+
+    if ((input_text_is_hovered || ImGui::IsItemHovered()) && ImGui::GetIO().MouseWheel != 0.f)
+    {
+        bool const find_bigger = ImGui::GetIO().MouseWheel > 0.f;
+        int const  sz          = static_cast<int>(ratios.size());
+        for (int i = find_bigger ? sz - 1 : 0; find_bigger ? (i >= 0) : (i < sz); i += find_bigger ? -1 : 1)
+        {
+            float const ratio = ratios.at(static_cast<size_t>(i)).second;
+            if (find_bigger ? (ratio > _ratio) : (ratio < _ratio))
+            {
+                set(ratio);
+                b = true;
+                break;
+            }
+        }
     }
 
     return b;

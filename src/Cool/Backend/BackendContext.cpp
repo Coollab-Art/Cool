@@ -15,12 +15,11 @@
 #include "Cool/Path/Path.h"
 #include "Cool/WebGPU/WebGPUContext.hpp"
 
-
 namespace Cool {
 
 static void glfw_error_callback(int error, const char* description)
 {
-    Log::Debug::error_without_breakpoint("glfw", fmt::format("Error {}:\n{}", error, description));
+    Log::internal_error("glfw", fmt::format("Error {}: {}", error, description));
 }
 
 #if DEBUG
@@ -50,10 +49,15 @@ static void setup_webgpu_debugging()
 
 static void throw_error(std::string const& error_message)
 {
+    // TODO(WebGPU) this todo below should be done, but make sure the log file is already created so we can properly log. Also, all the Log:: functions should log to cout / cerr in debug mode to help us debugging?
+    // and should we really do Log::internal_error ? If yes, do it with two parts "message" and "err" like in the commented code
+    // NB: i had removed the logging on main branch, because all exceptions are already logged
     // TODO(WebGPU) Log to a file too, so that we can debug when the app is shipped to end customers who don't have a debugger attached
-#if DEBUG
-    std::cerr << error_message << '\n';
-#endif
+    // #if DEBUG
+    //     std::cerr << error_message << '\n';
+    // #endif
+    // Log::internal_error(message, err);
+    // throw std::runtime_error{fmt::format("{}:\n{}", message, err)};
     throw std::runtime_error{error_message};
 }
 
@@ -66,8 +70,8 @@ static void throw_glfw_error(std::string_view message)
 
 static void set_window_icon(GLFWwindow* window)
 {
-#ifdef COOL_APP_ICON_FILE // Don't do anything if no icon has been set
-    auto icon  = img::load(Cool::Path::root() / COOL_APP_ICON_FILE, 4, false);
+#if defined(COOL_APP_ICON_FILE)                                                                // Don't do anything if no icon has been set
+    auto icon  = *img::load(Cool::Path::root() / COOL_APP_ICON_FILE, 4, img::FirstRowIs::Top); // TODO(WebGPU) default icon if we fail to find it? instead of crashing. Or just do nothing?
     auto image = GLFWimage{
         .width  = static_cast<int>(icon.width()),
         .height = static_cast<int>(icon.height()),
@@ -75,7 +79,7 @@ static void set_window_icon(GLFWwindow* window)
     };
     glfwSetWindowIcon(window, 1, &image);
 #else
-    std::ignore = window;
+    std::ignore = window; // Prevent warning
 #endif
 }
 
@@ -111,6 +115,21 @@ static auto to_string(wgpu::ErrorType type) -> const char*
     }
 }
 
+static auto size_in_pixels(WindowSize size, int screen_size) -> int
+{
+    return std::visit(
+        Cool::overloaded{
+            [&](SizeProportionalToScreen sz) {
+                return static_cast<int>(static_cast<float>(screen_size) * sz.proportion);
+            },
+            [&](SizeInPixels sz) {
+                return sz.pixels;
+            }
+        },
+        size
+    );
+}
+
 BackendContext::BackendContext(WindowConfig const& config)
 {
     // WebGPU
@@ -124,12 +143,19 @@ BackendContext::BackendContext(WindowConfig const& config)
         throw_glfw_error("GLFW initialization failed");
 
     // GLFW window
-    glfwWindowHint(GLFW_AUTO_ICONIFY, config.auto_iconify);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    _window = Window{glfwCreateWindow(config.initial_width, config.initial_height, config.title, nullptr, nullptr)};
-    if (!window().glfw())
-        throw_glfw_error("Window creation failed");
+    {
+        GLFWvidmode const* const video_mode    = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        int const                window_width  = size_in_pixels(config.initial_width, video_mode->width);
+        int const                window_height = size_in_pixels(config.initial_height, video_mode->height);
 
+        _window = Window{glfwCreateWindow(window_width, window_height, config.title.c_str(), nullptr, nullptr)};
+        if (!window().glfw())
+            throw_glfw_error("Updating your graphics card drivers might solve the issue.\n\nWindow creation failed"); // TODO(WebGPU) check how this error looks (and tell about antivirus? only on windows/linux? and add a todo to tell to remove this once we sign exe on windows)
+
+        // Center the window
+        glfwSetWindowPos(_window.glfw(), (video_mode->width - window_width) / 2, (video_mode->height - window_height) / 2);
+    }
     set_window_icon(window().glfw());
     apply_config(config, _window);
 

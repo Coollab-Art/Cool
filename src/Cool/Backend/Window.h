@@ -7,13 +7,14 @@ class Window { // TODO(WebGPU) Make it a singleton, because we can't have two wi
 public:
     explicit Window(GLFWwindow* glfw_window = nullptr);
 
-    /// You have to forward the parameters of the glfw key callback and it will turn fullscreen on / off appropriately.
+    /// You have to forward the parameters of the glfw key callback and it will turn fullscreen on / off appropriately
     /// Returns true iff something has changed
     auto check_for_fullscreen_toggles(int key, int scancode, int action, int mods) -> bool;
     void toggle_fullscreen();
     void set_fullscreen(bool is_fullscreen);
     void escape_fullscreen();
     void turn_on_fullscreen();
+    void close();
 
     [[nodiscard]] auto is_visible() const -> bool { return _is_visible; }
     void               set_visibility(bool is_visible);
@@ -25,22 +26,20 @@ public:
     [[nodiscard]] auto framerate_is_capped() const -> bool;
 
     /// Returns the underlying glfw window pointer
-    [[nodiscard]] auto glfw() const -> GLFWwindow* { return _glfw_window; }
+    [[nodiscard]] auto glfw() const -> GLFWwindow* { return *_glfw_window; }
 
     /// Returns the monitor that the window is in
-    /// (If it is over multiple monitors, returns the one which contains most of the window)
+    /// if it is over multiple monitors, returns the one which contains most of the window)
     [[nodiscard]] auto current_monitor() const -> GLFWmonitor*;
 
 private:
-    GLFWwindow* _glfw_window;
-    bool        _is_fullscreen{false};
-    bool        _is_visible{true};
-    int         _pos_x_before_fullscreen{};
-    int         _pos_y_before_fullscreen{};
-    int         _width_before_fullscreen{};
-    int         _height_before_fullscreen{};
+    UniqueGlfwWindow _glfw_window;
+    bool             _is_fullscreen{false};
+    bool             _is_visible{true};
+    int              _pos_x_before_fullscreen{};
+    int              _pos_y_before_fullscreen{};
+    int              _width_before_fullscreen{};
+    int              _height_before_fullscreen{};
 };
-
-auto window() -> Window&;
 
 } // namespace Cool
