@@ -911,6 +911,7 @@ auto input_text_with_dropdown(const char* label, std::string* value, std::functi
     return b;
 }
 
+// TODO deprecate and remove this one (it doesn't support scrolling)
 auto dropdown(const char* label, std::string* value, std::function<void(std::function<void(std::string const&)>)> const& for_each_dropdown_entry) -> bool
 {
     bool b = false;

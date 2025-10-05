@@ -3,6 +3,7 @@
 #include "Cool/ImGui/IcoMoonCodepoints.h"
 #include "Cool/ImGui/ImGuiExtras.h"
 #include "Cool/ImGui/ImGuiExtrasStyle.h"
+#include "Cool/ImGui/ImGuiExtras_dropdown.hpp"
 #include "Cool/ImGui/icon_fmt.h"
 #include "Cool/StrongTypes/Color.h"
 #include "NodesConfig.h"
@@ -41,44 +42,62 @@ FrameNode::FrameNode()
 
 } // namespace internal
 
-static auto imgui_all_definitions_selectables(NodeId const& node_id, Node& node, NodesCategory const& category, NodesConfig& nodes_cfg)
-    -> bool
-{
-    bool graph_has_changed = false;
-
-    for (auto const& def : category.definitions())
-    {
-        ImGui::PushID(&def);
-        bool const is_selected = def.name() == node.definition_name();
-        if (ImGui::Selectable(def.name().c_str(), is_selected))
-        {
-            nodes_cfg.change_node_definition(node_id, node, def);
-            graph_has_changed = true;
-        }
-        if (is_selected) // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-            ImGui::SetItemDefaultFocus();
-        ImGui::PopID();
-    }
-
-    return graph_has_changed;
-}
-
-// static auto dropdown_to_switch_between_nodes_of_the_same_category(NodeId const& node_id, Cool::Node& node, NodesConfig& nodes_cfg, NodesLibrary const& library) -> bool
+// static auto imgui_all_definitions_selectables(NodeId const& node_id, Node& node, NodesCategory const& category, NodesConfig& nodes_cfg)
+//     -> bool
 // {
-//     auto const* category = library.get_category(node.category_name());
-//     if (!category)
-//         return false;
-
 //     bool graph_has_changed = false;
 
-//     if (ImGui::BeginCombo(category->name().c_str(), node.definition_name().c_str()))
+//     for (auto const& def : category.definitions())
 //     {
-//         graph_has_changed |= imgui_all_definitions_selectables(node_id, node, *category, nodes_cfg);
-//         ImGui::EndCombo();
+//         ImGui::PushID(&def);
+//         bool const is_selected = def.name() == node.definition_name();
+//         if (ImGui::Selectable(def.name().c_str(), is_selected))
+//         {
+//             nodes_cfg.change_node_definition(node_id, node, def);
+//             graph_has_changed = true;
+//         }
+//         if (is_selected) // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+//             ImGui::SetItemDefaultFocus();
+//         ImGui::PopID();
 //     }
 
 //     return graph_has_changed;
 // }
+
+static auto dropdown_to_switch_between_nodes_of_the_same_category(NodeId const& node_id, Cool::Node& node, NodesConfig& nodes_cfg, NodesLibrary const& library) -> bool
+{
+    auto const* category = library.get_category(node.category_name());
+    if (!category)
+        return false;
+
+    struct DropdownEntry {
+        NodeDefinition const* entry_definition;
+        NodeId const*         node_id;
+        Node*                 node;
+        NodesConfig*          nodes_cfg;
+
+        auto is_selected() const -> bool
+        {
+            return node->definition_name() == entry_definition->name();
+        }
+
+        auto get_label() const -> std::string
+        {
+            return entry_definition->name();
+        }
+
+        void apply_value() const
+        {
+            nodes_cfg->change_node_definition(*node_id, *node, *entry_definition);
+        }
+    };
+
+    auto entries = std::vector<DropdownEntry>{};
+    for (auto const& def : category->definitions())
+        entries.push_back({&def, &node_id, &node, &nodes_cfg});
+
+    return ImGuiExtras::dropdown("", node.definition_name().c_str(), entries);
+}
 
 [[nodiscard]] static auto is_listening_to_keyboard_shortcuts() -> bool
 {
@@ -113,8 +132,7 @@ static auto imgui_all_definitions_selectables(NodeId const& node_id, Node& node,
 {
     return (is_listening_to_keyboard_shortcuts()
             && (ImGui::IsKeyChordPressed(ImGuiKey_Delete)
-                || ImGui::IsKeyChordPressed(ImGuiKey_Backspace)
-            ))
+                || ImGui::IsKeyChordPressed(ImGuiKey_Backspace)))
            || wants_to_cut();
 }
 
@@ -122,8 +140,7 @@ auto NodesEditorImpl::wants_to_open_nodes_menu() const -> bool
 {
     return _workspace_is_hovered
            && (ed::ShowBackgroundContextMenu()
-               || (ImGui::IsKeyChordPressed(ImGuiKey_A) && !ImGui::GetIO().WantTextInput)
-           );
+               || (ImGui::IsKeyChordPressed(ImGuiKey_A) && !ImGui::GetIO().WantTextInput));
 }
 
 void NodesEditorImpl::open_nodes_menu()
@@ -179,16 +196,17 @@ static auto get_selected_links_ids() -> std::vector<ed::LinkId>
     return links;
 }
 
-static auto imgui_node_in_inspector(Node& node, NodeId const& id, NodesConfig& nodes_cfg, NodesLibrary const& /* library */)
+static auto imgui_node_in_inspector(Node& node, NodeId const& id, NodesConfig& nodes_cfg, NodesLibrary const& library)
     -> bool
 {
     ImGui::PushID(&node);
-    ImGuiExtras::separator_text(node.definition_name());
+    // ImGuiExtras::separator_text(node.definition_name());
     nodes_cfg.imgui_in_inspector_above_node_info(node, id);
-    // bool const graph_has_changed = dropdown_to_switch_between_nodes_of_the_same_category(id, node, nodes_cfg, library);
+    bool const graph_has_changed = dropdown_to_switch_between_nodes_of_the_same_category(id, node, nodes_cfg, library);
+    ImGui::NewLine();
     nodes_cfg.imgui_in_inspector_below_node_info(node, id);
     ImGui::PopID();
-    return false /* graph_has_changed */;
+    return graph_has_changed;
 }
 
 static void imgui_rename_node(std::string& node_name)
@@ -809,9 +827,9 @@ auto NodesEditorImpl::imgui_workspace(NodesConfig& nodes_cfg, NodesLibrary const
         {
             imgui_rename_node(node->name_ref());
             nodes_cfg.node_context_menu(*node, id);
-            auto const* category = library.get_category(node->category_name());
-            if (category)
-                graph_has_changed |= imgui_all_definitions_selectables(id, *node, *category, nodes_cfg);
+            // auto const* category = library.get_category(node->category_name());
+            // if (category)
+            //     graph_has_changed |= imgui_all_definitions_selectables(id, *node, *category, nodes_cfg);
         }
         else // Frame node
         {
