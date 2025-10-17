@@ -15,7 +15,7 @@
 
 namespace Cool {
 
-static const auto image_extensions = std::array<const char*, 2>{".png", ".jpeg"};
+static const auto image_extensions = std::array<const char*, 2>{".png", ".jpg"};
 
 auto ExporterGui::folder_path_for_video() -> std::filesystem::path&
 {

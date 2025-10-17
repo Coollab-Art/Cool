@@ -4,7 +4,7 @@
 
 namespace Cool::ImageU {
 
-/// Saves an image, with the format specified in the extension of the file_path (.png, .jpeg, ...)
+/// Saves an image, with the format specified in the extension of the file_path (.png, .jpg, ...)
 /// Returns an unexpected if there was an error
 /// @param file_path The destination path for the image: something like "out/myImage.png". The folders will be created if they don't already exist.
 [[nodiscard]] auto save(
@@ -13,7 +13,7 @@ namespace Cool::ImageU {
     stbiw_SaveOptions const&     options = {}
 ) -> tl::expected<void, std::string>;
 
-/// Saves an image, with the format specified in the extension of the file_path (.png, .jpeg, ...)
+/// Saves an image, with the format specified in the extension of the file_path (.png, .jpg, ...)
 /// Returns an unexpected if there was an error
 /// @param file_path The destination path for the image: something like "out/myImage.png". The folders will be created if they don't already exist.
 /// @param width The width in pixels of the image represented by data.

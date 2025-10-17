@@ -33,7 +33,7 @@ auto save(
     else if (extension == ".jpg" || extension == ".jpeg" || extension == ".JPG" || extension == ".JPEG")
         success = img::save_jpeg(file_path, width, height, data, channels_count, row_order, options);
     else
-        return tl::make_unexpected(fmt::format("Unsupported format \"{}\"\nPlease use \".png\" or \".jpeg\"", extension));
+        return tl::make_unexpected(fmt::format("Unsupported format \"{}\"\nPlease use \".png\" or \".jpg\"", extension));
 
     if (!success)
     {
