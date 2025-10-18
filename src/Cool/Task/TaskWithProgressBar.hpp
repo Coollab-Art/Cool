@@ -15,9 +15,9 @@ protected:
     auto         notification_while_in_progress() const -> ImGuiNotify::Notification; /// Can't be overriden, but you can override extra_imgui_below_progress_bar() to customize it
     virtual auto notification_after_execution_completes() const -> ImGuiNotify::Notification;
 
-    virtual auto extra_imgui_below_progress_bar() const -> std::function<void()> // This function should capture everything by copy, it will live as long as the notification
+    virtual auto extra_imgui_below_progress_bar() const -> std::function<void(ImGuiNotify::NotificationId const&)> // This function should capture everything by copy, it will live as long as the notification
     {
-        return []() {};
+        return [](ImGuiNotify::NotificationId const&) {};
     }
 
     void on_submit() override;
