@@ -316,7 +316,7 @@ void MidiManager::imgui_window()
 void MidiManager::imgui_visualize_channels()
 {
     ImGui::PushFont(Font::italic());
-    ImGuiExtras::markdown("*Use your knob / fader / button and you will see the value changing in the histograms below. You can then hover it to see the index that you need to specify to select a MIDI channel. NOTE: if you want to use a Button, don't forget to change the Channel Kind on the MIDI input!*");
+    ImGuiExtras::markdown("*Use your knob / fader / button and you will see the value changing in the histograms below. You can then hover it to see the index that you need to specify to select a MIDI channel.\nNOTE: if you want to use a Button, don't forget to change the Channel Kind on the MIDI node!*\n[Check out the tutorial for more details](https://coollab-art.com/Tutorials/VJ/MIDI)");
     ImGui::PopFont();
 
     for (int k = 0; k < static_cast<int>(MidiChannelKind::COUNT); ++k)
