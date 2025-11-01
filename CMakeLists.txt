@@ -330,6 +330,10 @@ add_subdirectory(lib/ImGuiNotify)
 target_include_directories(ImGuiNotify SYSTEM PRIVATE lib/imgui)
 target_link_libraries(Cool-PublicProperties INTERFACE ImGuiNotify::ImGuiNotify)
 
+# clay
+add_subdirectory(lib/clay)
+target_link_libraries(Cool-PublicProperties INTERFACE clay::clay)
+
 # no-sleep
 add_subdirectory(lib/no-sleep)
 target_link_libraries(Cool-PublicProperties INTERFACE no_sleep::no_sleep)
