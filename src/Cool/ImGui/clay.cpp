@@ -93,6 +93,64 @@ static auto clay_manager() -> ClayManager&
 // TODO(Clay)
 // add a way to toggle Clay_SetDebugModeEnabled
 
+auto const node_width   = 100;
+auto const node_spacing = 30;
+
+struct Category {
+    std::string name;
+};
+
+struct Tab {
+    std::string           name;
+    std::vector<Category> category;
+};
+
+auto const tabs = std::vector<Tab>{
+    {"2D", {}},
+    {"3D", {}},
+    {"Particles", {}},
+    {"Advanced", {}},
+};
+
+size_t selectedTabIndex = 0;
+
+void node()
+{
+    CLAY(
+        CLAY_ID("Child"), // TODO(Clay) id for each node
+        {
+            .layout = {
+                .sizing = {CLAY_SIZING_FIXED(node_width), CLAY_SIZING_FIXED(node_width)},
+            },
+            .backgroundColor = {255, 255, 255, 255},
+        },
+    ){};
+}
+
+void tab(size_t index, Clay_String name)
+{
+    CLAY(
+        CLAY_SID(name),
+        Clay_ElementDeclaration{
+            .layout = {
+                .sizing  = {CLAY_SIZING_GROW(), CLAY_SIZING_FIT()},
+                .padding = clay_padding({5, 5}),
+            },
+            .backgroundColor = index == selectedTabIndex ? Clay_Color{200, 0, 0, 255} : Clay_Color{255, 0, 0, 255},
+        }
+    )
+    {
+        CLAY_TEXT(
+            name,
+            CLAY_TEXT_CONFIG(
+                {
+                    .textColor = {0, 0, 0, 255},
+                },
+            )
+        );
+    }
+}
+
 void imgui_window_test_clay()
 {
     clay_manager(); // Make sure it's init
@@ -114,32 +172,63 @@ void imgui_window_test_clay()
             CLAY_ID("Container"),
             {
                 .layout = {
-                    .sizing   = {CLAY_SIZING_GROW(), CLAY_SIZING_GROW()},
-                    .padding  = clay_padding(padding),
-                    .childGap = 20,
+                    .sizing = {CLAY_SIZING_GROW(), CLAY_SIZING_GROW()},
                 },
+                .backgroundColor = {255, 0, 0, 255},
             },
         )
         {
-            for (size_t i = 0; i < 10; ++i)
-            {
-                CLAY(
-                    CLAY_ID("Child"),
-                    {
-                        .layout = {
-                            .sizing = {CLAY_SIZING_FIXED(100), CLAY_SIZING_FIXED(100)},
+            CLAY(
+                CLAY_ID("Left Panel"),
+                Clay_ElementDeclaration{
+                    .layout = {
+                        .sizing = {
+                            .width  = CLAY_SIZING_FIT(),
+                            .height = CLAY_SIZING_GROW(),
                         },
-                        .backgroundColor = {255, 255, 255, 255},
+                        .layoutDirection = CLAY_TOP_TO_BOTTOM,
                     },
-                ){};
+                    .backgroundColor = {0, 255, 0, 255},
+                },
+            )
+            {
+                for (size_t i = 0; i < tabs.size(); ++i)
+                {
+                    tab(i, Clay_String{
+                               .isStaticallyAllocated = false,
+                               .length                = static_cast<int32_t>(tabs[i].name.size()),
+                               .chars                 = tabs[i].name.c_str(),
+                           });
+                }
             }
-            CLAY_TEXT(
-                CLAY_STRING("HELLO WORLD this is a very long text and i am sure it will overflow at some point which is funny no ? i think so but i don't like utf-8 so I don't like text"),
-                CLAY_TEXT_CONFIG({
-                    .textColor = {255, 255, 255, 255},
-                    .fontSize  = 24,
-                })
-            );
+            CLAY(
+                CLAY_ID("Right Panel"),
+                {
+                    .layout = {
+                        .sizing = {
+                            .width  = CLAY_SIZING_GROW(),
+                            .height = CLAY_SIZING_GROW(),
+                        },
+                        .padding  = clay_padding({20, 20}),
+                        .childGap = 20,
+                    },
+                    .backgroundColor = {0, 0, 255, 255},
+                },
+            )
+            {
+                auto const N = 50;
+                // auto const nb_cols =
+                for (size_t i = 0; i < N; ++i)
+                    node();
+            }
+
+            // CLAY_TEXT(
+            //     CLAY_STRING("HELLO WORLD this is a very long text and i am sure it will overflow at some point which is funny no ? i think so but i don't like utf-8 so I don't like text"),
+            //     CLAY_TEXT_CONFIG({
+            //         .textColor = {255, 255, 255, 255},
+            //         .fontSize  = 24,
+            //     })
+            // );
         }
 
         // All clay layouts are declared between Clay_BeginLayout and Clay_EndLayout
