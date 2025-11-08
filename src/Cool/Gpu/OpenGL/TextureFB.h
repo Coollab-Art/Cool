@@ -1,5 +1,6 @@
 #pragma once
 #if defined(COOL_OPENGL)
+#include "../TextureFormat.hpp"
 #include "FrameBuffer.h"
 #include "glpp/glpp.hpp"
 
@@ -7,7 +8,9 @@ namespace Cool {
 
 class TextureFB : public FrameBuffer {
 public:
-    TextureFB() = default;
+    explicit TextureFB(TextureFormat format)
+        : _format{format}
+    {}
 
     void   attachTextureToSlot(unsigned int slot) const;
     GLuint textureID() const { return m_colorTextureId->id(); }
@@ -19,6 +22,7 @@ private:
 
 private:
     std::optional<glpp::UniqueTexture2D> m_colorTextureId{};
+    TextureFormat                        _format;
 };
 
 } // namespace Cool

@@ -4,7 +4,8 @@
 
 namespace Cool {
 
-RenderTarget_ImplOpenGL::RenderTarget_ImplOpenGL(img::Size size)
+RenderTarget_ImplOpenGL::RenderTarget_ImplOpenGL(TextureFormat format, img::Size size)
+    : _texture_fb{format}
 {
     resize(size);
 }

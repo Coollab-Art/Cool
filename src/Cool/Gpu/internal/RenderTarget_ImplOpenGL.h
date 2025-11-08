@@ -4,13 +4,14 @@
 #include "../OpenGL/Texture.h"
 #include "../OpenGL/TextureFB.h"
 #include "../RenderTargetInfo.h"
+#include "../TextureFormat.hpp"
 
 namespace Cool {
 
 class RenderTarget_ImplOpenGL {
 public:
     using RenderFuncType = std::function<void()>;
-    RenderTarget_ImplOpenGL(img::Size size = {});
+    RenderTarget_ImplOpenGL(TextureFormat format, img::Size size = {});
     void render(RenderFuncType render_fn);
 
     RenderTargetInfo    info() const;

@@ -5,6 +5,11 @@ namespace Cool {
 
 class DoubleBufferedRenderTarget {
 public:
+    explicit DoubleBufferedRenderTarget(TextureFormat format)
+        : _rt1{format}
+        , _rt2{format}
+    {}
+
     auto read_target() const -> Cool::RenderTarget const&;
     auto write_target() -> Cool::RenderTarget&;
 
@@ -17,8 +22,8 @@ private:
     auto read_target() -> Cool::RenderTarget&;
 
 private:
-    Cool::RenderTarget _rt1{};
-    Cool::RenderTarget _rt2{};
+    Cool::RenderTarget _rt1;
+    Cool::RenderTarget _rt2;
     bool               _rt1_is_read{};
 };
 

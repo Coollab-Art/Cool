@@ -7,7 +7,7 @@ namespace Cool {
 
 auto TextureRef::download_pixels() const -> img::Image
 {
-    static auto rt = RenderTarget{};
+    static auto rt = RenderTarget{TextureFormat{.num_components = 4, .type = PixelType::UInt8}};
     rt.set_size(size);
     std::unique_ptr<uint8_t[]> data{new uint8_t[4 * width() * height()]};
     rt.render([&]() {
