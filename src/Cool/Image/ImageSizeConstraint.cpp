@@ -25,8 +25,8 @@ auto ImageSizeConstraint::applied_to(img::Size frame_size) const -> img::Size
 auto ImageSizeConstraint::imgui_aspect_ratio() -> bool // NOLINT(*make-member-function-const)
 {
     bool b = false;
-    b |= ImGuiExtras::toggle("Fill the View", &_shared_aspect_ratio->fill_the_view);
-    ImGuiExtras::disabled_if(_shared_aspect_ratio->fill_the_view, "Unselect \"Fill the View\" above if you want to control the aspect ratio manually", [&]() {
+    b |= ImGuiExtras::toggle("Auto", &_shared_aspect_ratio->fill_the_view);
+    ImGuiExtras::disabled_if(_shared_aspect_ratio->fill_the_view, "Unselect \"Auto\" above if you want to control the aspect ratio manually", [&]() {
         b |= _shared_aspect_ratio->aspect_ratio.imgui();
     });
     return b;
