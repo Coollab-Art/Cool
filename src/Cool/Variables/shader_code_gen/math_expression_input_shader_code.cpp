@@ -11,7 +11,7 @@ auto math_expression_input_shader_code(Cool::MathExpression const& value, std::s
 float {name}(float x)
 {{
     return {expression};
-}};
+}}
             )STR"
         ),
         "expression"_a = value.expression,
