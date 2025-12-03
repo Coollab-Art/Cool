@@ -14,6 +14,7 @@
 
 namespace Cool {
 
+// TODO(Task) make a get_async that starts a task, and returns nullptr while the task isn't finished
 auto TextureLibrary_Image::get(std::filesystem::path const& path, std::chrono::milliseconds time_to_live) -> Texture const*
 {
     auto const it = _textures.find(path);

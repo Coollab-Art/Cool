@@ -15,6 +15,10 @@ auto NodesFolderWatcher::update(
     std::function<NodesCategoryConfig(std::filesystem::path const&)> const& make_category_config
 ) -> bool
 {
+    // TODO do update with a task to avoid lag spikes (NB : this would be a good candidate to check if turning tasks into coroutines makes them slower)
+    // TODO make a TaskInspector where we can see the name of all the running tasks (and how long they have been running for etc.)
+    // TODO checking folders could be an infinite task, a corountinne that does a while true, and then a for on each file in the directory
+    // NB: if we split this into many small tasks we can run them on all the threads if they have nothing else to do (but its hard to split a for in bit size tasks, and also we don't really need that extra performance gain)
     bool       has_changed                      = false;
     auto const clear_errors_and_check_extension = [&](std::filesystem::path const& path) {
         if (path.extension() != _extension)

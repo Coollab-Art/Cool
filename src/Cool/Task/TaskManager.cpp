@@ -42,6 +42,12 @@ void TaskManager::cancel_task_that_is_waiting(Task& task)
     task.cleanup(true /*has_been_canceled*/);
 }
 
+auto TaskManager::is_saturated() const -> bool
+{
+    std::shared_lock lock{_tasks_to_process_mutex};
+    return !_tasks_to_process.empty();
+}
+
 void TaskManager::thread_update_loop()
 {
     while (true)

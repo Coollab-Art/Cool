@@ -27,6 +27,8 @@ public:
 
     void imgui_show_debug_tasks_list();
 
+    auto is_saturated() const -> bool;
+
 private:
     friend class AppManager;
     void update_on_main_thread();

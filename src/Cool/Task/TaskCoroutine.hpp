@@ -55,8 +55,24 @@ private:
     Handle _handle;
 };
 
+using TaskCoroutine = std::coroutine_handle<promise_type>;
+
+// et les deux méthodes je peux juste les appeler raw sur la handle dans le TaskManager, et comme ça je peux schedule + facilement la handle ? Modulo j'ai encore la tâche associée à trouver
+
 struct SuspendTask {
-    auto operator co_await() -> std::suspend_always { return {}; } // TODO(Task) Only suspend if there are other tasks in the TaskManager queue that are waiting to be processed?
+    // auto operator co_await() -> std::suspend_always { return {}; } // TODO(Task) Only suspend if there are other tasks in the TaskManager queue that are waiting to be processed?
+
+    // Do we really need to suspend?
+    auto await_ready() const noexcept -> bool;
+
+    // Schedule the coroutine, or destroy it
+    constexpr void await_suspend(std::coroutine_handle<>) const noexcept {}
+
+    constexpr void await_resume() const noexcept {}
+};
+
+struct SuspendFor {
+    auto await_ready() const noexcept -> bool { return false; }
 };
 
 } // namespace Cool
