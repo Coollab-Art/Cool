@@ -87,7 +87,7 @@ private:
         return nullptr;
     }
 
-private:
+public:
     mutable std::vector<NodesCategory> _categories;
 };
 
