@@ -7,7 +7,7 @@ namespace Cool {
 
 static auto get_category_name(std::filesystem::path const& path, std::filesystem::path const& root) -> std::string
 {
-    std::string category_name = File::without_file_name(Cool::File::relative(path, root)).string();
+    std::string category_name = File::without_file_name(Cool::File::relative(path, root)).string(); // TODO mntnt il y a deux dossiers
     auto const  pos           = category_name.find_first_not_of("0123456789");
     if (pos != std::string::npos)
     {

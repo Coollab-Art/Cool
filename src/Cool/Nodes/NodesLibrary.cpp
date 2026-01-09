@@ -1,5 +1,8 @@
 #include "NodesLibrary.h"
 #include <Cool/String/String.h>
+#include <imgui.h>
+#include <charconv>
+#include <string>
 #include <wafl/wafl.hpp>
 #include "Cool/ImGui/ImGuiExtras.h"
 
@@ -36,53 +39,115 @@ auto NodesLibrary::get_category(std::string const& category_name) -> NodesCatego
 
 auto NodesLibrary::imgui_nodes_menu(std::string const& nodes_filter, MaybeDisableNodeDefinition const& maybe_disable, bool select_first, bool open_all_categories, bool menu_just_opened) const -> std::optional<NodeDefinitionAndCategoryName>
 {
-    for (auto& category : _categories)
+    // TODO :
+    // for(group  : groups){}
+    // beginColumn
+    // for (auto& category : group.categories)
+
+    size_t i = 0;
+
+    std::string strb = "b" + std::to_string(i);
+    const char *b = strb.c_str();
+    std::string strc = "c" + std::to_string(i);
+    const char *c = strc.c_str();
+    if (ImGui::BeginTable("columns_table", 4))
     {
-        ImGui::PushID(&category);
-        auto const pop_automatically = sg::make_scope_guard([]() { ImGui::PopID(); });
+        auto const end_columns_table_automatically = sg::make_scope_guard([]() { ImGui::EndTable(); });
 
-        bool is_open    = false;
-        bool is_visible = true;
-        if (!nodes_filter.empty())
+        ImGui::TableSetupColumn("column1",ImGuiTableColumnFlags_WidthFixed, 370.0f);
+        ImGui::TableSetupColumn("column2",ImGuiTableColumnFlags_WidthFixed, 370.0f);
+        ImGui::TableSetupColumn("column3",ImGuiTableColumnFlags_WidthFixed, 370.0f);
+        ImGui::TableSetupColumn("column4",ImGuiTableColumnFlags_WidthFixed, 370.0f);
+        ImGui::TableNextRow();
+        for (int column = 0; column < 4; column++)
         {
-            is_visible = false;
-            for (NodeDefinition const& def : category.definitions())
+            ImGui::TableSetColumnIndex(column);
+            if (ImGui::BeginTable("families_table", 1))
             {
-                if (internal::name_matches_filter(def.name(), nodes_filter))
+                auto const end_families_table_automatically = sg::make_scope_guard([]() { ImGui::EndTable(); });
+
+                ImGui::TableSetupColumn(b,ImGuiTableColumnFlags_WidthFixed, 360.0f);
+                for (int family_row = 0; family_row < 4; family_row++)
                 {
-                    is_open    = true;
-                    is_visible = true;
+                    ImGui::TableNextRow();
+                    
+                    for (int family_col = 0; family_col < 1; family_col++)
+                    {
+                        ImGui::TableSetColumnIndex(family_col);
+                        if (ImGui::BeginTable("categories_table", 1))
+                        {
+                            auto const end_categories_table_automatically = sg::make_scope_guard([]() { ImGui::EndTable(); });
+
+                            ImGui::TableSetupColumn(c,ImGuiTableColumnFlags_WidthFixed, 380.0f);
+                            for (int category_row = 0; category_row < 4; category_row++)
+                            {
+                                ImGui::TableNextRow();
+                                
+                                //////// Category display /////////
+                                for (int category_col = 0; category_col < 1; category_col++)
+                                {
+                                    ImGui::TableSetColumnIndex(category_col);
+
+                                    if(i < _categories.size()){
+                                        auto category =_categories[i];
+
+                                        ImGui::PushID(&category);
+                                        auto const pop_automatically = sg::make_scope_guard([]() { ImGui::PopID(); });
+
+                                        bool is_open    = false;
+                                        bool is_visible = true;
+                                        if (!nodes_filter.empty())
+                                        {
+                                            is_visible = false;
+                                            for (NodeDefinition const& def : category.definitions())
+                                            {
+                                                if (internal::name_matches_filter(def.name(), nodes_filter))
+                                                {
+                                                    is_open    = true;
+                                                    is_visible = true;
+                                                }
+                                            }
+                                        }
+
+                                        if (!is_visible)
+                                            continue;
+
+                                        if (open_all_categories || menu_just_opened)
+                                            ImGui::SetNextItemOpen(is_open);
+
+                                        ImGui::PushID(13452);
+                                        bool const collapsing_header_open = ImGuiExtras::colored_collapsing_header(category.name(), category.config().color());
+                                        ImGui::PopID();
+
+                                        category.config().imgui_popup();
+
+                                        if (collapsing_header_open)
+                                        {
+                                            for (NodeDefinition const& def : category.definitions())
+                                            {
+                                                if (!internal::name_matches_filter(def.name(), nodes_filter))
+                                                    continue;
+
+                                                auto selected_definition = std::optional<NodeDefinitionAndCategoryName>{};
+                                                Cool::ImGuiExtras::disabled_if(maybe_disable(def, category), [&]() {
+                                                    if (select_first || ImGui::Selectable(def.name().c_str(), false, ImGuiSelectableFlags_SpanAllColumns /* HACK to work around a bug in ImGui (https://github.com/ocornut/imgui/issues/8203)*/))
+                                                        selected_definition = NodeDefinitionAndCategoryName{def, category.name()};
+                                                });
+
+                                                if (selected_definition.has_value())
+                                                    return selected_definition;
+                                            }
+                                        }
+
+                                        ////// End Category display //////
+
+                                        i++;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
-            }
-        }
-
-        if (!is_visible)
-            continue;
-
-        if (open_all_categories || menu_just_opened)
-            ImGui::SetNextItemOpen(is_open);
-
-        ImGui::PushID(13452);
-        bool const collapsing_header_open = ImGuiExtras::colored_collapsing_header(category.name(), category.config().color());
-        ImGui::PopID();
-
-        category.config().imgui_popup();
-
-        if (collapsing_header_open)
-        {
-            for (NodeDefinition const& def : category.definitions())
-            {
-                if (!internal::name_matches_filter(def.name(), nodes_filter))
-                    continue;
-
-                auto selected_definition = std::optional<NodeDefinitionAndCategoryName>{};
-                Cool::ImGuiExtras::disabled_if(maybe_disable(def, category), [&]() {
-                    if (select_first || ImGui::Selectable(def.name().c_str(), false, ImGuiSelectableFlags_SpanAllColumns /* HACK to work around a bug in ImGui (https://github.com/ocornut/imgui/issues/8203)*/))
-                        selected_definition = NodeDefinitionAndCategoryName{def, category.name()};
-                });
-
-                if (selected_definition.has_value())
-                    return selected_definition;
             }
         }
     }
@@ -96,6 +161,7 @@ void NodesLibrary::add_definition(
 )
 {
     // Add definition to the corresponding category if it exists
+    // TODO parcourir les familles
     for (auto& category : _categories)
     {
         if (category.name() != category_name)
