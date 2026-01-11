@@ -16,6 +16,7 @@ auto imgui_widget(std::string_view name, Cool::Gradient& gradient, bool should_u
     auto modified = gradient.value.widget(
         name.data(),
         {
+            .gradient_subdivisions                       = 1,
             .flags                                       = ImGG::Flag::NoResetButton,
             .color_edit_flags                            = flags,
             .should_use_a_random_color_for_the_new_marks = should_use_a_random_color_for_the_new_marks,
