@@ -5,38 +5,41 @@
  * -----------------------------------------------------------------------------
  */
 
-#include <Cool/Variables/Variable.h>
-#include <Cool/Variables/internal/BoundsMetadata.h>
+            
+            #include <Cool/Variables/Variable.h>
+            #include <Cool/Variables/internal/BoundsMetadata.h>
 
-namespace Cool {
+            namespace Cool {
 
-template<>
-struct VariableMetadata<int> {
-    internal::BoundsMetadata<int> bounds{
-        .min            = 0,
-        .max            = 12,
-        .has_min_bound  = false,
-        .has_max_bound  = false,
-        .drag_speed     = 0.02f,
-        .use_slider     = false,
-        .is_logarithmic = false,
-    };
+            template<>
+            struct VariableMetadata<int> {
+                internal::BoundsMetadata<int> bounds{
+                        .min = 0,
+                        .max = 12,
+                        .has_min_bound = false,
+                        .has_max_bound = false,
+                        .drag_speed = 0.02f,
+                        .use_slider = false,
+                        .is_logarithmic = false,
+                    };
 
-    friend auto operator<=>(VariableMetadata<int> const&, VariableMetadata<int> const&) = default;
+                friend auto operator<=>(VariableMetadata<int> const&, VariableMetadata<int> const&) = default;
 
-private:
-    // Serialisation
-    friend class ser20::access;
-    template<class Archive>
-    void serialize(Archive& archive)
-    {
+            private:
+                // Serialisation
+                friend class ser20::access;
+                template<class Archive>
+                void serialize(Archive& archive)
+                {
         archive(
-            ser20::make_nvp("Bounds", bounds)
+ser20::make_nvp("Bounds", bounds)
         );
-    }
-};
 
-auto imgui_widget(Variable<int>&) -> bool;
-auto imgui_widget(VariableMetadata<int>&) -> bool;
+                }
+            };
 
-} // namespace Cool
+            auto imgui_widget(Variable<int>&) -> bool;
+            auto imgui_widget(VariableMetadata<int>&) -> bool;
+
+            } // namespace Cool
+        

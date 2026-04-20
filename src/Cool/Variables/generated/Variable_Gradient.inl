@@ -5,33 +5,35 @@
  * -----------------------------------------------------------------------------
  */
 
-#include <Cool/StrongTypes/Gradient.h>
-#include <Cool/Variables/Variable.h>
-#include <Cool/Variables/internal/BoundsMetadata.h>
+            #include <Cool/StrongTypes/Gradient.h>
+            #include <Cool/Variables/Variable.h>
+            #include <Cool/Variables/internal/BoundsMetadata.h>
 
-namespace Cool {
+            namespace Cool {
 
-template<>
-struct VariableMetadata<Cool::Gradient> {
-    bool is_hdr{false};
-    bool randomize_new_marks_colors{true};
+            template<>
+            struct VariableMetadata<Cool::Gradient> {
+                bool is_hdr{false};
+bool randomize_new_marks_colors{true};
 
-    friend auto operator<=>(VariableMetadata<Cool::Gradient> const&, VariableMetadata<Cool::Gradient> const&) = default;
+                friend auto operator<=>(VariableMetadata<Cool::Gradient> const&, VariableMetadata<Cool::Gradient> const&) = default;
 
-private:
-    // Serialisation
-    friend class ser20::access;
-    template<class Archive>
-    void serialize(Archive& archive)
-    {
+            private:
+                // Serialisation
+                friend class ser20::access;
+                template<class Archive>
+                void serialize(Archive& archive)
+                {
         archive(
-            ser20::make_nvp("Is HDR", is_hdr),
-            ser20::make_nvp("Randomize new marks' colors", randomize_new_marks_colors)
+ser20::make_nvp("Is HDR", is_hdr),
+ser20::make_nvp("Randomize new marks' colors", randomize_new_marks_colors)
         );
-    }
-};
 
-auto imgui_widget(Variable<Cool::Gradient>&) -> bool;
-auto imgui_widget(VariableMetadata<Cool::Gradient>&) -> bool;
+                }
+            };
 
-} // namespace Cool
+            auto imgui_widget(Variable<Cool::Gradient>&) -> bool;
+            auto imgui_widget(VariableMetadata<Cool::Gradient>&) -> bool;
+
+            } // namespace Cool
+        

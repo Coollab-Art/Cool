@@ -5,26 +5,29 @@
  * -----------------------------------------------------------------------------
  */
 
-#include <Cool/Midi/MidiChannel.h>
-#include <Cool/Variables/Variable.h>
-#include <Cool/Variables/internal/BoundsMetadata.h>
+            #include <Cool/Midi/MidiChannel.h>
+            #include <Cool/Variables/Variable.h>
+            #include <Cool/Variables/internal/BoundsMetadata.h>
 
-namespace Cool {
+            namespace Cool {
 
-template<>
-struct VariableMetadata<Cool::MidiChannel> {
-    friend auto operator<=>(VariableMetadata<Cool::MidiChannel> const&, VariableMetadata<Cool::MidiChannel> const&) = default;
+            template<>
+            struct VariableMetadata<Cool::MidiChannel> {
+                
 
-private:
-    // Serialisation
-    friend class ser20::access;
-    template<class Archive>
-    void serialize(Archive&)
-    {
-    }
-};
+                friend auto operator<=>(VariableMetadata<Cool::MidiChannel> const&, VariableMetadata<Cool::MidiChannel> const&) = default;
 
-auto imgui_widget(Variable<Cool::MidiChannel>&) -> bool;
-auto imgui_widget(VariableMetadata<Cool::MidiChannel>&) -> bool;
+            private:
+                // Serialisation
+                friend class ser20::access;
+                template<class Archive>
+                void serialize(Archive&)
+                {
+                }
+            };
 
-} // namespace Cool
+            auto imgui_widget(Variable<Cool::MidiChannel>&) -> bool;
+            auto imgui_widget(VariableMetadata<Cool::MidiChannel>&) -> bool;
+
+            } // namespace Cool
+        

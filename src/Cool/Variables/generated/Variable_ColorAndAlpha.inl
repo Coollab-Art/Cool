@@ -5,31 +5,33 @@
  * -----------------------------------------------------------------------------
  */
 
-#include <Cool/StrongTypes/ColorAndAlpha.h>
-#include <Cool/Variables/Variable.h>
-#include <Cool/Variables/internal/BoundsMetadata.h>
+            #include <Cool/StrongTypes/ColorAndAlpha.h>
+            #include <Cool/Variables/Variable.h>
+            #include <Cool/Variables/internal/BoundsMetadata.h>
 
-namespace Cool {
+            namespace Cool {
 
-template<>
-struct VariableMetadata<Cool::ColorAndAlpha> {
-    bool is_hdr{false};
+            template<>
+            struct VariableMetadata<Cool::ColorAndAlpha> {
+                bool is_hdr{false};
 
-    friend auto operator<=>(VariableMetadata<Cool::ColorAndAlpha> const&, VariableMetadata<Cool::ColorAndAlpha> const&) = default;
+                friend auto operator<=>(VariableMetadata<Cool::ColorAndAlpha> const&, VariableMetadata<Cool::ColorAndAlpha> const&) = default;
 
-private:
-    // Serialisation
-    friend class ser20::access;
-    template<class Archive>
-    void serialize(Archive& archive)
-    {
+            private:
+                // Serialisation
+                friend class ser20::access;
+                template<class Archive>
+                void serialize(Archive& archive)
+                {
         archive(
-            ser20::make_nvp("Is HDR", is_hdr)
+ser20::make_nvp("Is HDR", is_hdr)
         );
-    }
-};
 
-auto imgui_widget(Variable<Cool::ColorAndAlpha>&) -> bool;
-auto imgui_widget(VariableMetadata<Cool::ColorAndAlpha>&) -> bool;
+                }
+            };
 
-} // namespace Cool
+            auto imgui_widget(Variable<Cool::ColorAndAlpha>&) -> bool;
+            auto imgui_widget(VariableMetadata<Cool::ColorAndAlpha>&) -> bool;
+
+            } // namespace Cool
+        

@@ -549,7 +549,7 @@ def glsl_type():
         map(
             lambda desc: f"""
             template<>
-            auto glsl_type<{desc.cpp_type}>() -> std::string {{ 
+            inline auto glsl_type<{desc.cpp_type}>() -> std::string {{
                 return "{desc.glsl_type}";
             }}
             """,

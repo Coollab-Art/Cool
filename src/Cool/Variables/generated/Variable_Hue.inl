@@ -5,26 +5,29 @@
  * -----------------------------------------------------------------------------
  */
 
-#include <Cool/StrongTypes/Hue.h>
-#include <Cool/Variables/Variable.h>
-#include <Cool/Variables/internal/BoundsMetadata.h>
+            #include <Cool/StrongTypes/Hue.h>
+            #include <Cool/Variables/Variable.h>
+            #include <Cool/Variables/internal/BoundsMetadata.h>
 
-namespace Cool {
+            namespace Cool {
 
-template<>
-struct VariableMetadata<Cool::Hue> {
-    friend auto operator<=>(VariableMetadata<Cool::Hue> const&, VariableMetadata<Cool::Hue> const&) = default;
+            template<>
+            struct VariableMetadata<Cool::Hue> {
+                
 
-private:
-    // Serialisation
-    friend class ser20::access;
-    template<class Archive>
-    void serialize(Archive&)
-    {
-    }
-};
+                friend auto operator<=>(VariableMetadata<Cool::Hue> const&, VariableMetadata<Cool::Hue> const&) = default;
 
-auto imgui_widget(Variable<Cool::Hue>&) -> bool;
-auto imgui_widget(VariableMetadata<Cool::Hue>&) -> bool;
+            private:
+                // Serialisation
+                friend class ser20::access;
+                template<class Archive>
+                void serialize(Archive&)
+                {
+                }
+            };
 
-} // namespace Cool
+            auto imgui_widget(Variable<Cool::Hue>&) -> bool;
+            auto imgui_widget(VariableMetadata<Cool::Hue>&) -> bool;
+
+            } // namespace Cool
+        

@@ -5,39 +5,41 @@
  * -----------------------------------------------------------------------------
  */
 
-#include <Cool/Time/TimeSpeed.h>
-#include <Cool/Variables/Variable.h>
-#include <Cool/Variables/internal/BoundsMetadata.h>
+            #include <Cool/Time/TimeSpeed.h>
+            #include <Cool/Variables/Variable.h>
+            #include <Cool/Variables/internal/BoundsMetadata.h>
 
-namespace Cool {
+            namespace Cool {
 
-template<>
-struct VariableMetadata<Cool::TimeSpeed> {
-    double min{0.};
-    double max{1.};
-    bool   has_min_bound{false};
-    bool   has_max_bound{false};
-    float  drag_speed{0.001f};
+            template<>
+            struct VariableMetadata<Cool::TimeSpeed> {
+                double min{0.};
+double max{1.};
+bool has_min_bound{false};
+bool has_max_bound{false};
+float drag_speed{0.001f};
 
-    friend auto operator<=>(VariableMetadata<Cool::TimeSpeed> const&, VariableMetadata<Cool::TimeSpeed> const&) = default;
+                friend auto operator<=>(VariableMetadata<Cool::TimeSpeed> const&, VariableMetadata<Cool::TimeSpeed> const&) = default;
 
-private:
-    // Serialisation
-    friend class ser20::access;
-    template<class Archive>
-    void serialize(Archive& archive)
-    {
+            private:
+                // Serialisation
+                friend class ser20::access;
+                template<class Archive>
+                void serialize(Archive& archive)
+                {
         archive(
-            ser20::make_nvp("Min", min),
-            ser20::make_nvp("Max", max),
-            ser20::make_nvp("Has min bound", has_min_bound),
-            ser20::make_nvp("Has max bound", has_max_bound),
-            ser20::make_nvp("Drag speed", drag_speed)
+ser20::make_nvp("Min", min),
+ser20::make_nvp("Max", max),
+ser20::make_nvp("Has min bound", has_min_bound),
+ser20::make_nvp("Has max bound", has_max_bound),
+ser20::make_nvp("Drag speed", drag_speed)
         );
-    }
-};
 
-auto imgui_widget(Variable<Cool::TimeSpeed>&) -> bool;
-auto imgui_widget(VariableMetadata<Cool::TimeSpeed>&) -> bool;
+                }
+            };
 
-} // namespace Cool
+            auto imgui_widget(Variable<Cool::TimeSpeed>&) -> bool;
+            auto imgui_widget(VariableMetadata<Cool::TimeSpeed>&) -> bool;
+
+            } // namespace Cool
+        

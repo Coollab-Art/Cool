@@ -5,39 +5,41 @@
  * -----------------------------------------------------------------------------
  */
 
-#include <Cool/Variables/Variable.h>
-#include <Cool/Variables/internal/BoundsMetadata.h>
-#include <glm/glm.hpp>
+            #include <glm/glm.hpp>
+            #include <Cool/Variables/Variable.h>
+            #include <Cool/Variables/internal/BoundsMetadata.h>
 
-namespace Cool {
+            namespace Cool {
 
-template<>
-struct VariableMetadata<glm::vec4> {
-    internal::BoundsMetadata<float> bounds{
-        .min            = 0.f,
-        .max            = 1.f,
-        .has_min_bound  = false,
-        .has_max_bound  = false,
-        .drag_speed     = 0.01f,
-        .use_slider     = false,
-        .is_logarithmic = false,
-    };
+            template<>
+            struct VariableMetadata<glm::vec4> {
+                internal::BoundsMetadata<float> bounds{
+                .min = 0.f,
+                .max = 1.f,
+                .has_min_bound = false,
+                .has_max_bound = false,
+                .drag_speed = 0.01f,
+                .use_slider = false,
+                .is_logarithmic = false,
+            };
 
-    friend auto operator<=>(VariableMetadata<glm::vec4> const&, VariableMetadata<glm::vec4> const&) = default;
+                friend auto operator<=>(VariableMetadata<glm::vec4> const&, VariableMetadata<glm::vec4> const&) = default;
 
-private:
-    // Serialisation
-    friend class ser20::access;
-    template<class Archive>
-    void serialize(Archive& archive)
-    {
+            private:
+                // Serialisation
+                friend class ser20::access;
+                template<class Archive>
+                void serialize(Archive& archive)
+                {
         archive(
-            ser20::make_nvp("Bounds", bounds)
+ser20::make_nvp("Bounds", bounds)
         );
-    }
-};
 
-auto imgui_widget(Variable<glm::vec4>&) -> bool;
-auto imgui_widget(VariableMetadata<glm::vec4>&) -> bool;
+                }
+            };
 
-} // namespace Cool
+            auto imgui_widget(Variable<glm::vec4>&) -> bool;
+            auto imgui_widget(VariableMetadata<glm::vec4>&) -> bool;
+
+            } // namespace Cool
+        

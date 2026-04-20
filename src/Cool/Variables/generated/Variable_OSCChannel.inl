@@ -5,26 +5,29 @@
  * -----------------------------------------------------------------------------
  */
 
-#include <Cool/OSC/OSCChannel.h>
-#include <Cool/Variables/Variable.h>
-#include <Cool/Variables/internal/BoundsMetadata.h>
+            #include <Cool/OSC/OSCChannel.h>
+            #include <Cool/Variables/Variable.h>
+            #include <Cool/Variables/internal/BoundsMetadata.h>
 
-namespace Cool {
+            namespace Cool {
 
-template<>
-struct VariableMetadata<Cool::OSCChannel> {
-    friend auto operator<=>(VariableMetadata<Cool::OSCChannel> const&, VariableMetadata<Cool::OSCChannel> const&) = default;
+            template<>
+            struct VariableMetadata<Cool::OSCChannel> {
+                
 
-private:
-    // Serialisation
-    friend class ser20::access;
-    template<class Archive>
-    void serialize(Archive&)
-    {
-    }
-};
+                friend auto operator<=>(VariableMetadata<Cool::OSCChannel> const&, VariableMetadata<Cool::OSCChannel> const&) = default;
 
-auto imgui_widget(Variable<Cool::OSCChannel>&) -> bool;
-auto imgui_widget(VariableMetadata<Cool::OSCChannel>&) -> bool;
+            private:
+                // Serialisation
+                friend class ser20::access;
+                template<class Archive>
+                void serialize(Archive&)
+                {
+                }
+            };
 
-} // namespace Cool
+            auto imgui_widget(Variable<Cool::OSCChannel>&) -> bool;
+            auto imgui_widget(VariableMetadata<Cool::OSCChannel>&) -> bool;
+
+            } // namespace Cool
+        

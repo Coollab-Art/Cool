@@ -5,5 +5,6 @@
  * -----------------------------------------------------------------------------
  */
 
-#include <Cool/Camera/Camera.h>
-#include <Cool/Variables/Variables.h>
+            #include <Cool/Camera/Camera.h>
+            #include <Cool/Variables/Variables.h>
+            

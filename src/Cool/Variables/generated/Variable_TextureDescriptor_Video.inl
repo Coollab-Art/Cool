@@ -5,26 +5,29 @@
  * -----------------------------------------------------------------------------
  */
 
-#include <Cool/TextureSource/TextureDescriptor.h>
-#include <Cool/Variables/Variable.h>
-#include <Cool/Variables/internal/BoundsMetadata.h>
+            #include <Cool/TextureSource/TextureDescriptor.h>
+            #include <Cool/Variables/Variable.h>
+            #include <Cool/Variables/internal/BoundsMetadata.h>
 
-namespace Cool {
+            namespace Cool {
 
-template<>
-struct VariableMetadata<Cool::TextureDescriptor_Video> {
-    friend auto operator<=>(VariableMetadata<Cool::TextureDescriptor_Video> const&, VariableMetadata<Cool::TextureDescriptor_Video> const&) = default;
+            template<>
+            struct VariableMetadata<Cool::TextureDescriptor_Video> {
+                
 
-private:
-    // Serialisation
-    friend class ser20::access;
-    template<class Archive>
-    void serialize(Archive&)
-    {
-    }
-};
+                friend auto operator<=>(VariableMetadata<Cool::TextureDescriptor_Video> const&, VariableMetadata<Cool::TextureDescriptor_Video> const&) = default;
 
-auto imgui_widget(Variable<Cool::TextureDescriptor_Video>&) -> bool;
-auto imgui_widget(VariableMetadata<Cool::TextureDescriptor_Video>&) -> bool;
+            private:
+                // Serialisation
+                friend class ser20::access;
+                template<class Archive>
+                void serialize(Archive&)
+                {
+                }
+            };
 
-} // namespace Cool
+            auto imgui_widget(Variable<Cool::TextureDescriptor_Video>&) -> bool;
+            auto imgui_widget(VariableMetadata<Cool::TextureDescriptor_Video>&) -> bool;
+
+            } // namespace Cool
+        
