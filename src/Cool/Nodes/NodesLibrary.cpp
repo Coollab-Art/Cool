@@ -1,14 +1,30 @@
 #include "NodesLibrary.h"
 #include <Cool/String/String.h>
 #include <imgui.h>
-#include <charconv>
+#include <algorithm>
 #include <string>
-#include <wafl/wafl.hpp>
+#include <vector>
 #include "Cool/ImGui/ImGuiExtras.h"
 
 namespace Cool {
 
 namespace internal {
+struct VisibleCategory {
+    size_t index;
+    bool   has_matching_definition;
+};
+
+struct PreparedNodesMenu {
+    std::vector<VisibleCategory> visible_categories;
+    float                        required_column_width;
+};
+
+constexpr float k_MinColumnWidth          = 260.f;
+constexpr float k_NodeLabelExtraWidth     = 28.f;
+constexpr float k_CategoryLabelExtraWidth = 34.f;
+constexpr float k_InterColumnGap          = 10.f;
+constexpr float k_WidthSafetyMargin       = 4.f;
+
 auto name_matches_filter(std::string const& name, std::string const& filter) -> bool
 {
     if (filter.empty())
@@ -17,6 +33,116 @@ auto name_matches_filter(std::string const& name, std::string const& filter) -> 
     auto const name_lower   = Cool::String::to_lower(name);
     auto const filter_lower = Cool::String::to_lower(filter);
     return name_lower.find(filter_lower) != std::string::npos;
+}
+
+static auto is_definition_visible(NodeDefinition const& def, std::string const& nodes_filter) -> bool
+{
+    return nodes_filter.empty() || name_matches_filter(def.name(), nodes_filter);
+}
+
+static auto definition_label_width(NodeDefinition const& def, ImGuiStyle const& style) -> float
+{
+    return ImGui::CalcTextSize(def.name().c_str()).x
+           + 2.f * style.FramePadding.x
+           + style.ItemSpacing.x
+           + k_NodeLabelExtraWidth;
+}
+
+static auto category_label_width(NodesCategory const& category, ImGuiStyle const& style) -> float
+{
+    return ImGui::CalcTextSize(category.name().c_str()).x
+           + 2.f * style.FramePadding.x
+           + style.ItemSpacing.x
+           + k_CategoryLabelExtraWidth; // Arrow + breathing room for collapsible header
+}
+
+static auto prepare_nodes_menu(std::vector<NodesCategory> const& categories, std::string const& nodes_filter, ImGuiStyle const& style) -> PreparedNodesMenu
+{
+    auto prepared = PreparedNodesMenu{
+        .visible_categories    = {},
+        .required_column_width = k_MinColumnWidth,
+    };
+    prepared.visible_categories.reserve(categories.size());
+
+    for (size_t idx = 0; idx < categories.size(); ++idx)
+    {
+        auto const& category = categories[idx];
+
+        bool has_matching_definition = false;
+        for (NodeDefinition const& def : category.definitions())
+        {
+            prepared.required_column_width = std::max(prepared.required_column_width, definition_label_width(def, style));
+            if (!nodes_filter.empty() && name_matches_filter(def.name(), nodes_filter))
+                has_matching_definition = true;
+        }
+
+        prepared.required_column_width = std::max(prepared.required_column_width, category_label_width(category, style));
+
+        if (nodes_filter.empty() || has_matching_definition)
+            prepared.visible_categories.push_back({idx, has_matching_definition});
+    }
+
+    return prepared;
+}
+
+static auto compute_number_of_columns(PreparedNodesMenu const& prepared_menu, ImGuiStyle const& style) -> int
+{
+    auto const column_total_width = prepared_menu.required_column_width + 2.f * style.CellPadding.x;
+    auto const available_width    = std::max(0.f, ImGui::GetContentRegionAvail().x - style.ScrollbarSize - k_WidthSafetyMargin);
+    auto const max_columns        = std::max(1, static_cast<int>((available_width + k_InterColumnGap) / (column_total_width + k_InterColumnGap)));
+    return std::min(max_columns, static_cast<int>(prepared_menu.visible_categories.size()));
+}
+
+static auto render_node_definitions(
+    NodesCategory&                    category,
+    std::string const&                nodes_filter,
+    MaybeDisableNodeDefinition const& maybe_disable,
+    bool                              select_first
+) -> std::optional<NodeDefinitionAndCategoryName>
+{
+    for (NodeDefinition const& def : category.definitions())
+    {
+        if (!is_definition_visible(def, nodes_filter))
+            continue;
+
+        auto selected_definition = std::optional<NodeDefinitionAndCategoryName>{};
+        Cool::ImGuiExtras::disabled_if(maybe_disable(def, category), [&]() {
+            if (select_first || ImGui::Selectable(def.name().c_str()))
+                selected_definition = NodeDefinitionAndCategoryName{def, category.name()};
+        });
+
+        if (selected_definition.has_value())
+            return selected_definition;
+    }
+
+    return std::nullopt;
+}
+
+static auto render_category(
+    NodesCategory                     category,
+    VisibleCategory const&            visible_entry,
+    std::string const&                nodes_filter,
+    MaybeDisableNodeDefinition const& maybe_disable,
+    bool                              select_first,
+    bool                              should_force_open
+) -> std::optional<NodeDefinitionAndCategoryName>
+{
+    ImGui::PushID(&category);
+    auto const pop_automatically = sg::make_scope_guard([]() { ImGui::PopID(); });
+
+    if (should_force_open)
+        ImGui::SetNextItemOpen(visible_entry.has_matching_definition);
+
+    ImGui::PushID(13452);
+    bool const collapsing_header_open = ImGuiExtras::colored_collapsing_header(category.name(), category.config().color());
+    ImGui::PopID();
+
+    category.config().imgui_popup();
+
+    if (!collapsing_header_open)
+        return std::nullopt;
+
+    return render_node_definitions(category, nodes_filter, maybe_disable, select_first);
 }
 } // namespace internal
 
@@ -44,119 +170,53 @@ auto NodesLibrary::get_category(std::string const& category_name) -> NodesCatego
 
 auto NodesLibrary::imgui_nodes_menu(std::string const& nodes_filter, MaybeDisableNodeDefinition const& maybe_disable, bool select_first, bool open_all_categories, bool menu_just_opened) const -> std::optional<NodeDefinitionAndCategoryName>
 {
-    // TODO :
-    // for(group  : groups){}
-    // beginColumn
-    // for (auto& category : group.categories)
+    auto const& style = ImGui::GetStyle();
 
-    size_t i = 0;
+    auto const prepared_menu = internal::prepare_nodes_menu(_categories, nodes_filter, style);
+    if (prepared_menu.visible_categories.empty())
+        return std::nullopt;
 
-    std::string strb = "b" + std::to_string(i);
-    const char* b    = strb.c_str();
-    std::string strc = "c" + std::to_string(i);
-    const char* c    = strc.c_str();
-    if (ImGui::BeginTable("columns_table", 4))
+    int const  number_of_columns = internal::compute_number_of_columns(prepared_menu, style);
+    auto const rows_per_column   = (prepared_menu.visible_categories.size() + static_cast<size_t>(number_of_columns) - 1) / static_cast<size_t>(number_of_columns);
+    bool const should_force_open = (open_all_categories || menu_just_opened) && !nodes_filter.empty();
+
+    int const table_columns = number_of_columns * 2 - 1;
+    if (ImGui::BeginTable(
+            "nodes_categories_columns",
+            table_columns,
+            ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoPadOuterX
+        ))
     {
         auto const end_columns_table_automatically = sg::make_scope_guard([]() { ImGui::EndTable(); });
 
-        ImGui::TableSetupColumn("column1", ImGuiTableColumnFlags_WidthFixed, 370.0f);
-        ImGui::TableSetupColumn("column2", ImGuiTableColumnFlags_WidthFixed, 370.0f);
-        ImGui::TableSetupColumn("column3", ImGuiTableColumnFlags_WidthFixed, 370.0f);
-        ImGui::TableSetupColumn("column4", ImGuiTableColumnFlags_WidthFixed, 370.0f);
-        ImGui::TableNextRow();
-        for (int column = 0; column < 4; column++)
+        for (int col = 0; col < number_of_columns; ++col)
         {
-            ImGui::TableSetColumnIndex(column);
-            if (ImGui::BeginTable("families_table", 1))
+            ImGui::TableSetupColumn(nullptr, ImGuiTableColumnFlags_WidthStretch, 1.f);
+            if (col < number_of_columns - 1)
+                ImGui::TableSetupColumn(nullptr, ImGuiTableColumnFlags_WidthFixed, internal::k_InterColumnGap);
+        }
+
+        ImGui::TableNextRow();
+        for (int col = 0; col < number_of_columns; ++col)
+        {
+            ImGui::TableSetColumnIndex(col * 2);
+
+            auto const begin = static_cast<size_t>(col) * rows_per_column;
+            auto const end   = std::min(begin + rows_per_column, prepared_menu.visible_categories.size());
+
+            for (size_t list_idx = begin; list_idx < end; ++list_idx)
             {
-                auto const end_families_table_automatically = sg::make_scope_guard([]() { ImGui::EndTable(); });
-
-                ImGui::TableSetupColumn(b, ImGuiTableColumnFlags_WidthFixed, 360.0f);
-                for (int family_row = 0; family_row < 4; family_row++)
-                {
-                    ImGui::TableNextRow();
-
-                    for (int family_col = 0; family_col < 1; family_col++)
-                    {
-                        ImGui::TableSetColumnIndex(family_col);
-                        if (ImGui::BeginTable("categories_table", 1))
-                        {
-                            auto const end_categories_table_automatically = sg::make_scope_guard([]() { ImGui::EndTable(); });
-
-                            ImGui::TableSetupColumn(c, ImGuiTableColumnFlags_WidthFixed, 380.0f);
-                            for (int category_row = 0; category_row < 4; category_row++)
-                            {
-                                ImGui::TableNextRow();
-
-                                //////// Category display /////////
-                                for (int category_col = 0; category_col < 1; category_col++)
-                                {
-                                    ImGui::TableSetColumnIndex(category_col);
-
-                                    if (i < _categories.size())
-                                    {
-                                        auto category = _categories[i];
-
-                                        ImGui::PushID(&category);
-                                        auto const pop_automatically = sg::make_scope_guard([]() { ImGui::PopID(); });
-
-                                        bool is_open    = false;
-                                        bool is_visible = true;
-                                        if (!nodes_filter.empty())
-                                        {
-                                            is_visible = false;
-                                            for (NodeDefinition const& def : category.definitions())
-                                            {
-                                                if (internal::name_matches_filter(def.name(), nodes_filter))
-                                                {
-                                                    is_open    = true;
-                                                    is_visible = true;
-                                                }
-                                            }
-                                        }
-
-                                        if (!is_visible)
-                                        {
-                                            i++;
-                                            continue;
-                                        }
-
-                                        if (open_all_categories || menu_just_opened)
-                                            ImGui::SetNextItemOpen(is_open);
-
-                                        ImGui::PushID(13452);
-                                        bool const collapsing_header_open = ImGuiExtras::colored_collapsing_header(category.name(), category.config().color());
-                                        ImGui::PopID();
-
-                                        category.config().imgui_popup();
-
-                                        if (collapsing_header_open)
-                                        {
-                                            for (NodeDefinition const& def : category.definitions())
-                                            {
-                                                if (!internal::name_matches_filter(def.name(), nodes_filter))
-                                                    continue;
-
-                                                auto selected_definition = std::optional<NodeDefinitionAndCategoryName>{};
-                                                Cool::ImGuiExtras::disabled_if(maybe_disable(def, category), [&]() {
-                                                    if (select_first || ImGui::Selectable(def.name().c_str(), false, ImGuiSelectableFlags_SpanAllColumns /* HACK to work around a bug in ImGui (https://github.com/ocornut/imgui/issues/8203)*/))
-                                                        selected_definition = NodeDefinitionAndCategoryName{def, category.name()};
-                                                });
-
-                                                if (selected_definition.has_value())
-                                                    return selected_definition;
-                                            }
-                                        }
-
-                                        ////// End Category display //////
-
-                                        i++;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                auto const visible_entry             = prepared_menu.visible_categories[list_idx];
+                auto const maybe_selected_definition = internal::render_category(
+                    _categories[visible_entry.index],
+                    visible_entry,
+                    nodes_filter,
+                    maybe_disable,
+                    select_first,
+                    should_force_open
+                );
+                if (maybe_selected_definition.has_value())
+                    return maybe_selected_definition;
             }
         }
     }

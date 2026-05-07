@@ -777,6 +777,17 @@ auto NodesEditorImpl::imgui_workspace(NodesConfig& nodes_cfg, NodesLibrary const
         ImGuiExtras::help_marker_tooltip_content(_deferred_tooltip_text->c_str());
         ImGui::EndTooltip();
     }
+    if (auto const* viewport = ImGui::GetMainViewport())
+    {
+        auto const popup_size = ImVec2{viewport->Size.x * 0.9f, viewport->Size.y * 0.9f};
+        auto const popup_pos  = ImVec2{
+            viewport->Pos.x + (viewport->Size.x - popup_size.x) * 0.5f,
+            viewport->Pos.y + (viewport->Size.y - popup_size.y) * 0.5f,
+        };
+        ImGui::SetNextWindowSizeConstraints(popup_size, popup_size);
+        ImGui::SetNextWindowSize(popup_size, ImGuiCond_Appearing);
+        ImGui::SetNextWindowPos(popup_pos, ImGuiCond_Appearing);
+    }
     if (ImGui::BeginPopup("Nodes Library Menu"))
     {
         auto const new_node_def_id = imgui_nodes_menu(library, nodes_cfg.maybe_disable_node_definition(), _menu_just_opened);
