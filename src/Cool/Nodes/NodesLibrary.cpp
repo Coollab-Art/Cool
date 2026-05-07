@@ -11,7 +11,12 @@ namespace Cool {
 namespace internal {
 auto name_matches_filter(std::string const& name, std::string const& filter) -> bool
 {
-    return wafl::similarity_match({.input = filter, .reference = name}) >= wafl::Matches::Strongly;
+    if (filter.empty())
+        return true;
+
+    auto const name_lower   = Cool::String::to_lower(name);
+    auto const filter_lower = Cool::String::to_lower(filter);
+    return name_lower.find(filter_lower) != std::string::npos;
 }
 } // namespace internal
 
@@ -47,17 +52,17 @@ auto NodesLibrary::imgui_nodes_menu(std::string const& nodes_filter, MaybeDisabl
     size_t i = 0;
 
     std::string strb = "b" + std::to_string(i);
-    const char *b = strb.c_str();
+    const char* b    = strb.c_str();
     std::string strc = "c" + std::to_string(i);
-    const char *c = strc.c_str();
+    const char* c    = strc.c_str();
     if (ImGui::BeginTable("columns_table", 4))
     {
         auto const end_columns_table_automatically = sg::make_scope_guard([]() { ImGui::EndTable(); });
 
-        ImGui::TableSetupColumn("column1",ImGuiTableColumnFlags_WidthFixed, 370.0f);
-        ImGui::TableSetupColumn("column2",ImGuiTableColumnFlags_WidthFixed, 370.0f);
-        ImGui::TableSetupColumn("column3",ImGuiTableColumnFlags_WidthFixed, 370.0f);
-        ImGui::TableSetupColumn("column4",ImGuiTableColumnFlags_WidthFixed, 370.0f);
+        ImGui::TableSetupColumn("column1", ImGuiTableColumnFlags_WidthFixed, 370.0f);
+        ImGui::TableSetupColumn("column2", ImGuiTableColumnFlags_WidthFixed, 370.0f);
+        ImGui::TableSetupColumn("column3", ImGuiTableColumnFlags_WidthFixed, 370.0f);
+        ImGui::TableSetupColumn("column4", ImGuiTableColumnFlags_WidthFixed, 370.0f);
         ImGui::TableNextRow();
         for (int column = 0; column < 4; column++)
         {
@@ -66,11 +71,11 @@ auto NodesLibrary::imgui_nodes_menu(std::string const& nodes_filter, MaybeDisabl
             {
                 auto const end_families_table_automatically = sg::make_scope_guard([]() { ImGui::EndTable(); });
 
-                ImGui::TableSetupColumn(b,ImGuiTableColumnFlags_WidthFixed, 360.0f);
+                ImGui::TableSetupColumn(b, ImGuiTableColumnFlags_WidthFixed, 360.0f);
                 for (int family_row = 0; family_row < 4; family_row++)
                 {
                     ImGui::TableNextRow();
-                    
+
                     for (int family_col = 0; family_col < 1; family_col++)
                     {
                         ImGui::TableSetColumnIndex(family_col);
@@ -78,18 +83,19 @@ auto NodesLibrary::imgui_nodes_menu(std::string const& nodes_filter, MaybeDisabl
                         {
                             auto const end_categories_table_automatically = sg::make_scope_guard([]() { ImGui::EndTable(); });
 
-                            ImGui::TableSetupColumn(c,ImGuiTableColumnFlags_WidthFixed, 380.0f);
+                            ImGui::TableSetupColumn(c, ImGuiTableColumnFlags_WidthFixed, 380.0f);
                             for (int category_row = 0; category_row < 4; category_row++)
                             {
                                 ImGui::TableNextRow();
-                                
+
                                 //////// Category display /////////
                                 for (int category_col = 0; category_col < 1; category_col++)
                                 {
                                     ImGui::TableSetColumnIndex(category_col);
 
-                                    if(i < _categories.size()){
-                                        auto category =_categories[i];
+                                    if (i < _categories.size())
+                                    {
+                                        auto category = _categories[i];
 
                                         ImGui::PushID(&category);
                                         auto const pop_automatically = sg::make_scope_guard([]() { ImGui::PopID(); });
@@ -110,7 +116,10 @@ auto NodesLibrary::imgui_nodes_menu(std::string const& nodes_filter, MaybeDisabl
                                         }
 
                                         if (!is_visible)
+                                        {
+                                            i++;
                                             continue;
+                                        }
 
                                         if (open_all_categories || menu_just_opened)
                                             ImGui::SetNextItemOpen(is_open);
