@@ -46,6 +46,6 @@ float antialiased_step(float x)
     float m = 0.75 * fwidth(x);
     return smoothstep(m, -m, x);
 #else
-    return step(0., x);
+    return 1. - step(0., x);
 #endif
 }
