@@ -100,37 +100,53 @@ auto AudioInput_Device::does_need_to_highlight_error() const -> bool
     return ImGuiNotify::is_notification_hovered(_notification_id);
 }
 
+auto AudioInput_Device::current_device_display_name() -> std::string const&
+{
+    auto const now = std::chrono::steady_clock::now();
+    if (_cached_device_display_name.empty() || now - _last_device_name_refresh >= std::chrono::milliseconds{500})
+    {
+        _last_device_name_refresh   = now;
+        _cached_device_display_name = get_device_name(input_stream().current_device());
+    }
+    return _cached_device_display_name;
+}
+
 auto AudioInput_Device::imgui(bool needs_to_highlight_error) -> bool
 {
     bool b = false;
 
-    auto const ids = input_stream().device_ids();
     Cool::ImGuiExtras::bring_attention_if(
         needs_to_highlight_error,
         [&]() {
-            auto const combo_text = get_device_name(input_stream().current_device());
-            if (ImGui::BeginCombo("Input device", combo_text.c_str()))
+            if (ImGui::BeginCombo("Input device", current_device_display_name().c_str()))
             {
-                bool const is_selected = std::holds_alternative<Audio::UseDefaultDevice>(input_stream().current_device());
-                if (ImGui::Selectable(get_device_name_impl(Audio::UseDefaultDevice{}).c_str(), is_selected))
+                // Only enumerate the devices while the dropdown is open: device_ids() does a full WASAPI
+                // device probe, which is far too expensive to run on every frame.
+                auto const ids = input_stream().device_ids();
+
+                bool const default_is_selected = std::holds_alternative<Audio::UseDefaultDevice>(input_stream().current_device());
+                if (ImGui::Selectable(get_device_name_impl(Audio::UseDefaultDevice{}).c_str(), default_is_selected))
                 {
                     input_stream().use_default_device();
+                    _cached_device_display_name.clear(); // Force the preview text to refresh now that the device changed.
                     b = true;
                 }
-                if (is_selected) // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                if (default_is_selected) // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
                     ImGui::SetItemDefaultFocus();
 
                 for (auto const id : ids)
                 {
-                    auto const info         = input_stream().device_info(id);
-                    bool const is_selected2 = info.name == combo_text;
-                    if (ImGui::Selectable(info.name.c_str(), is_selected2))
+                    auto const info        = input_stream().device_info(id);
+                    bool const is_selected = std::holds_alternative<Audio::UseGivenDevice>(input_stream().current_device())
+                                             && std::get<Audio::UseGivenDevice>(input_stream().current_device()).name == info.name;
+                    if (ImGui::Selectable(info.name.c_str(), is_selected))
                     {
                         input_stream().use_given_device(info);
+                        _cached_device_display_name.clear(); // Force the preview text to refresh now that the device changed.
                         b = true;
                     }
 
-                    if (is_selected2) // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                    if (is_selected) // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
                         ImGui::SetItemDefaultFocus();
                 }
                 ImGui::EndCombo();

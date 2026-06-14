@@ -1,4 +1,5 @@
 #pragma once
+#include <chrono>
 #include "Audio/Audio.hpp"
 #include "IAudioInput.h"
 #include "ImGuiNotify/ImGuiNotify.hpp"
@@ -41,12 +42,18 @@ public:
 private:
     auto get_selected_input_device() const -> Audio::SelectedDevice;
     void set_selected_input_device(Audio::SelectedDevice);
+    /// Returns the name to display in the device combo. Cached, because resolving it for the default
+    /// device requires a WASAPI COM call that we don't want to make every frame.
+    auto current_device_display_name() -> std::string const&;
 
 private:
     float                       _volume{30.f};
     ImGuiNotify::NotificationId _notification_id{};
     std::string                 _last_logged_device_name{""};
     mutable bool                _has_started{false};
+
+    std::string                           _cached_device_display_name{};
+    std::chrono::steady_clock::time_point _last_device_name_refresh{};
 
 private:
     // Serialization
