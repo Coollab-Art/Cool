@@ -8,7 +8,7 @@ namespace Cool {
 template<typename T>
 void Variable<T>::imgui_reset_buttons(ImGuiVariableCallbacks const& callbacks)
 {
-    ImGuiExtras::disabled_if(_value == _default_value, "Disabled because it is already equal to the default value", [&]() {
+    ImGuiExtras::disabled_if(_value == _default_value, "Already at the default value", [&]() {
         if (ImGui::Button(("Reset to default value (" + stringify(_default_value) + ")").c_str()))
         {
             _value = _default_value;
@@ -39,12 +39,10 @@ void Variable<T>::imgui(ImGuiVariableCallbacks const& callbacks)
         if (imgui_widget(*this))
             callbacks.on_value_changed();
 
-        ImGui::SameLine();
-        ImGui::Dummy(ImVec2(5.0f, 0.0f));
-        ImGui::SameLine();
+        ImGui::SameLine(5.0f, 0.0f);
 
-        ImGuiExtras::disabled_if(_value == _default_value, "Disabled because it is already equal to the default value", [&]() {
-            if (ImGui::Button("  " ICOMOON_UNDO2))
+        ImGuiExtras::disabled_if(_value == _default_value, "Already at the default value", [&]() {
+            if (ImGuiExtras::button_with_text_icon(ICOMOON_UNDO2))
             {
                 _value = _default_value;
                 callbacks.on_value_changed();
