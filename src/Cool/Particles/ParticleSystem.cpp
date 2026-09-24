@@ -48,6 +48,20 @@ ParticleSystem::ParticleSystem(int dimension, ParticlesShadersCode const& shader
 void ParticleSystem::render()
 {
 #if !defined(COOL_PARTICLES_DISABLED_REASON)
+    // Set the pipeline state explicitly, instead of inheriting whatever the module that rendered
+    // just before us happened to leave bound. These are the values that were already in effect, so
+    // this doesn't change how particles look; it just stops them depending on the render order.
+    GLDebug(glEnable(GL_BLEND));
+    GLDebug(glBlendEquation(GL_FUNC_ADD));
+    // GL_ONE / GL_ZERO means "overwrite", so particles currently don't blend with each other.
+    // Switching to real alpha blending would also mean deciding whether our render targets hold
+    // premultiplied or straight alpha, because the nodes that sample this texture downstream treat
+    // it as straight alpha, and premultiplied colors would come out too dark.
+    // TODO(Particles) Make overlapping translucent particles blend together.
+    GLDebug(glBlendFunc(GL_ONE, GL_ZERO));
+    GLDebug(glDisable(GL_DEPTH_TEST)); // There is no depth buffer, and particles are drawn in the order they are stored
+    GLDebug(glDisable(GL_CULL_FACE));  // In 3D the billboards' winding flips when the camera moves past them, and culling would make them vanish
+
     _render_shader.bind(); // No need to bind the SSBOs: the render shader reads the particles as instanced vertex attributes, which are part of the VAO's state. See setup_instanced_vertex_attributes().
     glpp::bind_vertex_array(_render_vao);
     glpp::draw_arrays_instanced(_render_vao, glpp::PrimitiveDrawMode::Triangles, 0, 6, static_cast<GLsizei>(_particles_count));
