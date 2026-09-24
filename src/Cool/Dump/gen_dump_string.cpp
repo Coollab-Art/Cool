@@ -13,7 +13,8 @@ auto gen_dump_string() -> std::string
     auto dump = DumpStringGenerator{};
     dump.add(COOL_APP_NAME, app_version())
         .add("OS", os_name())
-        .add("GPU API", gpu_api_version()) //  full_gpu_info(), // TODO(WebGPU) Check if we can access the info even if we failed to init WebGPU // And check that it shows the underlying chosen GPU API
+        // This is the version we *request*, not the one the driver gives us. The actual GPU, driver and context version are logged by log_opengl_info(): they can't go here, because this string is written to the log file before any GPU context exists.
+        .add("Requested GPU API", gpu_api_version())
         .add("Build mode",
 #if DEBUG
              "Debug"

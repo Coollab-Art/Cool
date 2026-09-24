@@ -3,20 +3,24 @@
 
 namespace Cool {
 
+/// glGetString() returns nullptr if there is no current context, or if it errors out.
+static auto get_string(GLenum name) -> char const*
+{
+    char const* str = reinterpret_cast<char const*>(glGetString(name));
+    return str ? str : "<unknown>";
+}
+
 auto full_gpu_info_impl() -> std::string
 {
-    const char* vendor   = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-    const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-    const char* version  = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-    return fmt::format(R"STR(GPU vendor        : {}
-GPU model         : {}
-GPU version       : {})STR",
-                       vendor, renderer, version);
+    return fmt::format(R"STR(GPU vendor         : {}
+GPU model          : {}
+GPU driver         : {})STR",
+                       get_string(GL_VENDOR), get_string(GL_RENDERER), get_string(GL_VERSION));
 }
 
 auto gpu_name_impl() -> std::string
 {
-    return reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    return get_string(GL_RENDERER);
 }
 
 } // namespace Cool

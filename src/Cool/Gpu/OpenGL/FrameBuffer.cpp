@@ -9,9 +9,10 @@ void FrameBuffer::setSize(img::Size size)
     destroyAttachments();
     createAttachments(size);
     attachAttachments();
-#if DEBUG
     bind();
-    GLDebug(auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER));
+#if DEBUG
+    GLenum status{};
+    GLDebug(status = glCheckFramebufferStatus(GL_FRAMEBUFFER));
     if (status != GL_FRAMEBUFFER_COMPLETE)
     {
         const auto statusStr = [status]() {
@@ -39,10 +40,13 @@ void FrameBuffer::setSize(img::Size size)
         }();
         Log::internal_error("Framebuffer incomplete", statusStr);
     }
-    glClearColor(0.f, 0.f, 0.f, 0.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Make sure to init the values in the framebuffer
-    unbind();
 #endif
+    // Make sure to init the values in the framebuffer. This must happen in Release too: freshly
+    // allocated attachments contain undefined data, and whether reading it gives zeroes or garbage
+    // is up to the driver.
+    glClearColor(0.f, 0.f, 0.f, 0.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    unbind();
 }
 
 void FrameBuffer::bind() const

@@ -39,7 +39,8 @@ ComputeShader::ComputeShader(unsigned int working_group_size, std::string_view s
 
 void ComputeShader::compute(glm::uvec3 size)
 {
-    assert(size != glm::uvec3(0));
+    if (size.x == 0 || size.y == 0 || size.z == 0)
+        return; // There is nothing to compute. We must return early, otherwise the unsigned subtraction below underflows and we dispatch billions of work groups (which triggers a GPU timeout reset on Windows).
     assert_compute_shader_is_bound(id());
     set_uniform("DispatchSize", size);
     glm::uvec3 dispatch_group_count = (size - glm::uvec3{1}) / _working_group_size + glm::uvec3(1);
@@ -74,8 +75,8 @@ void cool_main();
            + R"V0G0N(
 void main() {
     if (gl_GlobalInvocationID.x < DispatchSize.x
-     && gl_GlobalInvocationID.y < DispatchSize.x
-     && gl_GlobalInvocationID.z < DispatchSize.y
+     && gl_GlobalInvocationID.y < DispatchSize.y
+     && gl_GlobalInvocationID.z < DispatchSize.z
     ) {
         cool_main();
     }

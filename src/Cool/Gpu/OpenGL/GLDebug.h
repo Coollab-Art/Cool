@@ -4,12 +4,17 @@
 #if DEBUG
 
 namespace Cool {
-/// Wrap all you OpenGL calls in this macro : it will add debug checks. Something like : GLDebug(GLuint programID = glCreateProgram())
+/// Wrap all your OpenGL calls in this macro : it will add debug checks. Something like : GLDebug(glDrawArrays(GL_TRIANGLES, 0, 3))
 /// It is not strictly necessary though because modern OpenGL debugging is enabled too. It's only to help those who don't have the advandced debugging available on their machine.
-#define GLDebug(x)                          \
-    CoolGlDebug::clearFromPreviousErrors(); \
-    x;                                      \
-    assert(!CoolGlDebug::checkForErrors(#x, __FILE__, __LINE__))
+/// It expands to a single statement, so it is safe to use as the body of a braceless if / for.
+/// It can't be used to declare a variable: declare it on the line before, and only wrap the assignment.
+#define GLDebug(x)                                                    \
+    do                                                                \
+    {                                                                 \
+        CoolGlDebug::clearFromPreviousErrors();                       \
+        x;                                                            \
+        assert(!CoolGlDebug::checkForErrors(#x, __FILE__, __LINE__)); \
+    } while (0)
 } // namespace Cool
 
 namespace CoolGlDebug {
@@ -24,7 +29,11 @@ void shut_down();
 
 #else
 namespace Cool {
-#define GLDebug(x) x
+#define GLDebug(x) \
+    do             \
+    {              \
+        x;         \
+    } while (0)
 } // namespace Cool
 #endif
 #endif

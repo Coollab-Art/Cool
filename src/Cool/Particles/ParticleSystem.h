@@ -40,6 +40,7 @@ public:
 
 private:
     void bind_SSBOs();
+    void setup_instanced_vertex_attributes();
 
 private:
     size_t _particles_count{};

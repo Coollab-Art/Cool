@@ -49,6 +49,10 @@ public:
         return *this;
     }
 
+    /// Raw OpenGL name of the buffer. Useful to also bind it to another target, e.g. as a
+    /// GL_ARRAY_BUFFER to read it as a vertex attribute.
+    auto id() const -> GLuint { return _id; }
+
     void bind()
     {
         GLDebug(glBindBufferBase(GL_SHADER_STORAGE_BUFFER, _binding, _id));
@@ -85,7 +89,8 @@ public:
     void download_data(size_t nb_of_elements, T* data) const
     {
         GLDebug(glBindBuffer(GL_SHADER_STORAGE_BUFFER, _id));
-        GLDebug(GLvoid* p = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY));
+        GLvoid* p{};
+        GLDebug(p = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY));
         memcpy(data, p, nb_of_elements * sizeof(T));
         GLDebug(glUnmapBuffer(GL_SHADER_STORAGE_BUFFER));
     }

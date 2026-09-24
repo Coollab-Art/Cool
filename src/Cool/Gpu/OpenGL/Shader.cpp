@@ -41,7 +41,8 @@ GLint Shader::uniform_location(std::string_view uniform_name) const
     }
     else
     {
-        GLDebug(GLint location = glGetUniformLocation(_shader.id(), name.c_str()));
+        GLint location{};
+        GLDebug(location = glGetUniformLocation(_shader.id(), name.c_str()));
         _uniform_locations[name] = location;
         return location;
     }

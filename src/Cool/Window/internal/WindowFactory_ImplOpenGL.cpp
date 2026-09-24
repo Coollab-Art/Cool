@@ -6,6 +6,7 @@
 #include <Cool/Utils/Version.h>
 #include <imgui/backends/imgui_impl_glfw.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
+#include "Cool/Gpu/OpenGL/log_opengl_info.hpp"
 #include "GLDebugCallback.h"
 #include "WindowFactoryU.h"
 
@@ -59,6 +60,7 @@ static void setup_imgui(Window& window)
 
 void WindowFactory_ImplOpenGL::setup_main_window(Window& window)
 {
+    log_opengl_info(); // Not just in DEBUG: this is what tells us which GPU and which limits a user has, when they report that a feature doesn't work on their machine
 #if DEBUG
     setup_opengl_debugging();
 #endif
