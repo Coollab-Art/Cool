@@ -198,6 +198,9 @@ void image_centered(ImTextureID texture_id, const ImVec2& size, const ImVec2& uv
 /// returns true iff the toggle or a widget in the submenu was used this frame.
 bool toggle_with_submenu(const char* label, bool* bool_p, std::function<bool()> const& submenu);
 
+/// Custom implementation for ImGui::BeginMenu because we don't want to switch menus on hover
+bool BeginMenu(const char* label, const char* icon = NULL, bool enabled = true, float arrow_offset_y = 0.f);
+
 /// Like ImGui::BeginDisabled() + ImGui::EndDisabled(), but adds a message on hover
 void disabled_if(bool condition_to_disable, const char* reason_to_disable, std::function<void()> const& widgets);
 /// Like ImGui::BeginDisabled() + ImGui::EndDisabled(), but adds a message on hover
