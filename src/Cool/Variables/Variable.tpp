@@ -1,5 +1,7 @@
 #include <Cool/ImGui/ImGuiExtras.h>
 #include <stringify/stringify.hpp>
+#include "Cool/ImGui/IcoMoonCodepoints.h"
+#include "Cool/ImGui/icon_fmt.h"
 
 namespace Cool {
 
@@ -36,6 +38,20 @@ void Variable<T>::imgui(ImGuiVariableCallbacks const& callbacks)
     {
         if (imgui_widget(*this))
             callbacks.on_value_changed();
+
+        ImGui::SameLine();
+        ImGui::Dummy(ImVec2(5.0f, 0.0f));
+        ImGui::SameLine();
+
+        ImGuiExtras::disabled_if(_value == _default_value, "Disabled because it is already equal to the default value", [&]() {
+            if (ImGui::Button("  " ICOMOON_UNDO2))
+            {
+                _value = _default_value;
+                callbacks.on_value_changed();
+                callbacks.on_value_editing_finished();
+            }
+            ImGui::SetItemTooltip("%s", ("Reset to default value (" + stringify(_default_value) + ")").c_str());
+        });
     }
     ImGui::EndGroup();
     ImGui::PopID();
